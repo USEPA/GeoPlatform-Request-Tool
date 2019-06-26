@@ -1,0 +1,21 @@
+.header-cell.cdk-column-selected, .cell.cdk-column-selected,
+.header-cell.cdk-column-save, .cell.cdk-column-save {
+  max-width: 40px;
+  /*text-align: center;*/
+  /*justify-content: center;*/
+}
+
+
+.header-cell.cdk-column-created,
+.header-cell.cdk-column-approved {
+  max-width: 60px;
+  /*text-align: center;*/
+  /*justify-content: center;*/
+}
+
+.cell.cdk-column-created, .cell.cdk-column-approved {
+  max-width: 60px;
+  /*text-align: center;*/
+  justify-content: center;
+}
+

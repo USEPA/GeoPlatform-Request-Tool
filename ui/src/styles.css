@@ -1,0 +1,87 @@
+/* You can add global styles to this file, and also import other style files */
+body {
+  margin: 0;
+}
+
+html, body, app-root, app-login {
+  display: flex;
+  min-height: 100vh;
+  max-height: 100vh;
+  flex-direction: column;
+}
+
+.main-view, app-request-form {
+  flex: 1;
+  flex-direction: row;
+  display: flex !important;
+  justify-content: center;
+  /*align-items: center;*/
+}
+
+.mat-toolbar-row, .mat-toolbar-single-row {
+  padding: 0 !important;
+}
+
+.mat-drawer-container, .mat-table, .mat-paginator {
+  background-color: #fafafa !important;
+}
+
+.filter-sidenav > mat-list > mat-list-item > .mat-list-item-content {
+  justify-content: space-around !important;
+  height: 60px !important;
+}
+
+mat-sidenav-content {
+  padding-left: 15px;
+}
+
+mat-table {
+  padding-right: 30px;
+}
+
+mat-table mat-row:nth-child(odd) {
+  background-color: #eeeeee;
+}
+
+mat-row.row.mat-row:hover {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+.mat-header-row {
+  position: sticky;
+  top: 0;
+  background: #FAFAFA;
+  z-index: 9999;
+}
+
+.table {
+  flex: 1 1 auto;
+  overflow: auto;
+  max-height: 100%;
+
+}
+
+.list-container, app-approval-list, mat-sidenav-container, mat-sidenav-content, .sidenav-content {
+  flex: 1;
+  flex-direction: column;
+  display: flex !important;
+}
+
+/*.mat-select-value-text {*/
+  /*white-space: normal !important;*/
+/*}*/
+
+.mat-tooltip {
+  white-space: pre-line;
+  font-size: 20px;
+}
+
+.filter-sidenav > mat-list > mat-list-item > .mat-list-item-content {
+  justify-content: space-around !important;
+  height: 60px !important;
+  margin-top: 15px;
+}
+
+mat-list-item.filter-btn div {
+  justify-content: space-between;
+}

@@ -1,0 +1,17 @@
+<header>
+  <mat-toolbar class="header" color="primary" style="justify-content: space-between">
+    <div style="display: flex; align-items: center; cursor: pointer;" routerLink="/">
+            <img src="../assets/EPA_logo.png" style="width: 60px;"/>
+            GeoPlatform Account Request Form
+        </div>
+    <div style="padding-right: 25px;">
+      <button mat-button routerLink="/accounts/list/" *ngIf="!(loginService.valid_token | async)">Sponsor Login</button>
+      <button mat-button [matMenuTriggerFor]="menu" *ngIf="(loginService.valid_token | async)">{{ loginService.display_name }}</button>
+      <mat-menu #menu="matMenu">
+        <button mat-menu-item routerLink="/accounts/list/">Approval List</button>
+        <button mat-menu-item (click)="logout()">Logout</button>
+      </mat-menu>
+    </div>
+  </mat-toolbar>
+</header>
+<router-outlet></router-outlet>

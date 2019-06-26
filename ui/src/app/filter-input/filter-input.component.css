@@ -1,0 +1,9 @@
+.filter-clear-button {
+   position: absolute;
+  top: 2px;
+  right: 20px;
+  z-index: 9999;
+  padding: 0;
+  line-height: 0;
+  min-width: 12px;
+}

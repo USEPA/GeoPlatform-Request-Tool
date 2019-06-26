@@ -1,0 +1,32 @@
+<mat-card style="flex-basis: 500px; height: 100%">
+  <form novalidate [formGroup]="requestForm"
+        style="display: flex; flex-direction: column; justify-content: center;">
+    <mat-form-field>
+      <input matInput type="text" required formControlName="first_name" placeholder="First Name">
+    </mat-form-field>
+    <mat-form-field>
+      <input matInput type="text" required formControlName="last_name" placeholder="Last Name">
+    </mat-form-field>
+    <mat-form-field>
+      <input matInput type="email" required formControlName="email" placeholder="Email">
+      <mat-error *ngIf="requestForm.controls.email.invalid">
+        {{ requestForm.controls.email.hasError('email') ? 'Not a valid email' : '' }}
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field>
+      <input matInput type="text" required formControlName="organization" placeholder="Organization">
+    </mat-form-field>
+    <mat-form-field>
+      <mat-select formControlName="sponsor" placeholder="Sponsor" required>
+        <mat-option *ngFor="let sponsor of sponsors | async" [value]="sponsor.value">
+          {{ sponsor.display }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <re-captcha formControlName="recaptcha"></re-captcha>
+  </form>
+  <button mat-raised-button color="primary" [disabled]="!requestForm.valid || (submitting | async)" (click)="submit()"
+          style="float: right; margin-top: -36px">
+    Submit
+  </button>
+</mat-card>
