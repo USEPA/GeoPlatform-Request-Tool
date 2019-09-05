@@ -3,7 +3,7 @@ import sys
 import requests
 from social_django.utils import load_strategy
 import time
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from urllib.parse import urlencode
 import json
 from django.utils.timezone import now
@@ -49,7 +49,7 @@ class AGOLGroup(models.Model):
     id = models.UUIDField(primary_key=True)
     title = models.CharField(max_length=500)
     agol = models.ForeignKey('AGOL', on_delete=models.CASCADE, related_name='groups')
-    show = models.BooleanField(default=False, verbose_name='Show in multi-select')
+    show = models.BooleanField(default=False, verbose_name='Show in all multi-selects')
     requests = models.ManyToManyField('AccountRequests')
 
     def __str__(self):
@@ -251,3 +251,7 @@ class AGOLUserFields(models.Model):
         if self.sponsor and not self.user.email:
             raise ValidationError('Email can not be blank if user is a sponsor.')
 
+
+class AGOLGroupFields(models.Model):
+    group = models.OneToOneField(Group, on_delete=models.CASCADE)
+    assignable_groups = models.ManyToManyField('AGOLGroup', blank=True, related_name='assignable_groups')

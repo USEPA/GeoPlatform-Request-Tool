@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import *
-from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.admin import UserAdmin, GroupAdmin
 
 
 @admin.register(AGOL)
@@ -9,6 +9,7 @@ class AGOLAdmin(admin.ModelAdmin):
 
 
 admin.site.unregister(User)
+admin.site.unregister(Group)
 
 
 class AGOLUserFieldsInline(admin.StackedInline):
@@ -18,6 +19,14 @@ class AGOLUserFieldsInline(admin.StackedInline):
 @admin.register(User)
 class AGOLUserAdmin(UserAdmin):
     inlines = (AGOLUserFieldsInline,)
+
+
+class AGOLGroupFieldsInline(admin.StackedInline):
+    model = AGOLGroupFields
+
+@admin.register(Group)
+class AGOLGroupAdmin(GroupAdmin):
+    inlines = (AGOLGroupFieldsInline,)
 
 
 def toggle_show(self, request, queryset):

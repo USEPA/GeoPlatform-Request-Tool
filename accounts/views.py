@@ -9,7 +9,7 @@ from django.shortcuts import get_list_or_404
 from django.contrib.auth.models import User
 from django.utils.timezone import now
 from django_filters.rest_framework import FilterSet, BooleanFilter
-
+from django.db.models import Q
 
 class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
     queryset = AccountRequests.objects.none()
@@ -150,7 +150,11 @@ class AccountViewSet(ModelViewSet):
 
 
 class AGOLGroupViewSet(ReadOnlyModelViewSet):
-    queryset = AGOLGroup.objects.filter(show=True)
+    queryset = AGOLGroup.objects.none()
     serializer_class = AGOLGroupSerializer
     ordering = ['title']
     pagination_class = None
+
+    # only show groups for which the user the user has access per agol group fields assignable groups
+    def get_queryset(self):
+        return AGOLGroup.objects.filter(Q(show=True) | Q(assignable_groups__group__in=self.request.user.groups.all()))
