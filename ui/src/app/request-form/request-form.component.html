@@ -1,4 +1,8 @@
 <mat-card style="flex-basis: 500px; height: 100%">
+  <mat-card-subtitle>Use the form below to request an EPA GeoPlatform account or to request access to GeoPlatform
+    groups for a specific emergency response.
+  </mat-card-subtitle>
+  <mat-divider></mat-divider>
   <form novalidate [formGroup]="requestForm"
         style="display: flex; flex-direction: column; justify-content: center;">
     <mat-form-field>
@@ -12,6 +16,7 @@
       <mat-error *ngIf="requestForm.controls.email.invalid">
         {{ requestForm.controls.email.hasError('email') ? 'Not a valid email' : '' }}
       </mat-error>
+       <mat-hint>This email will be associated with your GeoPlatform account.</mat-hint>
     </mat-form-field>
     <mat-form-field>
       <input matInput type="text" required formControlName="organization" placeholder="Organization">
@@ -28,5 +33,9 @@
   <button mat-raised-button color="primary" [disabled]="!requestForm.valid || (submitting | async)" (click)="submit()"
           style="float: right; margin-top: -36px">
     Submit
-  </button>
+  </button><br><br>
+    <mat-divider></mat-divider>
+  <mat-card-subtitle><br>To become a Sponsor, contact Cheryl Henley at 415-972-3586.
+    <br><br>For additional information on becoming a Sponsor, using this tool, or GeoPlatform group management
+    during a response, visit **response.epa.gov/something**.</mat-card-subtitle>
 </mat-card>
