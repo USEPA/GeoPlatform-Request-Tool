@@ -5,7 +5,7 @@
             GeoPlatform Account Request Form
         </div>
     <div style="padding-right: 25px;">
-      <a href="assets\UserGuide.docx"><mat-icon style="padding-bottom: -15px">help</mat-icon></a>
+      <a href="assets\UserGuide.docx"><mat-icon style="color:white;">help</mat-icon></a>
       <button mat-button routerLink="/accounts/list/" *ngIf="!(loginService.valid_token | async)">Sponsor Login</button>
       <button mat-button [matMenuTriggerFor]="menu" *ngIf="(loginService.valid_token | async)">{{ loginService.display_name }}</button>
       <mat-menu #menu="matMenu">

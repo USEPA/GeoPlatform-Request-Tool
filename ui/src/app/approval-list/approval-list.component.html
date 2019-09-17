@@ -64,7 +64,8 @@
           </mat-header-cell>
           <mat-cell *cdkCellDef="let row" class="cell">
             <mat-icon color="warn" *ngIf="row.possible_existing_account" tooltipClass="'mat-tooltip'"
-                      matTooltip="Found accounts with same email. Username(s): {{ row.possible_existing_account }}">
+                      matTooltip="Found accounts with same email. To add existing account to groups, edit Username column to an existing username.
+                      Existing username(s): {{ row.possible_existing_account }}">
               warning
             </mat-icon>
             {{ row.email }}</mat-cell>
