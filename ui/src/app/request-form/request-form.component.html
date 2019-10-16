@@ -22,7 +22,7 @@
       <input matInput type="text" required formControlName="organization" placeholder="Organization">
     </mat-form-field>
     <mat-form-field>
-      <mat-select formControlName="sponsor" placeholder="Sponsor" required>
+      <mat-select formControlName="sponsor" placeholder="Field Team Coordinator" required>
         <mat-option *ngFor="let sponsor of sponsors | async" [value]="sponsor.value">
           {{ sponsor.display }}
         </mat-option>
@@ -35,7 +35,7 @@
     Submit
   </button><br><br>
     <mat-divider></mat-divider>
-  <mat-card-subtitle><br>To become a Sponsor, contact Cheryl Henley at 415-972-3586.
-    <br><br>For additional information on becoming a Sponsor, using this tool, or GeoPlatform group management
+  <mat-card-subtitle>
+    <br><br>For additional information on Field Team Coordinator access, using this tool, or GeoPlatform group management
     during a response, visit the <a href="/assets/UserGuide.pdf" target="_blank">Help Documentation</a>.</mat-card-subtitle>
 </mat-card>
