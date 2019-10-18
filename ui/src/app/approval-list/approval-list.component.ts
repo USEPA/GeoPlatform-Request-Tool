@@ -15,8 +15,9 @@ import {LoginService} from '../services/login.service';
 })
 export class ApprovalListComponent implements OnInit {
   accounts: BaseService;
-  displayedColumns = ['selected', 'first_name', 'last_name', 'email', 'username', 'organization', 'role', 'user_type',
+  displayedColumns = ['selected', 'first_name', 'last_name', 'email', 'username', 'organization',
     'groups', 'sponsor', 'approved', 'created', 'save'];
+  //took out "roll" and "user_type"
   selectedAccounts = [];
   roles: Observable<[]>;
   user_types: Observable<[]>;

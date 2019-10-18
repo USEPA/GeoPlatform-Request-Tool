@@ -27,15 +27,17 @@
           {{ sponsor.display }}
         </mat-option>
       </mat-select>
+      <mat-hint>This team coordinator will be assigned to review your request.</mat-hint>
     </mat-form-field>
+    <br>
     <re-captcha formControlName="recaptcha"></re-captcha>
   </form>
   <button mat-raised-button color="primary" [disabled]="!requestForm.valid || (submitting | async)" (click)="submit()"
           style="float: right; margin-top: -36px">
     Submit
-  </button><br><br>
+  </button><br>
     <mat-divider></mat-divider>
   <mat-card-subtitle>
-    <br><br>For additional information on Field Team Coordinator access, using this tool, or GeoPlatform group management
+    <br>For additional information on Field Team Coordinator access, using this tool, or GeoPlatform group management
     during a response, visit the <a href="/assets/UserGuide.pdf" target="_blank">Help Documentation</a>.</mat-card-subtitle>
 </mat-card>
