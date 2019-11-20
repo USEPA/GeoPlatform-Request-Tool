@@ -6,8 +6,8 @@ from social_core.exceptions import AuthException
 class AGOLOAuth2(BaseOAuth2):
     name = 'agol'
     ID_KEY = 'username'
-    AUTHORIZATION_URL = 'https://www.arcgis.com/sharing/rest/oauth2/authorize'
-    ACCESS_TOKEN_URL = 'https://www.arcgis.com/sharing/rest/oauth2/token'
+    AUTHORIZATION_URL = 'https://epa.maps.arcgis.com/sharing/rest/oauth2/authorize'
+    ACCESS_TOKEN_URL = 'https://epa.maps.arcgis.com/sharing/rest/oauth2/token'
     REQUIRES_EMAIL_VALIDATION = False
     ACCESS_TOKEN_METHOD = 'POST'
     EXTRA_DATA = [
