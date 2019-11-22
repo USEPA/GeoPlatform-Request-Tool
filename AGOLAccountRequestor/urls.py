@@ -27,6 +27,10 @@ router.register('account/request', account_views.AccountRequestViewSet)
 router.register('account/approvals', account_views.AccountViewSet)
 router.register('agol/groups', account_views.AGOLGroupViewSet)
 
+admin.site.site_header = "EPA GeoPlatform Account Request Tool"
+admin.site.site_title = "GeoPlatform Account Request Tool"
+admin.site.index_title = "Tool Administration"
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
