@@ -47,6 +47,7 @@ import {HttpRequestInterceptor} from './http-request.interceptor';
 import { ConfirmApprovalDialogComponent } from './confirm-approval-dialog/confirm-approval-dialog.component';
 import {environment} from '../environments/environment';
 import {FilterInputComponent} from './filter-input/filter-input.component';
+import { HomeComponent } from './home/home.component';
 
 @NgModule({
   declarations: [
@@ -56,7 +57,8 @@ import {FilterInputComponent} from './filter-input/filter-input.component';
     LoginComponent,
     OauthcallbackComponent,
     ConfirmApprovalDialogComponent,
-    FilterInputComponent
+    FilterInputComponent,
+    HomeComponent
   ],
   imports: [
     BrowserModule,

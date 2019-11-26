@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
+import {HomeComponent} from './home/home.component';
 import {RequestFormComponent} from './request-form/request-form.component';
 import {LoginComponent} from './login/login.component';
 import {OauthcallbackComponent} from './oauthcallback/oauthcallback.component';
@@ -9,7 +10,7 @@ import {ApprovalListComponent} from './approval-list/approval-list.component';
 const routes: Routes = [
   {path: 'login', component: LoginComponent},
   {path: 'oauthcallback', component: OauthcallbackComponent},
-  {path: '', component: RequestFormComponent},
+  {path: '', component: HomeComponent},
   {path: 'accounts', canActivateChild: [LoginService],
     children: [
       {path: 'list', component: ApprovalListComponent}
