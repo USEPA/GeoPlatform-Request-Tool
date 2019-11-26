@@ -39,6 +39,7 @@ $custom-colors: (
 #homepage-options .flex-item {
   min-width: 250px;
   color: map-get($custom-colors, light-grey);
+  cursor: pointer;
 }
 #homepage-options h2 {
   text-align: center;

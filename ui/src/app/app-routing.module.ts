@@ -15,7 +15,8 @@ const routes: Routes = [
     children: [
       {path: 'list', component: ApprovalListComponent}
     ]
-  }
+  },
+  {path: 'requestaccount', component: RequestFormComponent},
 ];
 
 @NgModule({

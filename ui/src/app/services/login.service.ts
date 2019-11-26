@@ -4,11 +4,11 @@ import {catchError, map, switchMap, tap} from 'rxjs/operators';
 import {environment} from '../../environments/environment';
 // import {loadModules} from 'esri-loader';
 import {BehaviorSubject, Observable} from 'rxjs';
-import {Router, ActivatedRouteSnapshot, CanActivateChild, RouterStateSnapshot} from '@angular/router';
+import {Router, ActivatedRouteSnapshot, CanActivateChild, CanActivate, RouterStateSnapshot} from '@angular/router';
 
 
 @Injectable()
-export class LoginService implements CanActivateChild {
+export class LoginService implements CanActivateChild, CanActivate {
   access_token;
   token_expires: Date;
   username: string;
@@ -39,13 +39,25 @@ export class LoginService implements CanActivateChild {
                 this.display_name = response.name;
                 this.is_superuser = response.is_superuser;
                 resolve(true);
-              }))
+              }));
           }
         ),
         catchError(() => this.router.navigate(['login']))
       ).subscribe();
 
-    })
+    });
+  }
+
+  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean {
+    return new Promise(resolve => {
+
+      this.loadToken().pipe(
+        tap(() => resolve(true)
+        ),
+        catchError(() => this.router.navigate(['login']))
+      ).subscribe();
+
+    });
   }
 
   sendToLogin() {
@@ -107,23 +119,15 @@ export class LoginService implements CanActivateChild {
 
   loadToken() {
     return new Observable(obs => {
-      let expiration_date = String(localStorage.getItem('token_expires'));
+      const expiration_date = String(localStorage.getItem('token_expires'));
       this.token_expires = expiration_date !== 'null' ? new Date(expiration_date) : new Date();
       this.access_token = localStorage.getItem('access_token');
-      obs.next();
-      obs.complete();
-      this.valid_token.next(true);
-      // if (this.access_token) {
-      //   this.loadEsriToken()
-      //     .then(() => {
-      //       obs.next();
-      //       obs.complete();
-      //     }).catch(() => {
-      //     obs.error();
-      //   });
-      // } else {
-      //   obs.error();
-      // }
+      if (this.access_token) {
+        obs.next();
+        obs.complete();
+      } else {
+        obs.error();
+      }
     });
   }
 
