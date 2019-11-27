@@ -44,10 +44,12 @@ import {LoginComponent} from './login/login.component';
 import {OauthcallbackComponent} from './oauthcallback/oauthcallback.component';
 import {LoginService} from './services/login.service';
 import {HttpRequestInterceptor} from './http-request.interceptor';
-import { ConfirmApprovalDialogComponent } from './confirm-approval-dialog/confirm-approval-dialog.component';
+import { ConfirmApprovalDialogComponent } from './approval-list-dialogs/confirm-approval-dialog/confirm-approval-dialog.component';
+import { RequestFieldCoordDialogComponent } from './approval-list-dialogs/request-field-coord-dialog/request-field-coord-dialog.component';
 import {environment} from '../environments/environment';
 import {FilterInputComponent} from './filter-input/filter-input.component';
 import { HomeComponent } from './home/home.component';
+
 
 @NgModule({
   declarations: [
@@ -57,6 +59,7 @@ import { HomeComponent } from './home/home.component';
     LoginComponent,
     OauthcallbackComponent,
     ConfirmApprovalDialogComponent,
+    RequestFieldCoordDialogComponent,
     FilterInputComponent,
     HomeComponent
   ],
@@ -119,7 +122,10 @@ import { HomeComponent } from './home/home.component';
     LoginService
   ],
   bootstrap: [AppComponent],
-  entryComponents: [ConfirmApprovalDialogComponent]
+  entryComponents: [
+    ConfirmApprovalDialogComponent,
+    RequestFieldCoordDialogComponent
+  ]
 })
 export class AppModule {
 }

@@ -1,0 +1,55 @@
+<h1 mat-dialog-title>Field Coordinator Request Form</h1>
+<div mat-dialog-content>
+  <form novalidate [formGroup]="requestFieldCoordForm">
+    <!--first name-->
+    <mat-form-field>
+      <input matInput [(ngModel)]="data.first_name" type="text" formControlName="first_name" placeholder="First Name">
+    </mat-form-field>
+    <!--last name-->
+    <mat-form-field>
+      <input matInput [(ngModel)]="data.last_name" type="text" formControlName="last_name" placeholder="Last Name">
+    </mat-form-field>
+    <!-- phone number -->
+    <mat-form-field>
+      <input matInput [(ngModel)]="data.phone_number" placeholder="Phone number" formControlName="phone_number"
+             maxlength="10">
+      <mat-hint>Enter a 10 digit phone number, including the area code</mat-hint>
+      <mat-error *ngIf="requestFieldCoordForm.controls['phone_number'].errors">Not a valid phone number</mat-error>
+    </mat-form-field>
+    <!--email-->
+    <mat-form-field>
+      <input matInput [(ngModel)]="data.email" type="email" formControlName="email" placeholder="Email">
+      <mat-error *ngIf="requestFieldCoordForm.controls.email.invalid">Not a valid email</mat-error>
+    </mat-form-field>
+    <!--region-->
+    <mat-form-field>
+      <mat-select matNativeControl [(ngModel)]="data.region" placeholder="Region" formControlName="region">
+        <mat-option value=1>Region I - New England</mat-option>
+        <mat-option value=2>Region II - NJ, NY, Puerto Rico, US Virgin Islands</mat-option>
+        <mat-option value=3>Region III - Mid Atlantic</mat-option>
+        <mat-option value=4>Region IV - Southeast</mat-option>
+        <mat-option value=5>Region V - Great Lakes</mat-option>
+        <mat-option value=6>Region VI - Central South</mat-option>
+        <mat-option value=7>Region VII - IA, KS, MO, NE</mat-option>
+        <mat-option value=8>Region VIII - CO, MT, ND, SD, UT, WY</mat-option>
+        <mat-option value=9>Region IX - Pacific Southwest</mat-option>
+        <mat-option value=10>Region X - Pacific Northwest</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+      <input matInput type="text" formControlName="agol_user" placeholder="GeoPlatform user account">
+    </mat-form-field>
+    <mat-form-field>
+      <input matInput type="text" formControlName="emergency_response"
+             placeholder="Emergency Response you are working on?">
+    </mat-form-field>
+  </form>
+</div>
+<div mat-dialog-actions>
+  <button mat-raised-button color="accent" (click)="dismiss()">Cancel</button>
+  <button mat-raised-button color="primary"
+          [disabled]="!requestFieldCoordForm.valid"
+          (click)="submit()">
+    Submit
+  </button>
+</div>

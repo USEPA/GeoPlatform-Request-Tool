@@ -6,8 +6,17 @@ import {catchError, map, share, switchMap, tap} from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {iif, Observable, of} from 'rxjs';
-import {ConfirmApprovalDialogComponent} from '../confirm-approval-dialog/confirm-approval-dialog.component';
+import {ConfirmApprovalDialogComponent} from '../approval-list-dialogs/confirm-approval-dialog/confirm-approval-dialog.component';
+import {RequestFieldCoordDialogComponent} from '../approval-list-dialogs/request-field-coord-dialog/request-field-coord-dialog.component';
 import {LoginService} from '../services/login.service';
+
+export interface FieldCoordinator {
+  first_name: string;
+  last_name: string;
+  phone_number: number;
+  email: string;
+  region: string;
+}
 
 @Component({
   selector: 'app-approval-list',
@@ -18,12 +27,13 @@ export class ApprovalListComponent implements OnInit {
   accounts: BaseService;
   displayedColumns = ['selected', 'first_name', 'last_name', 'email', 'username', 'organization',
     'groups', 'sponsor', 'approved', 'created', 'save'];
-  //took out "roll" and "user_type"
+  // took out "roll" and "user_type"
   selectedAccounts = [];
   roles: Observable<[]>;
   user_types: Observable<[]>;
   groups: Observable<[]>;
   sponsors: Observable<[]>;
+  field_coordinator: FieldCoordinator;
 
   constructor(public http: HttpClient, loadingService: LoadingService, public snackBar: MatSnackBar,
               public dialog: MatDialog, public loginService: LoginService) {
@@ -90,10 +100,29 @@ export class ApprovalListComponent implements OnInit {
             this.snackBar.open("Success", null, {duration: 2000})
           }))))
           )
-        )
+        );
       }),
       catchError(() => of(this.snackBar.open("Error", null, {duration: 3000})))
     ).subscribe();
+  }
+
+  openRequestFieldCoordDialog(): void {
+    const dialogRef = this.dialog.open(RequestFieldCoordDialogComponent, {
+      width: '800px',
+      data: {
+        first_name: null,
+        last_name: null,
+        phone_number: null,
+        email: null,
+        region: null,
+        agol_user: null,
+        emergency_response: null
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(formInputValues => {
+      this.field_coordinator = formInputValues;
+    });
   }
 
 }
