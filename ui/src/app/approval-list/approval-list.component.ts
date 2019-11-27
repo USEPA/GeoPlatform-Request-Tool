@@ -72,7 +72,7 @@ export class ApprovalListComponent implements OnInit {
         const index = this.accounts.data.indexOf(record);
         this.accounts.data.splice(index, 1, response);
         this.accounts.dataChange.next(this.accounts.data);
-        this.snackBar.open("Success", null, {duration: 2000})
+        this.snackBar.open("Success", null, {duration: 2000});
       }),
       catchError(() => of(this.snackBar.open("Error", null, {duration: 3000})))
     ).subscribe();
@@ -122,7 +122,15 @@ export class ApprovalListComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(formInputValues => {
       this.field_coordinator = formInputValues;
+      this.emailFieldCoordRequest();
     });
+  }
+
+  async emailFieldCoordRequest() {
+    const result = await this.http.post('/v1/email_field_coordinator_request/', this.field_coordinator).toPromise();
+    if (result === true) {
+      this.snackBar.open('Email sent', null, {duration: 2000});
+    }
   }
 
 }
