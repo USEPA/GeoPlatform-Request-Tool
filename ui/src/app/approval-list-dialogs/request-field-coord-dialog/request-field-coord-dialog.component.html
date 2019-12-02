@@ -1,4 +1,6 @@
-<h1 mat-dialog-title>Field Coordinator Request Form</h1>
+<h1 mat-dialog-title>Field Team Coordinator Request Form</h1>
+<div id="request-dialog"> Use the form below to request access to approve user account requests
+  and assign users to GeoPlatform groups for a specific emergency response.</div> <br>
 <div mat-dialog-content>
   <form novalidate [formGroup]="requestFieldCoordForm">
     <!--first name-->
@@ -11,9 +13,8 @@
     </mat-form-field>
     <!-- phone number -->
     <mat-form-field>
-      <input matInput [(ngModel)]="data.phone_number" placeholder="Phone number" formControlName="phone_number"
+      <input matInput [(ngModel)]="data.phone_number" placeholder="Phone Number" formControlName="phone_number"
              maxlength="10">
-      <mat-hint>Enter a 10 digit phone number, including the area code</mat-hint>
       <mat-error *ngIf="requestFieldCoordForm.controls['phone_number'].errors">Not a valid phone number</mat-error>
     </mat-form-field>
     <!--email-->
@@ -24,24 +25,24 @@
     <!--region-->
     <mat-form-field>
       <mat-select matNativeControl [(ngModel)]="data.region" placeholder="Region" formControlName="region">
-        <mat-option value=1>Region I - New England</mat-option>
-        <mat-option value=2>Region II - NJ, NY, Puerto Rico, US Virgin Islands</mat-option>
-        <mat-option value=3>Region III - Mid Atlantic</mat-option>
-        <mat-option value=4>Region IV - Southeast</mat-option>
-        <mat-option value=5>Region V - Great Lakes</mat-option>
-        <mat-option value=6>Region VI - Central South</mat-option>
-        <mat-option value=7>Region VII - IA, KS, MO, NE</mat-option>
-        <mat-option value=8>Region VIII - CO, MT, ND, SD, UT, WY</mat-option>
-        <mat-option value=9>Region IX - Pacific Southwest</mat-option>
-        <mat-option value=10>Region X - Pacific Northwest</mat-option>
+        <mat-option value=1>Region 1</mat-option>
+        <mat-option value=2>Region 2</mat-option>
+        <mat-option value=3>Region 3</mat-option>
+        <mat-option value=4>Region 4</mat-option>
+        <mat-option value=5>Region 5</mat-option>
+        <mat-option value=6>Region 6</mat-option>
+        <mat-option value=7>Region 7</mat-option>
+        <mat-option value=8>Region 8</mat-option>
+        <mat-option value=9>Region 9</mat-option>
+        <mat-option value=10>Region 10</mat-option>
       </mat-select>
     </mat-form-field>
     <mat-form-field>
-      <input matInput type="text" formControlName="agol_user" placeholder="GeoPlatform user account">
+      <input matInput type="text" formControlName="agol_user" placeholder="GeoPlatform User Account">
     </mat-form-field>
     <mat-form-field>
       <input matInput type="text" formControlName="emergency_response"
-             placeholder="Emergency Response you are working on?">
+             placeholder="Which response you are working on?">
     </mat-form-field>
   </form>
 </div>

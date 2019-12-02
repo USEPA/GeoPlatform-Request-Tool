@@ -12,7 +12,7 @@ $light-theme: mat-light-theme($light-theme-primary, $light-theme-accent, $light-
 
 // Custom colors
 $custom-colors: (
-  light-grey: mat-color($mat-gray, 600),
+  light-grey: mat-color($mat-gray, 800),
 );
 
 
@@ -25,11 +25,12 @@ $custom-colors: (
   list-style: none;
 }
 
-#homepage-info, #homepage-options {
+#homepage-info, #homepage-options, #request-dialog {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: large
+  font-size: medium;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 #homepage-info div, #homepage-options div {
   flex-basis: 1000px;
@@ -46,7 +47,7 @@ $custom-colors: (
 }
 #homepage-options .mat-icon {
   font-size: 200px;
-  color: #0079c1;
+  color: #2196F3;
   margin-left: 10px;
 }
 

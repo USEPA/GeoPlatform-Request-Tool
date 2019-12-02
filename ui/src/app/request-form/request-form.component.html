@@ -1,6 +1,5 @@
 <mat-card style="flex-basis: 500px; height: 100%">
-  <mat-card-subtitle>The GeoPlatform Account Request Tool provisions EPA GeoPlatform user accounts during emergency response events.
-    Use the form below to request an EPA GeoPlatform account and/or to request access to GeoPlatform
+  <mat-card-subtitle>Use the form below to request an EPA GeoPlatform account and/or to request access to GeoPlatform
     groups for a specific emergency response.
   </mat-card-subtitle>
   <mat-divider></mat-divider><br>
@@ -36,9 +35,5 @@
   <button mat-raised-button color="primary" [disabled]="!requestForm.valid || (submitting | async)" (click)="submit()"
           style="float: right; margin-top: -36px">
     Submit
-  </button><br>
-    <mat-divider></mat-divider>
-  <mat-card-subtitle>
-    <br>For additional information on Field Team Coordinator access, using this tool, or GeoPlatform group management
-    during a response, visit the <a href="/assets/GPOAcctRequestUserGuide.pdf" target="_blank">Help Documentation</a>.</mat-card-subtitle>
+  </button>
 </mat-card>
