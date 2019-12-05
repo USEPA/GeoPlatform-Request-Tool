@@ -36,11 +36,7 @@
        <!-- <button mat-raised-button *ngIf="selectedAccounts.length > 0" color="primary">Edit</button> -->
 
         <button mat-raised-button *ngIf="selectedAccounts.length > 0" color="warn" (click)="confirmApproval()"
-                style="margin-right:15px;">Approve</button>
-        <button type="button" mat-raised-button (click)="openRequestFieldCoordDialog()" color="primary"
-                style="margin-right:15px;">
-          {{ 'Request to be a Field Team Coordinator' }}
-        </button>
+                style="margin-right:25px;">Approve</button>
         <button type="button" mat-raised-button (click)="filterNav.toggle()" color="primary">
           {{ filterNav.opened ? 'Hide Filter' : 'Show Filter' }}
         </button>

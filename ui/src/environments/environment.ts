@@ -9,9 +9,9 @@ export const environment = {
   oauth_client_id: 'corlAY2HXVlIiR4L',
   oauth_response_type: 'token',
   oauth_redirect_uri: 'http://localhost:4200/oauthcallback',
-  local_client_id: 'QSeQUnG4NqLFJC5PKAPBdrkb0E0IIqR5uYZxbr8s',
+  local_client_id: '9OSDWC6V7jfELi4K04cuKLEFVgwjUMegUf8Jc1XK',
   local_service_endpoint: 'http://127.0.0.1:8000/api',
-  recaptcha_siteKey: '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
+  recaptcha_siteKey: '6LeXQboUAAAAAANBXP4FTZ3Pp9MOazFhXaF5CzQN'
 
 };
 

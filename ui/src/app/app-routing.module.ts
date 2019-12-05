@@ -6,6 +6,7 @@ import {LoginComponent} from './login/login.component';
 import {OauthcallbackComponent} from './oauthcallback/oauthcallback.component';
 import {LoginService} from './services/login.service';
 import {ApprovalListComponent} from './approval-list/approval-list.component';
+import {FieldCoordListComponent} from './field-coord-list/field-coord-list.component';
 
 const routes: Routes = [
   {path: 'login', component: LoginComponent},
@@ -16,6 +17,7 @@ const routes: Routes = [
       {path: 'list', component: ApprovalListComponent}
     ]
   },
+  {path: 'field-coordinators', component: FieldCoordListComponent},
   {path: 'requestaccount', component: RequestFormComponent},
 ];
 

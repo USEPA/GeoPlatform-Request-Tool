@@ -1,6 +1,6 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
-import {FieldCoordinator} from '../../approval-list/approval-list.component';
+import {FieldCoordinator} from '../../field-coord-list/field-coord-list.component';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 
 

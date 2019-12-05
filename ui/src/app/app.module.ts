@@ -39,13 +39,14 @@ import {HTTP_INTERCEPTORS, HttpClientModule} from '@angular/common/http';
 import {CdkTableModule} from '@angular/cdk/table';
 import {RECAPTCHA_SETTINGS, RecaptchaModule, RecaptchaSettings, RecaptchaFormsModule} from 'ng-recaptcha';
 import {ApprovalListComponent} from './approval-list/approval-list.component';
+import {FieldCoordListComponent} from './field-coord-list/field-coord-list.component';
 import {LoadingService} from './services/loading.service';
 import {LoginComponent} from './login/login.component';
 import {OauthcallbackComponent} from './oauthcallback/oauthcallback.component';
 import {LoginService} from './services/login.service';
 import {HttpRequestInterceptor} from './http-request.interceptor';
-import { ConfirmApprovalDialogComponent } from './approval-list-dialogs/confirm-approval-dialog/confirm-approval-dialog.component';
-import { RequestFieldCoordDialogComponent } from './approval-list-dialogs/request-field-coord-dialog/request-field-coord-dialog.component';
+import { ConfirmApprovalDialogComponent } from './dialogs/confirm-approval-dialog/confirm-approval-dialog.component';
+import { RequestFieldCoordDialogComponent } from './dialogs/request-field-coord-dialog/request-field-coord-dialog.component';
 import {environment} from '../environments/environment';
 import {FilterInputComponent} from './filter-input/filter-input.component';
 import { HomeComponent } from './home/home.component';
@@ -61,7 +62,8 @@ import { HomeComponent } from './home/home.component';
     ConfirmApprovalDialogComponent,
     RequestFieldCoordDialogComponent,
     FilterInputComponent,
-    HomeComponent
+    HomeComponent,
+    FieldCoordListComponent
   ],
   imports: [
     BrowserModule,

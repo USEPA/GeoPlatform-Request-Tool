@@ -13,8 +13,8 @@ export class HomeComponent implements OnInit {
   ngOnInit() {
   }
 
-  navigateToAccounts() {
-     this.router.navigateByUrl('/accounts/list');
+  navigateToFieldCoordinators() {
+     this.router.navigateByUrl('/field-coordinators');
   }
 
   navigateToRequestAccount() {
