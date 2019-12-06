@@ -4,12 +4,14 @@ from .serializers import *
 from rest_framework.permissions import AllowAny, BasePermission
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import *
+
 from django.shortcuts import get_list_or_404
 from django.contrib.auth.models import User
 from django.utils.timezone import now
 from django_filters.rest_framework import FilterSet, BooleanFilter
 from django.db.models import Q
+
+from .models import *
 
 
 class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
@@ -148,6 +150,23 @@ class AccountViewSet(ModelViewSet):
                 'value': sponsor.pk
             })
         return Response(sponsors_list)
+
+
+    @action(['GET'], detail=False)
+    def field_coordinators(self, request):
+        sponsors = User.objects.filter(agol_info__sponsor=True)
+        sponsors_list = list()
+        for sponsor in sponsors:
+            sponsors_list.append({
+                'first_name': sponsor.first_name,
+                'last_name': sponsor.last_name,
+                'display': f'{sponsor.first_name} {sponsor.last_name}',
+                'email': sponsor.email,
+                'phone_number': sponsor.agol_info.phone_number,
+                'region': sponsor.agol_info.region,
+                'value': sponsor.pk
+            })
+        return Response({"results": sponsors_list})
 
 
 class AGOLGroupViewSet(ReadOnlyModelViewSet):

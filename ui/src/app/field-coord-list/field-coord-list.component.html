@@ -1,11 +1,11 @@
 <mat-sidenav-container class="container">
   <div class="list-header" style="display: flex; flex-direction: row; justify-content: space-between">
     <mat-form-field style="width:250px; padding-left: 25px; padding-top: 15px;">
-      <input matInput type="text" placeholder="Search" [(ngModel)]="accounts.filter.search"
-             (keyup.enter)="accounts.runSearch()" name="search"/>
+      <input matInput type="text" placeholder="Search" [(ngModel)]="sponsors.filter.search"
+             (keyup.enter)="sponsors.runSearch()" name="search"/>
       <button style="position:absolute; top:-5px; right:0px;" type="button" mat-icon-button
-              (click)="accounts.clearSearch()"
-              *ngIf="accounts.filter.search">
+              (click)="sponsors.clearSearch()"
+              *ngIf="sponsors.filter.search">
         <mat-icon>close</mat-icon>
       </button>
     </mat-form-field>
@@ -21,9 +21,9 @@
     </div>
   </div>
   <div class="list-container">
-    <mat-table #table [dataSource]="accounts.datasource" class="table" matSort matSortActive="date_received"
+    <mat-table #table [dataSource]="sponsors.datasource" class="table" matSort matSortActive="date_received"
                matSortDirection="desc"
-               (matSortChange)="accounts.sortTable($event)">
+               (matSortChange)="sponsors.sortTable($event)">
       <ng-container cdkColumnDef="first_name">
         <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
           First Name
@@ -54,10 +54,10 @@
 
       </mat-row>
     </mat-table>
-    <mat-paginator [length]="accounts.count" [pageSize]="25"
+    <mat-paginator [length]="sponsors.count" [pageSize]="25"
                    [pageSizeOptions]="[10, 25, 50, 100]"
-                   (page)="accounts.getPage($event)"
-                   [pageIndex]="accounts.filter.page-1"></mat-paginator>
+                   (page)="sponsors.getPage($event)"
+                   [pageIndex]="sponsors.filter.page-1"></mat-paginator>
 
   </div>
 </mat-sidenav-container>

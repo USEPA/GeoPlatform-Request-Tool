@@ -22,18 +22,19 @@ export interface FieldCoordinator {
   styleUrls: ['./field-coord-list.component.css']
 })
 export class FieldCoordListComponent implements OnInit {
-  accounts: BaseService;
+  sponsors: BaseService;
+  // sponsors: Observable<[]>;
   displayedColumns = ['first_name', 'last_name', 'email', 'region'];
-  groups: Observable<[]>;
   field_coordinator: FieldCoordinator;
 
   constructor(public http: HttpClient, loadingService: LoadingService, public snackBar: MatSnackBar,
               public dialog: MatDialog, public loginService: LoginService) {
-    this.accounts = new BaseService('v1/account/approvals/', http, loadingService);
+    this.sponsors = new BaseService('v1/account/approvals/field_coordinators/', http, loadingService);
   }
 
   ngOnInit() {
-    // this.accounts.getItems().subscribe();
+    this.sponsors.filter = {approved_and_created: true};
+    this.sponsors.getItems().subscribe();
   }
 
   openRequestFieldCoordDialog(): void {

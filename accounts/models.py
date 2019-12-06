@@ -244,6 +244,23 @@ class AGOL(models.Model):
 class AGOLUserFields(models.Model):
     agol_username = models.CharField(max_length=200, null=True, blank=True)
     sponsor = models.BooleanField(default=False)
+    region = models.CharField(
+        max_length=200,
+        choices=[
+            ('1', 'Region I - New England'),
+            ('2', 'Region II - NJ, NY, Puerto Rico, US Virgin Islands'),
+            ('3', 'Region III - Mid Atlantic'),
+            ('4', 'Region IV - Southeast'),
+            ('5', 'Region V - Great Lakes'),
+            ('6', 'Region VI - Central South'),
+            ('7', 'Region VII - IA, KS, MO, NE'),
+            ('8', 'VIII - CO, MT, ND, SD, UT, WY'),
+            ('9', 'Region IX - Pacific Southwest'),
+            ('10', 'Region X - Pacific Northwest'),
+        ],
+        default='',
+    )
+    phone_number = models.CharField(max_length=20, null=True, blank=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='agol_info')
 
     def clean(self):

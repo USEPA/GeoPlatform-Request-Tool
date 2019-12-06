@@ -83,7 +83,7 @@ export class BaseService {
     return this.getList(this.filter).pipe(
       map(response => {
         this.currentPage = this.filter.page;
-        this.count = response.count;
+        this.count = response.results ? response.results.length : response.count;
         this.dataChange.next(response.results);
         this.loadingService.setLoading(false);
         return response.results;
