@@ -10,12 +10,12 @@ html, body, app-root, app-login {
   flex-direction: column;
 }
 
-.main-view, app-request-form {
+.main-view, app-request-form, app-field-coord-er-request-form {
   flex: 1;
   flex-direction: row;
   display: flex !important;
   justify-content: center;
-  /*align-items: center;*/
+  align-items: center;
 }
 
 .mat-toolbar-row, .mat-toolbar-single-row {
@@ -45,6 +45,10 @@ mat-table mat-row:nth-child(odd) {
 
 mat-row.row.mat-row:hover {
     background: rgba(0, 0, 0, 0.08);
+}
+
+mat-form-field {
+  width: 100%;
 }
 
 .mat-header-row {

@@ -9,8 +9,11 @@ import {RequestFieldCoordDialogComponent} from '../dialogs/request-field-coord-d
 import {LoginService} from '../services/login.service';
 
 export interface FieldCoordinator {
+  value: number;
   first_name: string;
   last_name: string;
+  display: string;
+  username: string;
   phone_number: number;
   email: string;
   region: string;
@@ -63,6 +66,8 @@ export class FieldCoordListComponent implements OnInit {
     const result = await this.http.post('/v1/email_field_coordinator_request/', this.field_coordinator).toPromise();
     if (result === true) {
       this.snackBar.open('Email sent', null, {duration: 2000});
+    } else {
+      this.snackBar.open('Email failed. Try again later.', null, {duration: 2000});
     }
   }
 

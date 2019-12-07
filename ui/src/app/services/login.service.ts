@@ -42,7 +42,10 @@ export class LoginService implements CanActivateChild, CanActivate {
               }));
           }
         ),
-        catchError(() => this.router.navigate(['login']))
+        catchError((e: any) => {
+          sessionStorage.setItem('nav_uri', state.url);
+          return this.router.navigate(['login']);
+        }),
       ).subscribe();
 
     });
@@ -51,10 +54,21 @@ export class LoginService implements CanActivateChild, CanActivate {
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean {
     return new Promise(resolve => {
 
+      console.log(state.url);
       this.loadToken().pipe(
-        tap(() => resolve(true)
+        switchMap(() => {
+            return this.http.get<any>('/current_user/').pipe(
+              map(response => {
+                this.display_name = response.name;
+                this.is_superuser = response.is_superuser;
+                resolve(true);
+              }));
+          }
         ),
-        catchError(() => this.router.navigate(['login']))
+        catchError((e: any) => {
+          sessionStorage.setItem('nav_uri', state.url);
+          return this.router.navigate(['login']);
+        }),
       ).subscribe();
 
     });
@@ -123,6 +137,7 @@ export class LoginService implements CanActivateChild, CanActivate {
       this.token_expires = expiration_date !== 'null' ? new Date(expiration_date) : new Date();
       this.access_token = localStorage.getItem('access_token');
       if (this.access_token) {
+        this.valid_token.next(true);
         obs.next();
         obs.complete();
       } else {

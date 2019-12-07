@@ -7,6 +7,7 @@ import {OauthcallbackComponent} from './oauthcallback/oauthcallback.component';
 import {LoginService} from './services/login.service';
 import {ApprovalListComponent} from './approval-list/approval-list.component';
 import {FieldCoordListComponent} from './field-coord-list/field-coord-list.component';
+import {FieldCoordErRequestFormComponent} from './field-coord-er-request-form/field-coord-er-request-form.component';
 
 const routes: Routes = [
   {path: 'login', component: LoginComponent},
@@ -18,6 +19,10 @@ const routes: Routes = [
     ]
   },
   {path: 'field-coordinators', component: FieldCoordListComponent},
+  {path: 'field-coordinator-er-request',
+    component: FieldCoordErRequestFormComponent,
+    canActivate: [LoginService]
+  },
   {path: 'requestaccount', component: RequestFormComponent},
 ];
 

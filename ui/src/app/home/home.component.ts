@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import {Router} from '@angular/router';
+import {LoginService} from '../services/login.service';
 
 @Component({
   selector: 'app-home',
@@ -8,17 +9,13 @@ import {Router} from '@angular/router';
 })
 export class HomeComponent implements OnInit {
 
-  constructor(private router: Router) { }
+  constructor(public loginService: LoginService, private router: Router) { }
 
   ngOnInit() {
   }
 
-  navigateToFieldCoordinators() {
-     this.router.navigateByUrl('/field-coordinators');
-  }
-
-  navigateToRequestAccount() {
-     this.router.navigateByUrl('/requestaccount');
+  navigateToUri(uri) {
+    this.router.navigateByUrl(uri);
   }
 
 }

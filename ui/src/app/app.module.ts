@@ -50,6 +50,7 @@ import { RequestFieldCoordDialogComponent } from './dialogs/request-field-coord-
 import {environment} from '../environments/environment';
 import {FilterInputComponent} from './filter-input/filter-input.component';
 import { HomeComponent } from './home/home.component';
+import { FieldCoordErRequestFormComponent } from './field-coord-er-request-form/field-coord-er-request-form.component';
 
 
 @NgModule({
@@ -63,7 +64,8 @@ import { HomeComponent } from './home/home.component';
     RequestFieldCoordDialogComponent,
     FilterInputComponent,
     HomeComponent,
-    FieldCoordListComponent
+    FieldCoordListComponent,
+    FieldCoordErRequestFormComponent
   ],
   imports: [
     BrowserModule,

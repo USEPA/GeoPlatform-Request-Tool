@@ -1,3 +1,4 @@
+import logging
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
@@ -5,6 +6,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework import permissions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+logger = logging.getLogger('AGOLAccountRequestor')
 
 
 @api_view(['GET'])
@@ -30,8 +33,14 @@ def current_user(request):
 def email_field_coordinator_request(request):
     try:
         recipient_email = 'tmckennon@innovateteam.com'  # TODO: Switch to 'GIS_Team@epa.gov' or a new EPA email
-        email_context = request.data['result']
-        html_msg = render_to_string('../templates/field_coord_request_email.html', email_context)
+        if 'result' in request.data:
+            email_context = request.data['result']
+        else:
+            email_context = request.data
+        if 'emergency_response_name' in email_context:
+            html_msg = render_to_string('../templates/field_coord_er_request_email.html', email_context)
+        else:
+            html_msg = render_to_string('../templates/field_coord_request_email.html', email_context)
         plain_msg = strip_tags(html_msg)
         result = send_mail(
             subject="Field Coordinator Request",
@@ -42,5 +51,5 @@ def email_field_coordinator_request(request):
         )
         return Response(bool(result))
     except Exception as e:
-        return Response({'message': 'There was an error emailing the Field Coordinator Request for ' +
-                                    'AGOL user {}.'.format(request.data['result']['agol_user'])})
+        logger.error('Email Error: There was an error emailing the Field Coordinator Request.')
+        return Response(False)

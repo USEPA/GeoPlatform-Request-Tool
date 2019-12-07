@@ -21,7 +21,7 @@
         <mat-card-subtitle></mat-card-subtitle>
         <mat-card-content>
           <ul class="flex-row-container">
-            <li class="flex-item" (click)="navigateToFieldCoordinators()">
+            <li class="flex-item" (click)="navigateToUri('/field-coordinators')">
               <mat-card>
                 <mat-card-subtitle></mat-card-subtitle>
                 <mat-card-content>
@@ -30,7 +30,7 @@
               </mat-card>
               <h2>Field Team Coordinators</h2>
             </li>
-            <li class="flex-item">
+            <li class="flex-item" (click)="navigateToUri('/field-coordinator-er-request')">
               <mat-card>
                 <mat-card-subtitle></mat-card-subtitle>
                 <mat-card-content>
@@ -39,7 +39,7 @@
               </mat-card>
               <h2>Configure New Response</h2>
             </li>
-            <li class="flex-item" (click)="navigateToRequestAccount()">
+            <li class="flex-item" (click)="navigateToUri('/requestaccount')">
               <mat-card>
                 <mat-card-subtitle></mat-card-subtitle>
                 <mat-card-content>

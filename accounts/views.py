@@ -145,9 +145,16 @@ class AccountViewSet(ModelViewSet):
         sponsors = User.objects.filter(agol_info__sponsor=True)
         sponsors_list = list()
         for sponsor in sponsors:
+            if sponsor.last_name:
+                display = f'{sponsor.first_name} {sponsor.last_name}'
+            else:
+                display = None
+            username = sponsor.agol_info.agol_username if sponsor.agol_info.agol_username else sponsor.username
             sponsors_list.append({
-                'display': f'{sponsor.first_name} {sponsor.last_name}',
-                'value': sponsor.pk
+                'value': sponsor.pk,
+                'display': display,
+                'username': username,
+                'email': sponsor.email,
             })
         return Response(sponsors_list)
 
@@ -178,3 +185,15 @@ class AGOLGroupViewSet(ReadOnlyModelViewSet):
     # only show groups for which the user the user has access per agol group fields assignable groups
     def get_queryset(self):
         return AGOLGroup.objects.filter(Q(show=True) | Q(assignable_groups__group__in=self.request.user.groups.all()))
+
+    @action(['GET'], detail=False)
+    def all(self, request):
+        groups = AGOLGroup.objects.all()
+        groups_list = list()
+        for group in groups:
+            groups_list.append({
+                'value': group.pk,
+                'title': group.title
+            })
+        return Response(groups_list)
+

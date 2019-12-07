@@ -15,13 +15,21 @@ export class OauthcallbackComponent implements OnInit {
   }
 
   ngOnInit() {
+    let next;
+    if (this.route.snapshot.queryParams.next) {
+      next = this.route.snapshot.queryParams.next;
+    } else if (sessionStorage.getItem('nav_uri')) {
+      next = sessionStorage.getItem('nav_uri');
+    } else {
+      next = '/';
+    }
     this.route.fragment.pipe(
       switchMap(fragment => {
-        let oauth_params = fragment.match('(access_token=)(.*)(&expires_in=)(.*)(&username=)(.*)(&ssl=)');
+        const oauth_params = fragment.match('(access_token=)(.*)(&expires_in=)(.*)(&username=)(.*)(&ssl=)');
 
         return this.loginService.convertToken(oauth_params[2], oauth_params[4], oauth_params[6]);
       }),
-      tap(() => this.router.navigate(['/accounts/list/']))
+      tap(() => this.router.navigate([next]))
     ).subscribe();
   }
 
