@@ -22,19 +22,34 @@
       <input matInput [(ngModel)]="data.email" type="email" formControlName="email" placeholder="Email">
       <mat-error *ngIf="requestFieldCoordForm.controls.email.invalid">Not a valid email</mat-error>
     </mat-form-field>
-    <!--region-->
+    <!--authoritative group-->
     <mat-form-field>
-      <mat-select matNativeControl [(ngModel)]="data.region" placeholder="Region" formControlName="region">
-        <mat-option value=1>Region 1</mat-option>
-        <mat-option value=2>Region 2</mat-option>
-        <mat-option value=3>Region 3</mat-option>
-        <mat-option value=4>Region 4</mat-option>
-        <mat-option value=5>Region 5</mat-option>
-        <mat-option value=6>Region 6</mat-option>
-        <mat-option value=7>Region 7</mat-option>
-        <mat-option value=8>Region 8</mat-option>
-        <mat-option value=9>Region 9</mat-option>
-        <mat-option value=10>Region 10</mat-option>
+      <mat-select matNativeControl [(ngModel)]="data.region" formControlName="authoritative_group"
+                  placeholder="Authoritative Group">
+        <mat-option value='R01'>Region 1</mat-option>
+        <mat-option value='R02'>Region 2</mat-option>
+        <mat-option value='R03'>Region 3</mat-option>
+        <mat-option value='R04'>Region 4</mat-option>
+        <mat-option value='R05'>Region 5</mat-option>
+        <mat-option value='R06'>Region 6</mat-option>
+        <mat-option value='R07'>Region 7</mat-option>
+        <mat-option value='R08'>Region 8</mat-option>
+        <mat-option value='R09'>Region 9</mat-option>
+        <mat-option value='R10'>Region 10</mat-option>
+        <mat-option value='OARM'>EPA Office of Administration and Resources Management</mat-option>
+        <mat-option value='OAR'>EPA Office of Air and Radiation</mat-option>
+        <mat-option value='OSCPP'>EPA Office of Chemical Safety and Pollution Prevention</mat-option>
+        <mat-option value='OECA'>EPA Office of Enforcement and Compliance Assurance</mat-option>
+        <mat-option value='OEI'>EPA Office of Environmental Information</mat-option>
+        <mat-option value='OGC'>EPA Office of General Counsel</mat-option>
+        <mat-option value='OIG'>EPA Office of Inspector General</mat-option>
+        <mat-option value='OITA'>EPA Office of International and Tribal Affairs</mat-option>
+        <mat-option value='OLEM'>EPA Office of Land and Emergency Management</mat-option>
+        <mat-option value='ORD'>EPA Office of Research and Development</mat-option>
+        <mat-option value='OW'>EPA Office of Water</mat-option>
+        <mat-option value='OA'>EPA Office of the Administrator</mat-option>
+        <mat-option value='OCFO'>EPA Office of the Chief Financial Officer</mat-option>
+        <mat-option value='ER'>OLEM - ER Program Support</mat-option>
       </mat-select>
     </mat-form-field>
     <mat-form-field>

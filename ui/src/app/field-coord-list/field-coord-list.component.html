@@ -42,11 +42,11 @@
         </mat-header-cell>
         <mat-cell *cdkCellDef="let row" class="cell">{{ row.email }}</mat-cell>
       </ng-container>
-      <ng-container cdkColumnDef="region">
+      <ng-container cdkColumnDef="authoritative_group">
         <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
-          Region
+          Authoritative Group
         </mat-header-cell>
-        <mat-cell *cdkCellDef="let row" class="cell">{{ row.region }}</mat-cell>
+        <mat-cell *cdkCellDef="let row" class="cell">{{ row.authoritative_group }}</mat-cell>
       </ng-container>
 
       <mat-header-row *cdkHeaderRowDef="displayedColumns" class="header-row"></mat-header-row>

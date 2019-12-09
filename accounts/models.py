@@ -244,19 +244,33 @@ class AGOL(models.Model):
 class AGOLUserFields(models.Model):
     agol_username = models.CharField(max_length=200, null=True, blank=True)
     sponsor = models.BooleanField(default=False)
-    region = models.CharField(
+    authoritative_group = models.CharField(
         max_length=200,
         choices=[
-            ('1', 'Region I - New England'),
-            ('2', 'Region II - NJ, NY, Puerto Rico, US Virgin Islands'),
-            ('3', 'Region III - Mid Atlantic'),
-            ('4', 'Region IV - Southeast'),
-            ('5', 'Region V - Great Lakes'),
-            ('6', 'Region VI - Central South'),
-            ('7', 'Region VII - IA, KS, MO, NE'),
-            ('8', 'VIII - CO, MT, ND, SD, UT, WY'),
-            ('9', 'Region IX - Pacific Southwest'),
-            ('10', 'Region X - Pacific Northwest'),
+            ('R01', 'Region 1 - New England'),
+            ('R02', 'Region 2 - NJ, NY, Puerto Rico, US Virgin Islands'),
+            ('R03', 'Region 3 - Mid Atlantic'),
+            ('R04', 'Region 4 - Southeast'),
+            ('R05', 'Region 5 - Great Lakes'),
+            ('R06', 'Region 6 - Central South'),
+            ('R07', 'Region 7 - IA, KS, MO, NE'),
+            ('R08', 'Region 8 - CO, MT, ND, SD, UT, WY'),
+            ('R09', 'Region 9 - Pacific Southwest'),
+            ('R10', 'Region 10 - Pacific Northwest'),
+            ('OARM', 'EPA Office of Administration and Resources Management'),
+            ('OAR', 'EPA Office of Air and Radiation'),
+            ('OSCPP', 'EPA Office of Chemical Safety and Pollution Prevention'),
+            ('OECA', 'EPA Office of Enforcement and Compliance Assurance'),
+            ('OEI', 'EPA Office of Environmental Information'),
+            ('OGC', 'EPA Office of General Counsel'),
+            ('OIG', 'EPA Office of Inspector General'),
+            ('OITA', 'EPA Office of International and Tribal Affairs'),
+            ('OLEM', 'EPA Office of Land and Emergency Management'),
+            ('ORD', 'EPA Office of Research and Development'),
+            ('OW', 'EPA Office of Water'),
+            ('OA', 'EPA Office of the Administrator'),
+            ('OCFO', 'EPA Office of the Chief Financial Officer'),
+            ('ER', 'OLEM - ER Program Support')
         ],
         default='',
     )

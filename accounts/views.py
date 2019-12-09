@@ -170,7 +170,7 @@ class AccountViewSet(ModelViewSet):
                 'display': f'{sponsor.first_name} {sponsor.last_name}',
                 'email': sponsor.email,
                 'phone_number': sponsor.agol_info.phone_number,
-                'region': sponsor.agol_info.region,
+                'authoritative_group': sponsor.agol_info.authoritative_group,
                 'value': sponsor.pk
             })
         return Response({"results": sponsors_list})

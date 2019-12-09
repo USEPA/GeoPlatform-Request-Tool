@@ -16,7 +16,7 @@ export interface FieldCoordinator {
   username: string;
   phone_number: number;
   email: string;
-  region: string;
+  authoritative_group: string;
 }
 
 @Component({
@@ -27,7 +27,7 @@ export interface FieldCoordinator {
 export class FieldCoordListComponent implements OnInit {
   sponsors: BaseService;
   // sponsors: Observable<[]>;
-  displayedColumns = ['first_name', 'last_name', 'email', 'region'];
+  displayedColumns = ['first_name', 'last_name', 'email', 'authoritative_group'];
   field_coordinator: FieldCoordinator;
 
   constructor(public http: HttpClient, loadingService: LoadingService, public snackBar: MatSnackBar,
@@ -48,7 +48,7 @@ export class FieldCoordListComponent implements OnInit {
         last_name: null,
         phone_number: null,
         email: null,
-        region: null,
+        authoritative_group: null,
         agol_user: null,
         emergency_response: null
       }
