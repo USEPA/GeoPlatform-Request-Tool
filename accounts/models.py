@@ -14,6 +14,15 @@ class AccountRequests(models.Model):
     USER_TYPE_CHOICES = (('creatorUT', 'Creator'),)
     ROLE_CHOICES = (('jmc1ObdWfBTH6NAN', 'EPA Publisher'),
                     ('71yacZLdeuDirQ6K', 'EPA Viewer'))
+    REASON_CHOICES = (('Emergency Response', 'Emergency Response'),
+                      ('Other Federal Agency', 'Other Federal Agency'),
+                      ('State Agency', 'State Agency'),
+                      ('University', 'University'),
+                      ('Long Term GIS Support', 'Long Term GIS Support'),
+                      ('Non Government Organization', 'Non Government Organization'),
+                      ('Tribal Government', 'Tribal Government'),
+                      ('Citizen Advisor', 'Citizen Advisor'),
+                      ('Other', 'Other'))
 
     first_name = models.CharField(max_length=200)
     last_name = models.CharField(max_length=200)
@@ -27,6 +36,8 @@ class AccountRequests(models.Model):
     groups = models.ManyToManyField('AGOLGroup', blank=True)
     sponsor = models.ForeignKey(User, on_delete=models.PROTECT)
     sponsor_notified = models.BooleanField(default=False)
+    reason = models.CharField(max_length=200, choices=REASON_CHOICES, default='Emergency Response')
+    description = models.CharField(max_length=500, blank=True, null=True)
     recaptcha = models.TextField()
     submitted = models.DateTimeField(auto_now_add=True)
     approved = models.DateTimeField(null=True, blank=True)

@@ -9,7 +9,7 @@ class AccountRequestSerializer(ModelSerializer):
 
     class Meta:
         model = AccountRequests
-        fields = ['first_name', 'last_name', 'email', 'organization', 'sponsor', 'recaptcha']
+        fields = ['first_name', 'last_name', 'email', 'organization', 'sponsor', 'reason', 'description', 'recaptcha']
 
 
 class AccountSerializer(ModelSerializer):
