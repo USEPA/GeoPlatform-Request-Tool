@@ -6,8 +6,28 @@ import {catchError, map, share, switchMap, tap} from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {iif, Observable, of} from 'rxjs';
+import {EditAccountPropsDialogComponent} from '../dialogs/edit-account-props-dialog/edit-account-props-dialog.component';
 import {ConfirmApprovalDialogComponent} from '../dialogs/confirm-approval-dialog/confirm-approval-dialog.component';
 import {LoginService} from '../services/login.service';
+
+export interface AccountProps {
+  first_name: string;
+  last_name: string;
+  username: string;
+  email: string;
+  groups: [];
+  organization: string;
+  reason: string;
+  sponsor: number;
+  description: string;
+  approved: boolean;
+  isChecked: boolean;
+  needsEditing: boolean;
+}
+
+export interface Accounts {
+    [id: number]: AccountProps;
+}
 
 @Component({
   selector: 'app-approval-list',
@@ -16,10 +36,14 @@ import {LoginService} from '../services/login.service';
 })
 export class ApprovalListComponent implements OnInit {
   accounts: BaseService;
-  displayedColumns = ['selected', 'first_name', 'last_name', 'email', 'username', 'organization',
-    'groups', 'sponsor', 'approved', 'created', 'save'];
-  //took out "roll" and "user_type"
-  selectedAccounts = [];
+  displayedColumns = ['selected', 'first_name', 'last_name', 'email', 'username', 'organization', 'groups', 'sponsor',
+    'reason', 'description', 'approved', 'created'];
+  // took out "roll" and "user_type"
+  selectedAccountIds = [];
+  accountsListProps: Accounts = {};
+  allChecked: boolean;
+  needsEditing = false;
+  needsApproval = false;
   roles: Observable<[]>;
   user_types: Observable<[]>;
   groups: Observable<[]>;
@@ -30,9 +54,13 @@ export class ApprovalListComponent implements OnInit {
     this.accounts = new BaseService('v1/account/approvals/', http, loadingService);
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     // this was used to give superusers full list when logging in... but they didn't like it
     // this.loginService.is_superuser ? null : this.accounts.filter = {approved_and_created: false};
+
+    // set accounts list record properties
+    this.setAccountsListProps();
+
     this.accounts.filter = {approved_and_created: false};
     this.accounts.getItems().subscribe();
     this.roles = this.http.get<[]>('/v1/account/approvals/roles').pipe(share());
@@ -41,37 +69,128 @@ export class ApprovalListComponent implements OnInit {
     this.sponsors = this.http.get<[]>('/v1/account/request/sponsors').pipe(share());
   }
 
+  async setAccountsListProps() {
+    const init_accounts = await this.accounts.getItems().toPromise();
+    for (const account of init_accounts) {
+      let needsEditing = false;
+      if (!account.username || !account.email || !account.organization || !account.sponsor /*|| account.groups.length === 0*/
+        || !account.reason || !account.description) {
+        needsEditing = true;
+      }
+      const acctProps: AccountProps = {
+        first_name: account.first_name,
+        last_name: account.first_name,
+        username: account.username,
+        email: account.email,
+        groups: account.groups,
+        organization: account.organization,
+        reason: account.reason,
+        sponsor: account.sponsor,
+        description: account.description,
+        approved: account.approved,
+        isChecked: false,
+        needsEditing: needsEditing
+      };
+      this.accountsListProps[account.id] = acctProps;
+    }
+  }
+
+  getSelectedAccountIds() {
+    const selectedAccountIds = [];
+    for (const id in this.accountsListProps) {
+      if (this.accountsListProps.hasOwnProperty(id) && this.accountsListProps[id].isChecked) {
+        const idNum = Number(id)
+        selectedAccountIds.push(idNum);
+      }
+    }
+    return selectedAccountIds;
+  }
+
   updateSelectedAccount(event, all = false) {
-    if (!all) {
-      const current_index = this.selectedAccounts.indexOf(event.source.value);
-      if (event.checked && current_index === -1) this.selectedAccounts.push(event.source.value);
-      else if (!event.checked && current_index > -1) this.selectedAccounts.splice(current_index, 1);
-    } else {
-      this.selectedAccounts.length = 0;
-      if (event.checked) {
-        for (let account of this.accounts.data) {
-          this.selectedAccounts.push(account.id);
+    let needsEditing = false;
+    let needsApproval = false;
+    for (const id in this.accountsListProps) {
+      if (this.accountsListProps.hasOwnProperty(id)) {
+        if (all) {
+          this.accountsListProps[id].isChecked = event.checked;
+          this.allChecked = event.checked;
+        } else {
+          const evtId = event.source.value.toString();
+          this.accountsListProps[evtId].isChecked = event.checked;
+          if (!event.checked) {
+            this.allChecked = event.checked;
+          }
+        }
+        if (this.accountsListProps[id].isChecked) {
+          if (this.accountsListProps[id].needsEditing) {
+            needsEditing = true;
+          }
+          if (!this.accountsListProps[id].approved) {
+            needsApproval = true;
+          }
         }
       }
     }
+    this.needsEditing = needsEditing;
+    this.needsApproval = needsApproval;
   }
 
   updateRecord(record) {
     this.http.put(`/v1/account/approvals/${record.id}/`, record).pipe(
       tap(response => {
-        const index = this.accounts.data.indexOf(record);
-        this.accounts.data.splice(index, 1, response);
+        console.log(response);
+        this.accounts.getItems().subscribe();
+        this.setAccountsListProps();
         this.accounts.dataChange.next(this.accounts.data);
-        this.snackBar.open("Success", null, {duration: 2000})
+        this.snackBar.open('Success', null, {duration: 2000});
       }),
-      catchError(() => of(this.snackBar.open("Error", null, {duration: 3000})))
+      catchError(() => of(this.snackBar.open('Error', null, {duration: 3000})))
     ).subscribe();
+  }
+
+  editAccountDialog(): void {
+    const selectAccountIds = this.getSelectedAccountIds();
+    let data = null;
+    if (selectAccountIds.length === 1 ) {
+      data = {
+        ...this.accountsListProps[selectAccountIds[0]]
+      };
+    } else {
+      data = {
+        groups: [],
+        sponsor: '',
+        reason: '',
+        description: '',
+      };
+    }
+    const dialogRef = this.dialog.open(EditAccountPropsDialogComponent, {
+      width: '500px',
+      data: data
+    });
+
+    dialogRef.afterClosed().subscribe(formInputValues => {
+      if (formInputValues) {
+        for (const id in this.accountsListProps) {
+          if (this.accountsListProps[id].isChecked) {
+            const updatedRecord = this.accountsListProps[id];
+            updatedRecord['id'] = id;
+            for (const key in formInputValues) {
+              if (key in updatedRecord) {
+                updatedRecord[key] = formInputValues[key];
+              }
+            }
+            this.updateRecord(updatedRecord);
+          }
+        }
+      }
+    });
   }
 
   confirmApproval() {
     let password_needed = false;
-    for (let account of this.accounts.data) {
-      if (this.selectedAccounts.indexOf(account.id) > -1 && account.username_valid) {
+    const selectAccountIds = this.getSelectedAccountIds();
+    for (const account of this.accounts.data) {
+      if (selectAccountIds.indexOf(account.id) > -1 && account.username_valid) {
         password_needed = true;
         break;
       }
@@ -84,15 +203,16 @@ export class ApprovalListComponent implements OnInit {
     });
     dialogRef.afterClosed().pipe(switchMap(results => {
         return iif(() => results.confirmed, this.http.post('/v1/account/approvals/approve/',
-          {accounts: this.selectedAccounts, password: results.password}).pipe(
+          {accounts: selectAccountIds, password: results.password}).pipe(
           switchMap(response => iif(() => response !== undefined, this.accounts.getItems().pipe(tap(() => {
-            this.selectedAccounts.length = 0;
-            this.snackBar.open("Success", null, {duration: 2000})
+            this.setAccountsListProps().then( () => {
+              this.snackBar.open('Success', null, {duration: 2000});
+            });
           }))))
           )
-        )
+        );
       }),
-      catchError(() => of(this.snackBar.open("Error", null, {duration: 3000})))
+      catchError(() => of(this.snackBar.open('Error', null, {duration: 3000})))
     ).subscribe();
   }
 

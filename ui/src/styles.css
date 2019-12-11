@@ -38,6 +38,11 @@ mat-sidenav-content {
 mat-table {
   padding-right: 30px;
 }
+.table {
+  flex: 1 1 auto;
+  overflow: auto;
+  max-height: 100%;
+}
 
 mat-table mat-row:nth-child(odd) {
   background-color: #eeeeee;
@@ -58,11 +63,11 @@ mat-form-field {
   z-index: 9999;
 }
 
-.table {
-  flex: 1 1 auto;
-  overflow: auto;
-  max-height: 100%;
-
+.table .mat-cell {
+  font-size: 12px;
+}
+.table .mat-icon {
+  font-size: 18px;
 }
 
 .list-container, app-approval-list, mat-sidenav-container, mat-sidenav-content, .sidenav-content {

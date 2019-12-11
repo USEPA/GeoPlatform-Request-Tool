@@ -29,30 +29,6 @@
       </mat-select>
       <mat-hint>This team coordinator will be assigned to review your request.</mat-hint>
     </mat-form-field>
-    <!--Reason for account-->
-    <mat-form-field>
-      <mat-select matNativeControl required formControlName="reason" placeholder="Reason for account">
-        <mat-option value='Emergency Response'>Emergency Response</mat-option>
-        <mat-option value='Other Federal Agency'>Other Federal Agency</mat-option>
-        <mat-option value='State Agency'>State Agency</mat-option>
-        <mat-option value='University'>University</mat-option>
-        <mat-option value='Long Term GIS Support'>Long Term GIS Support</mat-option>
-        <mat-option value='Non Government Organization'>Non Government Organization</mat-option>
-        <mat-option value='Tribal Government'>Tribal Government</mat-option>
-        <mat-option value='Citizen Advisor'>Citizen Advisor</mat-option>
-        <mat-option value='Other'>Other</mat-option>
-      </mat-select>
-    </mat-form-field>
-    <mat-form-field>
-      <mat-label>Description</mat-label>
-      <textarea matInput
-                maxlength="500"
-                formControlName="description"
-                cdkTextareaAutosize
-                #autosize="cdkTextareaAutosize"
-                cdkAutosizeMinRows="1"
-                cdkAutosizeMaxRows="10"></textarea>
-    </mat-form-field>
     <br>
     <re-captcha formControlName="recaptcha"></re-captcha>
   </form>
