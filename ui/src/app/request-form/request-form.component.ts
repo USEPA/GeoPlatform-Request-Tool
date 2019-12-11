@@ -2,9 +2,14 @@ import {Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, Observable, of} from 'rxjs';
-import {catchError, finalize, share, tap} from 'rxjs/operators';
+import {catchError, finalize, map, share, tap} from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {environment} from '../../environments/environment';
+
+interface Sponsor {
+  display: string;
+  value: string;
+}
 
 @Component({
   selector: 'app-request-form',
@@ -13,7 +18,7 @@ import {environment} from '../../environments/environment';
 })
 export class RequestFormComponent implements OnInit {
   submitting: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-  sponsors: Observable<[]>;
+  sponsors: Observable<Sponsor[]>;
   requestForm: FormGroup = new FormGroup({
     first_name: new FormControl(null, Validators.required),
     last_name: new FormControl(null, Validators.required),
@@ -29,7 +34,9 @@ export class RequestFormComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.sponsors = this.http.get<[]>(`${environment.local_service_endpoint}/v1/account/request/sponsors`).pipe(share());
+    this.sponsors = this.http.get<Sponsor[]>(`${environment.local_service_endpoint}/v1/account/request/field_coordinators/`).pipe(
+      map(response => response['results'])
+    );
   }
 
   submit() {

@@ -174,3 +174,5 @@ LOGGING['loggers']['R9DMT'] = {
     'handlers': ['console', 'slack_admins'],
     'level': 'ERROR',
 }
+
+RECIPIENT_EMAIL  = local_settings.RECIPIENT_EMAIL

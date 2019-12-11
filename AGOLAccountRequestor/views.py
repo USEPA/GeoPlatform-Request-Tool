@@ -6,6 +6,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework import permissions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.conf import settings
 
 logger = logging.getLogger('AGOLAccountRequestor')
 
@@ -32,7 +33,7 @@ def current_user(request):
 @permission_classes((permissions.AllowAny,))
 def email_field_coordinator_request(request):
     try:
-        recipient_email = 'tmckennon@innovateteam.com'  # TODO: Switch to 'GIS_Team@epa.gov' or a new EPA email
+        recipient_email = settings.RECIPIENT_EMAIL
         if 'result' in request.data:
             email_context = request.data['result']
         else:

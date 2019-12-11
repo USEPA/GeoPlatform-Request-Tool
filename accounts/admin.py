@@ -1,6 +1,11 @@
 from django.contrib import admin
 from .models import *
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
+from django import forms
+from django.contrib.auth.models import User
+
+# hack to make full name show up in autocomplete b/c nothing else worked
+User.__str__ = lambda x: f"{x.first_name} {x.last_name}"
 
 
 @admin.register(AGOL)
@@ -12,8 +17,23 @@ admin.site.unregister(User)
 admin.site.unregister(Group)
 
 
+# class AGOLModelMultipleChoiceField(forms.ModelMultipleChoiceField):
+#     def label_from_instance(self, obj):
+#         return f"{obj.first_name} {obj.last_name}"
+
+
+# class AGOLUserFieldsForm(forms.ModelForm):
+#     delegates = forms.ModelMultipleChoiceField(queryset=User.objects.all())
+#
+#     class Meta:
+#         model = AGOLUserFields
+#         fields = '__all__'
+
+
 class AGOLUserFieldsInline(admin.StackedInline):
     model = AGOLUserFields
+    autocomplete_fields = ['delegates']
+    # form = AGOLUserFieldsForm
 
 
 @admin.register(User)
@@ -23,6 +43,7 @@ class AGOLUserAdmin(UserAdmin):
 
 class AGOLGroupFieldsInline(admin.StackedInline):
     model = AGOLGroupFields
+
 
 @admin.register(Group)
 class AGOLGroupAdmin(GroupAdmin):
