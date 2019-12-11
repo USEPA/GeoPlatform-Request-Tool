@@ -258,6 +258,7 @@ class AGOLUserFields(models.Model):
     authoritative_group = models.CharField(
         max_length=200,
         choices=[
+            ('', 'Unknown'),
             ('R01', 'Region 1 - New England'),
             ('R02', 'Region 2 - NJ, NY, Puerto Rico, US Virgin Islands'),
             ('R03', 'Region 3 - Mid Atlantic'),
@@ -287,6 +288,7 @@ class AGOLUserFields(models.Model):
     )
     phone_number = models.CharField(max_length=20, null=True, blank=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='agol_info')
+    delegates = models.ManyToManyField(User, null=True, blank=True, related_name='delegate_for')
 
     def clean(self):
         super().clean()
