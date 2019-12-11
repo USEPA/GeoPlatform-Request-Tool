@@ -14,6 +14,15 @@ class AccountRequests(models.Model):
     USER_TYPE_CHOICES = (('creatorUT', 'Creator'),)
     ROLE_CHOICES = (('jmc1ObdWfBTH6NAN', 'EPA Publisher'),
                     ('71yacZLdeuDirQ6K', 'EPA Viewer'))
+    REASON_CHOICES = (('Emergency Response', 'Emergency Response'),
+                      ('Other Federal Agency', 'Other Federal Agency'),
+                      ('State Agency', 'State Agency'),
+                      ('University', 'University'),
+                      ('Long Term GIS Support', 'Long Term GIS Support'),
+                      ('Non Government Organization', 'Non Government Organization'),
+                      ('Tribal Government', 'Tribal Government'),
+                      ('Citizen Advisor', 'Citizen Advisor'),
+                      ('Other', 'Other'))
 
     first_name = models.CharField(max_length=200)
     last_name = models.CharField(max_length=200)
@@ -27,6 +36,8 @@ class AccountRequests(models.Model):
     groups = models.ManyToManyField('AGOLGroup', blank=True)
     sponsor = models.ForeignKey(User, on_delete=models.PROTECT)
     sponsor_notified = models.BooleanField(default=False)
+    reason = models.CharField(max_length=200, choices=REASON_CHOICES, default='Emergency Response')
+    description = models.CharField(max_length=500, blank=True, null=True)
     recaptcha = models.TextField()
     submitted = models.DateTimeField(auto_now_add=True)
     approved = models.DateTimeField(null=True, blank=True)
@@ -244,7 +255,40 @@ class AGOL(models.Model):
 class AGOLUserFields(models.Model):
     agol_username = models.CharField(max_length=200, null=True, blank=True)
     sponsor = models.BooleanField(default=False)
+    authoritative_group = models.CharField(
+        max_length=200,
+        choices=[
+            ('', 'Unknown'),
+            ('R01', 'Region 1 - New England'),
+            ('R02', 'Region 2 - NJ, NY, Puerto Rico, US Virgin Islands'),
+            ('R03', 'Region 3 - Mid Atlantic'),
+            ('R04', 'Region 4 - Southeast'),
+            ('R05', 'Region 5 - Great Lakes'),
+            ('R06', 'Region 6 - Central South'),
+            ('R07', 'Region 7 - IA, KS, MO, NE'),
+            ('R08', 'Region 8 - CO, MT, ND, SD, UT, WY'),
+            ('R09', 'Region 9 - Pacific Southwest'),
+            ('R10', 'Region 10 - Pacific Northwest'),
+            ('OARM', 'EPA Office of Administration and Resources Management'),
+            ('OAR', 'EPA Office of Air and Radiation'),
+            ('OSCPP', 'EPA Office of Chemical Safety and Pollution Prevention'),
+            ('OECA', 'EPA Office of Enforcement and Compliance Assurance'),
+            ('OEI', 'EPA Office of Environmental Information'),
+            ('OGC', 'EPA Office of General Counsel'),
+            ('OIG', 'EPA Office of Inspector General'),
+            ('OITA', 'EPA Office of International and Tribal Affairs'),
+            ('OLEM', 'EPA Office of Land and Emergency Management'),
+            ('ORD', 'EPA Office of Research and Development'),
+            ('OW', 'EPA Office of Water'),
+            ('OA', 'EPA Office of the Administrator'),
+            ('OCFO', 'EPA Office of the Chief Financial Officer'),
+            ('ER', 'OLEM - ER Program Support')
+        ],
+        default='',
+    )
+    phone_number = models.CharField(max_length=20, null=True, blank=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='agol_info')
+    delegates = models.ManyToManyField(User, null=True, blank=True, related_name='delegate_for')
 
     def clean(self):
         super().clean()

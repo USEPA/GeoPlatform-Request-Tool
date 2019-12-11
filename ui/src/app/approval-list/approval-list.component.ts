@@ -6,7 +6,7 @@ import {catchError, map, share, switchMap, tap} from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {iif, Observable, of} from 'rxjs';
-import {ConfirmApprovalDialogComponent} from '../confirm-approval-dialog/confirm-approval-dialog.component';
+import {ConfirmApprovalDialogComponent} from '../dialogs/confirm-approval-dialog/confirm-approval-dialog.component';
 import {LoginService} from '../services/login.service';
 
 @Component({
@@ -38,7 +38,7 @@ export class ApprovalListComponent implements OnInit {
     this.roles = this.http.get<[]>('/v1/account/approvals/roles').pipe(share());
     this.user_types = this.http.get<[]>('/v1/account/approvals/user_types').pipe(share());
     this.groups = this.http.get<[]>('/v1/agol/groups').pipe(share());
-    this.sponsors = this.http.get<[]>('/v1/account/request/sponsors').pipe(share());
+    this.sponsors = this.http.get<[]>('/v1/account/approvals/sponsors').pipe(share());
   }
 
   updateSelectedAccount(event, all = false) {

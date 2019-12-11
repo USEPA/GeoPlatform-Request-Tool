@@ -9,3 +9,45 @@ $light-theme-warn: mat-palette($mat-orange);
 $light-theme: mat-light-theme($light-theme-primary, $light-theme-accent, $light-theme-warn);
 
 @include angular-material-theme($light-theme);
+
+// Custom colors
+$custom-colors: (
+  light-grey: mat-color($mat-gray, 800),
+);
+
+
+// Custom flex containers, fonts, icons
+.flex-row-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+
+  list-style: none;
+}
+
+#homepage-info, #homepage-options, #request-dialog {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: medium;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+#homepage-info div, #homepage-options div {
+  flex-basis: 1000px;
+  color: map-get($custom-colors, light-grey);
+  margin-top: 20px;
+}
+#homepage-options .flex-item {
+  min-width: 250px;
+  color: map-get($custom-colors, light-grey);
+  cursor: pointer;
+}
+#homepage-options h2 {
+  text-align: center;
+}
+#homepage-options .mat-icon {
+  font-size: 200px;
+  color: #2196F3;
+  margin-left: 10px;
+}
+

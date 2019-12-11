@@ -16,10 +16,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
+
 from accounts import views as account_views
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
+from .views import current_user
+from .views import email_field_coordinator_request
 
 router = routers.DefaultRouter()
 
@@ -32,27 +32,11 @@ admin.site.site_title = "GeoPlatform Account Request Tool"
 admin.site.index_title = "Tool Administration"
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def current_user(request):
-    permissions = []
-    for permission in request.user.user_permissions.all():
-        permissions.append(permission.codename)
-    for groups in request.user.groups.all():
-        for permission in groups.permissions.all():
-            permissions.append(permission.codename)
-
-    current_user = {
-        'name': '{} {}'.format(request.user.first_name, request.user.last_name) if request.user.first_name else request.user.username,
-        'permissions': set(permissions),
-        'is_superuser': request.user.is_superuser
-    }
-    return Response(current_user)
-
 urlpatterns = [
     path('api/admin/', admin.site.urls),
     # path('api/oauth2/', include('rest_framework_social_oauth2.urls')),
     path('api/v1/', include(router.urls)),
+    path('api/v1/email_field_coordinator_request/', email_field_coordinator_request),
     path('api/rest-auth/', include('rest_auth.urls')),
     path('api/auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('api/oauth2/', include('rest_framework_social_oauth2.urls')),

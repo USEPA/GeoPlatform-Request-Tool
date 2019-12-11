@@ -1,0 +1,63 @@
+<mat-sidenav-container class="container">
+  <div class="list-header" style="display: flex; flex-direction: row; justify-content: space-between">
+    <mat-form-field style="width:250px; padding-left: 25px; padding-top: 15px;">
+      <input matInput type="text" placeholder="Search" [(ngModel)]="sponsors.filter.search"
+             (keyup.enter)="sponsors.runSearch()" name="search"/>
+      <button style="position:absolute; top:-5px; right:0px;" type="button" mat-icon-button
+              (click)="sponsors.clearSearch()"
+              *ngIf="sponsors.filter.search">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-form-field>
+    <div style="display: flex;
+                  flex-direction: row;
+                  align-items: center;
+                  justify-content: space-evenly;
+                  padding-right: 25px;">
+      <button type="button" mat-raised-button (click)="openRequestFieldCoordDialog()" color="primary"
+              style="margin-right:15px;">
+        {{ 'Request to be a Field Team Coordinator' }}
+      </button>
+    </div>
+  </div>
+  <div class="list-container">
+    <mat-table #table [dataSource]="sponsors.datasource" class="table" matSort matSortActive="date_received"
+               matSortDirection="desc"
+               (matSortChange)="sponsors.sortTable($event)">
+      <ng-container cdkColumnDef="first_name">
+        <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
+          First Name
+        </mat-header-cell>
+        <mat-cell *cdkCellDef="let row" class="cell">{{ row.first_name }}</mat-cell>
+      </ng-container>
+      <ng-container cdkColumnDef="last_name">
+        <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
+          Last Name
+        </mat-header-cell>
+        <mat-cell *cdkCellDef="let row" class="cell">{{ row.last_name }}</mat-cell>
+      </ng-container>
+      <ng-container cdkColumnDef="email">
+        <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
+          Email
+        </mat-header-cell>
+        <mat-cell *cdkCellDef="let row" class="cell">{{ row.email }}</mat-cell>
+      </ng-container>
+      <ng-container cdkColumnDef="authoritative_group">
+        <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
+          Authoritative Group
+        </mat-header-cell>
+        <mat-cell *cdkCellDef="let row" class="cell">{{ row.authoritative_group }}</mat-cell>
+      </ng-container>
+
+      <mat-header-row *cdkHeaderRowDef="displayedColumns" class="header-row"></mat-header-row>
+      <mat-row *cdkRowDef="let row; columns: displayedColumns;" class="row">
+
+      </mat-row>
+    </mat-table>
+    <mat-paginator [length]="sponsors.count" [pageSize]="25"
+                   [pageSizeOptions]="[10, 25, 50, 100]"
+                   (page)="sponsors.getPage($event)"
+                   [pageIndex]="sponsors.filter.page-1"></mat-paginator>
+
+  </div>
+</mat-sidenav-container>

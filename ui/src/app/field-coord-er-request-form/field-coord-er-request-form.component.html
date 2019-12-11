@@ -1,0 +1,53 @@
+<mat-card style="flex-basis: 500px; height: 100%">
+  <mat-card-subtitle>Use this form to request field team coordinators for EPA GeoPlatform groups for
+    a newly specified emergency response.
+  </mat-card-subtitle>
+  <mat-divider></mat-divider><br>
+  <mat-spinner *ngIf="isLoading" style="left: 40%"></mat-spinner>
+  <form *ngIf="!isLoading" novalidate [formGroup]="fieldTeamCoordErForm">
+    <!--Emergency Response Name-->
+    <mat-form-field>
+      <input matInput type="text" formControlName="emergency_response_name" placeholder="Emergency Response Name">
+    </mat-form-field>
+    <!--Field team coordinators-->
+    <mat-form-field>
+      <mat-label>Field Team Coordinators</mat-label>
+      <mat-select formControlName="field_team_coordinators" multiple>
+        <mat-option *ngFor="let field_coordinator of field_coordinators"
+                    [value]="field_coordinator.username">
+            <span *ngIf="field_coordinator.display">
+              {{field_coordinator.display + ' (' + field_coordinator.username + ')'}}
+            </span>
+            <span *ngIf="!field_coordinator.display">{{field_coordinator.username}}</span>
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <!-- GeoPlatform groups -->
+    <mat-form-field>
+      <mat-label>GeoPlatform groups</mat-label>
+      <mat-select formControlName="geoplatform_groups" multiple>
+        <mat-option *ngIf="agol_groups.length == 0" [value]="">{{'None'}}</mat-option>
+        <mat-option *ngFor="let agol_group of agol_groups"
+                    [value]="agol_group.title">
+          {{agol_group.title}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <!--Field Coordinator / Requester's name-->
+    <mat-form-field>
+      <input matInput type="text" formControlName="requester" placeholder="Field Coordinator / Requester's name">
+    </mat-form-field>
+    <!--Field Coordinator / Requester's phone-->
+    <mat-form-field>
+      <input matInput  formControlName="requester_phone_number" placeholder="Field Coordinator / Requester's phone">
+      <mat-error *ngIf="fieldTeamCoordErForm.controls['requester_phone_number'].errors">Not a valid phone number</mat-error>
+    </mat-form-field>
+  </form>
+  <br>
+  <button mat-raised-button color="primary"
+          [disabled]="!fieldTeamCoordErForm.valid || (submitting | async)"
+          (click)="submit()"
+          style="float: right">
+    Submit
+  </button>
+</mat-card>

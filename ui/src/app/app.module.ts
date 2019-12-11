@@ -39,14 +39,19 @@ import {HTTP_INTERCEPTORS, HttpClientModule} from '@angular/common/http';
 import {CdkTableModule} from '@angular/cdk/table';
 import {RECAPTCHA_SETTINGS, RecaptchaModule, RecaptchaSettings, RecaptchaFormsModule} from 'ng-recaptcha';
 import {ApprovalListComponent} from './approval-list/approval-list.component';
+import {FieldCoordListComponent} from './field-coord-list/field-coord-list.component';
 import {LoadingService} from './services/loading.service';
 import {LoginComponent} from './login/login.component';
 import {OauthcallbackComponent} from './oauthcallback/oauthcallback.component';
 import {LoginService} from './services/login.service';
 import {HttpRequestInterceptor} from './http-request.interceptor';
-import { ConfirmApprovalDialogComponent } from './confirm-approval-dialog/confirm-approval-dialog.component';
+import { ConfirmApprovalDialogComponent } from './dialogs/confirm-approval-dialog/confirm-approval-dialog.component';
+import { RequestFieldCoordDialogComponent } from './dialogs/request-field-coord-dialog/request-field-coord-dialog.component';
 import {environment} from '../environments/environment';
 import {FilterInputComponent} from './filter-input/filter-input.component';
+import { HomeComponent } from './home/home.component';
+import { FieldCoordErRequestFormComponent } from './field-coord-er-request-form/field-coord-er-request-form.component';
+
 
 @NgModule({
   declarations: [
@@ -56,7 +61,11 @@ import {FilterInputComponent} from './filter-input/filter-input.component';
     LoginComponent,
     OauthcallbackComponent,
     ConfirmApprovalDialogComponent,
-    FilterInputComponent
+    RequestFieldCoordDialogComponent,
+    FilterInputComponent,
+    HomeComponent,
+    FieldCoordListComponent,
+    FieldCoordErRequestFormComponent
   ],
   imports: [
     BrowserModule,
@@ -117,7 +126,10 @@ import {FilterInputComponent} from './filter-input/filter-input.component';
     LoginService
   ],
   bootstrap: [AppComponent],
-  entryComponents: [ConfirmApprovalDialogComponent]
+  entryComponents: [
+    ConfirmApprovalDialogComponent,
+    RequestFieldCoordDialogComponent
+  ]
 })
 export class AppModule {
 }

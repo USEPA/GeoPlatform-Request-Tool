@@ -1,15 +1,17 @@
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.mixins import CreateModelMixin
 from .serializers import *
-from rest_framework.permissions import AllowAny, BasePermission
+from rest_framework.permissions import AllowAny, BasePermission, IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import *
+
 from django.shortcuts import get_list_or_404
 from django.contrib.auth.models import User
 from django.utils.timezone import now
 from django_filters.rest_framework import FilterSet, BooleanFilter
 from django.db.models import Q
+
+from .models import *
 
 
 class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
@@ -28,30 +30,40 @@ class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
         if groups:
             account_request.groups.set(groups)
 
-    @action(['GET'], detail=False)
-    def sponsors(self, request):
+    @action(['GET'], detail=False, )
+    def field_coordinators(self, request):
         sponsors = User.objects.filter(agol_info__sponsor=True)
         sponsors_list = list()
         for sponsor in sponsors:
             sponsors_list.append({
+                'first_name': sponsor.first_name,
+                'last_name': sponsor.last_name,
                 'display': f'{sponsor.first_name} {sponsor.last_name}',
+                'email': sponsor.email,
+                'phone_number': sponsor.agol_info.phone_number,
+                'authoritative_group': sponsor.agol_info.authoritative_group,
                 'value': sponsor.pk
             })
-        return Response(sponsors_list)
+        return Response({"results": sponsors_list})
 
 
-class IsSponsor(BasePermission):
+class IsSponsor(IsAuthenticated):
     """
     Object-level permission to only allow owners of an object to edit it.
     """
-
     def has_object_permission(self, request, view, obj):
         # must be sponsor or superuser to edit
 
-        if obj.sponsor == request.user or request.user.is_superuser:
+        if request.user.is_superuser:
             return True
-        else:
-            return False
+
+        if obj.sponsor == request.user:
+            return True
+
+        if obj.sponsor.agol_info.delegates.filter(pk=request.user.pk).exists():
+            return True
+
+        return False
 
 
 class AccountFilterSet(FilterSet):
@@ -88,7 +100,11 @@ class AccountViewSet(ModelViewSet):
         if self.request.user.is_superuser:
             return super().get_queryset()
         else:
-            return super().get_queryset().filter(sponsor=self.request.user)
+            # get list of users that current user is a delegate for
+            sponsors = [x.user for x in self.request.user.delegate_for.all()]
+            # add current user into list of potential sponsors for the filter in case they are both a sponsor and a delegate
+            sponsors.append(self.request.user)
+            return super().get_queryset().filter(sponsor__in=sponsors)
 
     # create account (or queue up creation?)
     @action(['POST'], detail=False)
@@ -143,9 +159,16 @@ class AccountViewSet(ModelViewSet):
         sponsors = User.objects.filter(agol_info__sponsor=True)
         sponsors_list = list()
         for sponsor in sponsors:
+            if sponsor.last_name:
+                display = f'{sponsor.first_name} {sponsor.last_name}'
+            else:
+                display = None
+            username = sponsor.agol_info.agol_username if sponsor.agol_info.agol_username else sponsor.username
             sponsors_list.append({
-                'display': f'{sponsor.first_name} {sponsor.last_name}',
-                'value': sponsor.pk
+                'value': sponsor.pk,
+                'display': display,
+                'username': username,
+                'email': sponsor.email,
             })
         return Response(sponsors_list)
 
@@ -159,3 +182,15 @@ class AGOLGroupViewSet(ReadOnlyModelViewSet):
     # only show groups for which the user the user has access per agol group fields assignable groups
     def get_queryset(self):
         return AGOLGroup.objects.filter(Q(show=True) | Q(assignable_groups__group__in=self.request.user.groups.all()))
+
+    @action(['GET'], detail=False)
+    def all(self, request):
+        groups = AGOLGroup.objects.all()
+        groups_list = list()
+        for group in groups:
+            groups_list.append({
+                'value': group.pk,
+                'title': group.title
+            })
+        return Response(groups_list)
+
