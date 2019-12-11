@@ -17,6 +17,7 @@ export interface FieldCoordinator {
   phone_number: number;
   email: string;
   authoritative_group: string;
+  region: string;
 }
 
 @Component({
