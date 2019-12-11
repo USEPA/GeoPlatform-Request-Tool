@@ -42,12 +42,10 @@ export class ApprovalListComponent implements OnInit {
   selectedAccountIds = [];
   accountsListProps: Accounts = {};
   allChecked: boolean;
-  needsEditing = false;
-  needsApproval = false;
+  needsEditing: boolean;
+  needsApproval: boolean;
   roles: Observable<[]>;
   user_types: Observable<[]>;
-  groups: Observable<[]>;
-  sponsors: Observable<[]>;
 
   constructor(public http: HttpClient, loadingService: LoadingService, public snackBar: MatSnackBar,
               public dialog: MatDialog, public loginService: LoginService) {
@@ -65,11 +63,11 @@ export class ApprovalListComponent implements OnInit {
     this.accounts.getItems().subscribe();
     this.roles = this.http.get<[]>('/v1/account/approvals/roles').pipe(share());
     this.user_types = this.http.get<[]>('/v1/account/approvals/user_types').pipe(share());
-    this.groups = this.http.get<[]>('/v1/agol/groups').pipe(share());
-    this.sponsors = this.http.get<[]>('/v1/account/approvals/sponsors').pipe(share());
   }
 
   async setAccountsListProps() {
+    this.needsEditing = false;
+    this.needsApproval = false;
     const init_accounts = await this.accounts.getItems().toPromise();
     for (const account of init_accounts) {
       let needsEditing = false;
@@ -138,7 +136,6 @@ export class ApprovalListComponent implements OnInit {
   updateRecord(record) {
     this.http.put(`/v1/account/approvals/${record.id}/`, record).pipe(
       tap(response => {
-        console.log(response);
         this.accounts.getItems().subscribe();
         this.setAccountsListProps();
         this.accounts.dataChange.next(this.accounts.data);

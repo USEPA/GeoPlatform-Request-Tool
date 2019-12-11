@@ -18,7 +18,7 @@
     <!--sponsor-->
     <mat-form-field>
       <mat-select [(ngModel)]="data.sponsor" formControlName="sponsor" placeholder="Click to select sponsors">
-        <mat-option *ngFor="let sponsor of sponsors | async" [value]="sponsor.value">
+        <mat-option *ngFor="let sponsor of sponsors" [value]="sponsor.value">
           {{ sponsor.display }}
         </mat-option>
       </mat-select>

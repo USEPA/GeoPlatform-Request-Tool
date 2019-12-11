@@ -21,7 +21,7 @@ export interface Sponsor {
 })
 export class EditAccountPropsDialogComponent implements OnInit {
   agol_groups: AgolGroup[];
-  sponsors: Observable<Sponsor[]>;
+  sponsors: Sponsor[];
     // Form Group
     editAccountPropsForm: FormGroup = new FormGroup({
       username: new FormControl(null, [Validators.required]),
@@ -37,8 +37,7 @@ export class EditAccountPropsDialogComponent implements OnInit {
 
   async ngOnInit() {
     this.agol_groups = await this.http.get<AgolGroup[]>('/v1/agol/groups').toPromise();
-    this.sponsors = this.http.get<[]>('/v1/account/request/sponsors').pipe(share());
-
+    this.sponsors = await this.http.get<Sponsor[]>('/v1/account/approvals/sponsors/').toPromise();
   }
 
   submit() {
