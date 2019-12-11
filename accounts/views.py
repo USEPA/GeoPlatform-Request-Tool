@@ -185,7 +185,7 @@ class AGOLGroupViewSet(ReadOnlyModelViewSet):
 
     @action(['GET'], detail=False)
     def all(self, request):
-        groups = AGOLGroup.objects.all()
+        groups = AGOLGroup.objects.order_by('title')
         groups_list = list()
         for group in groups:
             groups_list.append({
