@@ -71,7 +71,7 @@ export class ApprovalListComponent implements OnInit {
     const init_accounts = await this.accounts.getItems().toPromise();
     for (const account of init_accounts) {
       let needsEditing = false;
-      if (!account.username || !account.email || !account.organization || !account.sponsor /*|| account.groups.length === 0*/
+      if (!account.username || !account.email || !account.organization || !account.sponsor || account.groups.length === 0
         || !account.reason || !account.description) {
         needsEditing = true;
       }
@@ -97,7 +97,7 @@ export class ApprovalListComponent implements OnInit {
     const selectedAccountIds = [];
     for (const id in this.accountsListProps) {
       if (this.accountsListProps.hasOwnProperty(id) && this.accountsListProps[id].isChecked) {
-        const idNum = Number(id)
+        const idNum = Number(id);
         selectedAccountIds.push(idNum);
       }
     }

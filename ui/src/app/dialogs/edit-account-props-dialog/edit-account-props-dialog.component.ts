@@ -20,12 +20,12 @@ export interface Sponsor {
   styleUrls: ['./edit-account-props-dialog.component.css']
 })
 export class EditAccountPropsDialogComponent implements OnInit {
-  agol_groups: AgolGroup[];
+  groups: AgolGroup[];
   sponsors: Sponsor[];
     // Form Group
     editAccountPropsForm: FormGroup = new FormGroup({
       username: new FormControl(null, [Validators.required]),
-      agol_groups: new FormControl(null),
+      groups: new FormControl([]),
       sponsor: new FormControl(null, [Validators.required]),
       reason: new FormControl(null, [Validators.required]),
       description: new FormControl(null, [Validators.required]),
@@ -36,7 +36,7 @@ export class EditAccountPropsDialogComponent implements OnInit {
               @Inject(MAT_DIALOG_DATA) public data) { }
 
   async ngOnInit() {
-    this.agol_groups = await this.http.get<AgolGroup[]>('/v1/agol/groups').toPromise();
+    this.groups = await this.http.get<AgolGroup[]>('/v1/agol/groups').toPromise();
     this.sponsors = await this.http.get<Sponsor[]>('/v1/account/approvals/sponsors/').toPromise();
   }
 
