@@ -2,8 +2,6 @@ import {Component, Inject, OnInit} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {HttpClient} from '@angular/common/http';
-import {share} from 'rxjs/operators';
-import {Observable} from 'rxjs';
 
 export interface AgolGroup {
   id: number;
@@ -22,14 +20,15 @@ export interface Sponsor {
 export class EditAccountPropsDialogComponent implements OnInit {
   groups: AgolGroup[];
   sponsors: Sponsor[];
-    // Form Group
-    editAccountPropsForm: FormGroup = new FormGroup({
-      username: new FormControl(null, [Validators.required]),
-      groups: new FormControl([]),
-      sponsor: new FormControl(null, [Validators.required]),
-      reason: new FormControl(null, [Validators.required]),
-      description: new FormControl(null, [Validators.required]),
-    });
+  // Form Group
+  editAccountPropsForm: FormGroup = new FormGroup({
+    username: new FormControl(null),
+    groups: new FormControl([]),
+    sponsor: new FormControl(null, [Validators.required]),
+    reason: new FormControl(null, [Validators.required]),
+    description: new FormControl(null, [Validators.required]),
+  });
+  customerFormError: string = null;
 
   constructor(private http: HttpClient,
               public dialogRef: MatDialogRef<EditAccountPropsDialogComponent>,
@@ -41,6 +40,12 @@ export class EditAccountPropsDialogComponent implements OnInit {
   }
 
   submit() {
+    if (this.data.isBulkEdit) {
+      delete this.editAccountPropsForm.value.username;
+    } else if (!this.data.isBulkEdit && !this.editAccountPropsForm.value.username) {
+      this.customerFormError = 'Username is required.';
+      return;
+    }
     this.dialogRef.close(this.editAccountPropsForm.value);
     this.editAccountPropsForm.reset();
   }

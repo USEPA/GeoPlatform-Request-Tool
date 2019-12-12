@@ -150,10 +150,12 @@ export class ApprovalListComponent implements OnInit {
     let data = null;
     if (selectAccountIds.length === 1 ) {
       data = {
+        isBulkEdit: false,
         ...this.accountsListProps[selectAccountIds[0]]
       };
     } else {
       data = {
+        isBulkEdit: true,
         groups: [],
         sponsor: '',
         reason: '',
@@ -170,7 +172,7 @@ export class ApprovalListComponent implements OnInit {
         for (const id in this.accountsListProps) {
           if (this.accountsListProps[id].isChecked) {
             const updatedRecord = this.accountsListProps[id];
-            updatedRecord['id'] = id;
+            updatedRecord['id'] = Number(id);
             for (const key in formInputValues) {
               if (key in updatedRecord) {
                 updatedRecord[key] = formInputValues[key];

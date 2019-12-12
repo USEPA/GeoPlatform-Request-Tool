@@ -2,8 +2,11 @@
 <br>
 <div mat-dialog-content>
   <form novalidate [formGroup]="editAccountPropsForm">
+    <mat-error *ngIf="customerFormError">
+      {{ customerFormError }}
+    </mat-error>
     <!--username-->
-    <mat-form-field *ngIf="data.username">
+    <mat-form-field *ngIf="!data.isBulkEdit">
       <input matInput [(ngModel)]="data.username" type="text" formControlName="username" placeholder="username">
     </mat-form-field>
     <!--group-->
