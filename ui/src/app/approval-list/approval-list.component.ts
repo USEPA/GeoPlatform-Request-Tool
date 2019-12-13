@@ -119,6 +119,7 @@ export class ApprovalListComponent implements OnInit {
 
   updateSelectedAccount(event, all = false) {
     let needsEditing = false;
+    this.isApprovalReady = false;
     for (const id in this.accountsListProps) {
       if (this.accountsListProps.hasOwnProperty(id)) {
         if (all) {
@@ -139,9 +140,10 @@ export class ApprovalListComponent implements OnInit {
       }
     }
     this.needsEditing = needsEditing;
-    this.isApprovalReady = this.getApprovalStatus();
     this.selectedAccountIds = this.getSelectedAccountIds();
-
+    if (this.selectedAccountIds.length > 0) {
+      this.isApprovalReady = this.getApprovalStatus();
+    }
   }
 
   updateRecord(record) {
