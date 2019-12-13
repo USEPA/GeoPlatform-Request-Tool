@@ -6,12 +6,12 @@
   <form *ngIf="!isLoading" novalidate [formGroup]="fieldTeamCoordErForm">
     <!--Emergency Response Name-->
     <mat-form-field>
-      <input matInput type="text" formControlName="emergency_response_name" placeholder="Response or Project Name">
+      <input matInput required type="text" formControlName="emergency_response_name" placeholder="Response or Project Name">
     </mat-form-field>
     <!--Field team coordinators-->
     <mat-form-field>
       <mat-label>Team Coordinators</mat-label>
-      <mat-select formControlName="field_team_coordinators" multiple>
+      <mat-select required formControlName="field_team_coordinators" multiple>
         <mat-option *ngFor="let field_coordinator of field_coordinators"
                     [value]="field_coordinator.username">
             <span *ngIf="field_coordinator.display">
@@ -25,7 +25,7 @@
     <!-- GeoPlatform groups -->
     <mat-form-field>
       <mat-label>GeoPlatform Groups</mat-label>
-      <mat-select formControlName="geoplatform_groups" multiple>
+      <mat-select required formControlName="geoplatform_groups" multiple>
         <mat-option *ngIf="agol_groups.length == 0" [value]="">{{'None'}}</mat-option>
         <mat-option *ngFor="let agol_group of agol_groups"
                     [value]="agol_group.title">
@@ -36,11 +36,11 @@
     </mat-form-field>
     <!--Field Coordinator / Requester's name-->
     <mat-form-field>
-      <input matInput type="text" formControlName="requester" placeholder="Field Coordinator / Requester Name">
+      <input matInput required type="text" formControlName="requester" placeholder="Field Coordinator / Requester Name">
     </mat-form-field>
     <!--Field Coordinator / Requester's phone-->
     <mat-form-field>
-      <input matInput  formControlName="requester_phone_number" placeholder="Field Coordinator / Requester Phone">
+      <input matInput required formControlName="requester_phone_number" placeholder="Field Coordinator / Requester Phone">
       <mat-error *ngIf="fieldTeamCoordErForm.controls['requester_phone_number'].errors">Not a valid phone number</mat-error>
     </mat-form-field>
   </form>

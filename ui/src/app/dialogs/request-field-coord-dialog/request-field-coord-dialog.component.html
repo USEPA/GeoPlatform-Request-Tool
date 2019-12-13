@@ -5,26 +5,26 @@
   <form novalidate [formGroup]="requestFieldCoordForm">
     <!--first name-->
     <mat-form-field>
-      <input matInput [(ngModel)]="data.first_name" type="text" formControlName="first_name" placeholder="First Name">
+      <input matInput required [(ngModel)]="data.first_name" type="text" formControlName="first_name" placeholder="First Name">
     </mat-form-field>
     <!--last name-->
     <mat-form-field>
-      <input matInput [(ngModel)]="data.last_name" type="text" formControlName="last_name" placeholder="Last Name">
+      <input matInput required [(ngModel)]="data.last_name" type="text" formControlName="last_name" placeholder="Last Name">
     </mat-form-field>
     <!-- phone number -->
     <mat-form-field>
-      <input matInput [(ngModel)]="data.phone_number" placeholder="Phone Number" formControlName="phone_number"
+      <input matInput required [(ngModel)]="data.phone_number" placeholder="Phone Number" formControlName="phone_number"
              maxlength="10">
       <mat-error *ngIf="requestFieldCoordForm.controls['phone_number'].errors">Not a valid phone number</mat-error>
     </mat-form-field>
     <!--email-->
     <mat-form-field>
-      <input matInput [(ngModel)]="data.email" type="email" formControlName="email" placeholder="Email">
+      <input matInput required [(ngModel)]="data.email" type="email" formControlName="email" placeholder="Email">
       <mat-error *ngIf="requestFieldCoordForm.controls.email.invalid">Not a valid email</mat-error>
     </mat-form-field>
     <!--authoritative group-->
     <mat-form-field>
-      <mat-select matNativeControl [(ngModel)]="data.region" formControlName="authoritative_group"
+      <mat-select required matNativeControl [(ngModel)]="data.region" formControlName="authoritative_group"
                   placeholder="Primary Auth Group">
         <mat-option value='R01'>EPA Region 1</mat-option>
         <mat-option value='R02'>EPA Region 2</mat-option>
@@ -53,10 +53,10 @@
       </mat-select>
     </mat-form-field>
     <mat-form-field>
-      <input matInput type="text" formControlName="agol_user" placeholder="GeoPlatform User Account">
+      <input matInput required type="text" formControlName="agol_user" placeholder="GeoPlatform User Account">
     </mat-form-field>
     <mat-form-field>
-      <input matInput type="text" formControlName="emergency_response"
+      <input matInput required type="text" formControlName="emergency_response"
              placeholder="Which response or project are you working on?">
     </mat-form-field>
   </form>
