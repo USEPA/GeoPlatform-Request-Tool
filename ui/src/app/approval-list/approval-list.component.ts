@@ -109,8 +109,8 @@ export class ApprovalListComponent implements OnInit {
 
   getApprovalStatus() {
     let isApprovalReady = true;
-    for (const id in this.accountsListProps) {
-      if (this.accountsListProps[id].isChecked && this.accountsListProps[id].approved) {
+    for (const id of this.selectedAccountIds) {
+      if (this.accountsListProps[id].needsEditing || this.accountsListProps[id].approved) {
         isApprovalReady = false;
       }
     }
