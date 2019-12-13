@@ -31,17 +31,19 @@
       </mat-form-field>
       <!--Action Buttons-->
       <div style="display: flex; flex-direction: row; align-items: center; justify-content: space-evenly; padding-right: 25px;">
-        <div style="margin-right:20px;">
-          <button mat-raised-button *ngIf="needsEditing" color="warn" (click)="editAccountDialog()">
+        <div>
+          <button *ngIf="selectedAccountIds.length > 0" type="button" mat-raised-button color="warn"
+                  (click)="editAccountDialog()" style="margin-right: 20px;">
             Edit
           </button>
-          <button mat-raised-button *ngIf="!needsEditing && needsApproval" color="warn" (click)="confirmApproval()">
+          <button *ngIf="isApprovalReady" type="button" mat-raised-button color="warn"
+                  (click)="confirmApproval()" style="margin-right: 20px;">
             Approve
           </button>
+          <button type="button" mat-raised-button (click)="filterNav.toggle()" color="primary">
+            {{ filterNav.opened ? 'Hide Filter' : 'Show Filter' }}
+          </button>
         </div>
-        <button type="button" mat-raised-button (click)="filterNav.toggle()" color="primary">
-          {{ filterNav.opened ? 'Hide Filter' : 'Show Filter' }}
-        </button>
       </div>
     </div>
 

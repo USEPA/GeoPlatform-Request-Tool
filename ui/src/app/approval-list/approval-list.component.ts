@@ -43,7 +43,7 @@ export class ApprovalListComponent implements OnInit {
   accountsListProps: Accounts = {};
   allChecked: boolean;
   needsEditing: boolean;
-  needsApproval: boolean;
+  isApprovalReady: boolean;
   roles: Observable<[]>;
   user_types: Observable<[]>;
 
@@ -67,7 +67,7 @@ export class ApprovalListComponent implements OnInit {
 
   async setAccountsListProps() {
     this.needsEditing = false;
-    this.needsApproval = false;
+    this.isApprovalReady = false;
     const init_accounts = await this.accounts.getItems().toPromise();
     for (const account of init_accounts) {
       let needsEditing = false;
@@ -91,6 +91,9 @@ export class ApprovalListComponent implements OnInit {
       };
       this.accountsListProps[account.id] = acctProps;
     }
+
+    this.selectedAccountIds = [];
+
   }
 
   getSelectedAccountIds() {
@@ -104,9 +107,18 @@ export class ApprovalListComponent implements OnInit {
     return selectedAccountIds;
   }
 
+  getApprovalStatus() {
+    let isApprovalReady = true;
+    for (const id in this.accountsListProps) {
+      if (this.accountsListProps[id].isChecked && this.accountsListProps[id].approved) {
+        isApprovalReady = false;
+      }
+    }
+    return isApprovalReady;
+  }
+
   updateSelectedAccount(event, all = false) {
     let needsEditing = false;
-    let needsApproval = false;
     for (const id in this.accountsListProps) {
       if (this.accountsListProps.hasOwnProperty(id)) {
         if (all) {
@@ -123,14 +135,13 @@ export class ApprovalListComponent implements OnInit {
           if (this.accountsListProps[id].needsEditing) {
             needsEditing = true;
           }
-          if (!this.accountsListProps[id].approved) {
-            needsApproval = true;
-          }
         }
       }
     }
     this.needsEditing = needsEditing;
-    this.needsApproval = needsApproval;
+    this.isApprovalReady = this.getApprovalStatus();
+    this.selectedAccountIds = this.getSelectedAccountIds();
+
   }
 
   updateRecord(record) {
@@ -146,12 +157,11 @@ export class ApprovalListComponent implements OnInit {
   }
 
   editAccountDialog(): void {
-    const selectAccountIds = this.getSelectedAccountIds();
     let data = null;
-    if (selectAccountIds.length === 1 ) {
+    if (this.selectedAccountIds.length === 1 ) {
       data = {
         isBulkEdit: false,
-        ...this.accountsListProps[selectAccountIds[0]]
+        ...this.accountsListProps[this.selectedAccountIds[0]]
       };
     } else {
       data = {
@@ -187,9 +197,8 @@ export class ApprovalListComponent implements OnInit {
 
   confirmApproval() {
     let password_needed = false;
-    const selectAccountIds = this.getSelectedAccountIds();
     for (const account of this.accounts.data) {
-      if (selectAccountIds.indexOf(account.id) > -1 && account.username_valid) {
+      if (this.selectedAccountIds.indexOf(account.id) > -1 && account.username_valid) {
         password_needed = true;
         break;
       }
@@ -202,7 +211,7 @@ export class ApprovalListComponent implements OnInit {
     });
     dialogRef.afterClosed().pipe(switchMap(results => {
         return iif(() => results.confirmed, this.http.post('/v1/account/approvals/approve/',
-          {accounts: selectAccountIds, password: results.password}).pipe(
+          {accounts: this.selectedAccountIds, password: results.password}).pipe(
           switchMap(response => iif(() => response !== undefined, this.accounts.getItems().pipe(tap(() => {
             this.setAccountsListProps().then( () => {
               this.snackBar.open('Success', null, {duration: 2000});
