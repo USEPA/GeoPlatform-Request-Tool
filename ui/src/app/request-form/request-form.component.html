@@ -1,8 +1,8 @@
 <mat-card style="flex-basis: 500px; height: 100%">
+  <mat-card-title>GeoPlatform User Account Request Form</mat-card-title>
   <mat-card-subtitle>Use the form below to request an EPA GeoPlatform account and/or to request access to GeoPlatform
     groups for a specific emergency response or project.
   </mat-card-subtitle>
-  <mat-divider></mat-divider><br>
   <form novalidate [formGroup]="requestForm"
         style="display: flex; flex-direction: column; justify-content: center;">
     <mat-form-field>
@@ -22,7 +22,7 @@
       <input matInput type="text" required formControlName="organization" placeholder="Organization">
     </mat-form-field>
     <mat-form-field>
-      <mat-select formControlName="sponsor" placeholder="Field Team Coordinator" required>
+      <mat-select formControlName="sponsor" placeholder="Team Coordinator" required>
         <mat-option *ngFor="let sponsor of sponsors | async" [value]="sponsor.value">
           {{ sponsor.display }}
         </mat-option>

@@ -7,12 +7,12 @@
     </mat-error>
     <!--username-->
     <mat-form-field *ngIf="!data.isBulkEdit">
-      <input matInput [(ngModel)]="data.username" type="text" formControlName="username" placeholder="username">
+      <input matInput required [(ngModel)]="data.username" type="text" formControlName="username" placeholder="GeoPlatform Username">
     </mat-form-field>
     <!--group-->
     <!-- GeoPlatform groups -->
     <mat-form-field>
-      <mat-select [(ngModel)]="data.groups" formControlName="groups" multiple placeholder="Click to select AGOL groups">
+      <mat-select [(ngModel)]="data.groups" formControlName="groups" multiple placeholder="GeoPlatform Groups">
         <mat-option *ngFor="let group of groups" [value]="group.id">
           {{ group.title }}
         </mat-option>
@@ -20,7 +20,7 @@
     </mat-form-field>
     <!--sponsor-->
     <mat-form-field>
-      <mat-select [(ngModel)]="data.sponsor" formControlName="sponsor" placeholder="Click to select sponsors">
+      <mat-select required [(ngModel)]="data.sponsor" formControlName="sponsor" placeholder="Team Coordinator">
         <mat-option *ngFor="let sponsor of sponsors" [value]="sponsor.value">
           {{ sponsor.display }}
         </mat-option>
@@ -28,7 +28,7 @@
     </mat-form-field>
     <!--reason for account-->
     <mat-form-field>
-      <mat-select [(ngModel)]="data.reason" required formControlName="reason" placeholder="Click to select reason">
+      <mat-select required [(ngModel)]="data.reason" required formControlName="reason" placeholder="Reason">
         <mat-option value='Emergency Response'>Emergency Response</mat-option>
         <mat-option value='Other Federal Agency'>Other Federal Agency</mat-option>
         <mat-option value='State Agency'>State Agency</mat-option>
@@ -43,7 +43,7 @@
     <!--description-->
     <mat-form-field>
       <mat-label>Description</mat-label>
-      <textarea matInput
+      <textarea matInput required
                 [(ngModel)]="data.description"
                 maxlength="500"
                 formControlName="description"
