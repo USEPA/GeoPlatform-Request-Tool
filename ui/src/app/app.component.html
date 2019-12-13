@@ -5,7 +5,7 @@
             GeoPlatform Account Request Tool
         </div>
     <div style="padding-right: 25px;">
-      <button mat-button routerLink="/accounts/list/" *ngIf="!(loginService.valid_token | async)">Field Team Coordinator Login</button>
+      <button mat-button routerLink="/accounts/list/" *ngIf="!(loginService.valid_token | async)">Team Coordinator Login</button>
       <button mat-button [matMenuTriggerFor]="menu" *ngIf="(loginService.valid_token | async)">{{ loginService.display_name }}</button>
       <mat-menu #menu="matMenu">
         <button mat-menu-item routerLink="/accounts/list/">Approval List</button>

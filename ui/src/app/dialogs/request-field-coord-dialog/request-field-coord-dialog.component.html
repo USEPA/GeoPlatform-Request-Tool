@@ -1,6 +1,6 @@
-<h1 mat-dialog-title>Field Team Coordinator Request Form</h1>
+<h1 mat-dialog-title>Team Coordinator Request Form</h1>
 <div id="request-dialog"> Use the form below to request access to approve user account requests
-  and assign users to GeoPlatform groups for a specific emergency response.</div> <br>
+  and assign users to GeoPlatform groups for a specific emergency response or project.</div> <br>
 <div mat-dialog-content>
   <form novalidate [formGroup]="requestFieldCoordForm">
     <!--first name-->
@@ -26,29 +26,29 @@
     <mat-form-field>
       <mat-select matNativeControl [(ngModel)]="data.region" formControlName="authoritative_group"
                   placeholder="Authoritative Group">
-        <mat-option value='R01'>Region 1</mat-option>
-        <mat-option value='R02'>Region 2</mat-option>
-        <mat-option value='R03'>Region 3</mat-option>
-        <mat-option value='R04'>Region 4</mat-option>
-        <mat-option value='R05'>Region 5</mat-option>
-        <mat-option value='R06'>Region 6</mat-option>
-        <mat-option value='R07'>Region 7</mat-option>
-        <mat-option value='R08'>Region 8</mat-option>
-        <mat-option value='R09'>Region 9</mat-option>
-        <mat-option value='R10'>Region 10</mat-option>
-        <mat-option value='OARM'>EPA Office of Administration and Resources Management</mat-option>
-        <mat-option value='OAR'>EPA Office of Air and Radiation</mat-option>
-        <mat-option value='OSCPP'>EPA Office of Chemical Safety and Pollution Prevention</mat-option>
-        <mat-option value='OECA'>EPA Office of Enforcement and Compliance Assurance</mat-option>
-        <mat-option value='OEI'>EPA Office of Environmental Information</mat-option>
-        <mat-option value='OGC'>EPA Office of General Counsel</mat-option>
-        <mat-option value='OIG'>EPA Office of Inspector General</mat-option>
-        <mat-option value='OITA'>EPA Office of International and Tribal Affairs</mat-option>
-        <mat-option value='OLEM'>EPA Office of Land and Emergency Management</mat-option>
-        <mat-option value='ORD'>EPA Office of Research and Development</mat-option>
-        <mat-option value='OW'>EPA Office of Water</mat-option>
-        <mat-option value='OA'>EPA Office of the Administrator</mat-option>
-        <mat-option value='OCFO'>EPA Office of the Chief Financial Officer</mat-option>
+        <mat-option value='R01'>EPA Region 1</mat-option>
+        <mat-option value='R02'>EPA Region 2</mat-option>
+        <mat-option value='R03'>EPA Region 3</mat-option>
+        <mat-option value='R04'>EPA Region 4</mat-option>
+        <mat-option value='R05'>EPA Region 5</mat-option>
+        <mat-option value='R06'>EPA Region 6</mat-option>
+        <mat-option value='R07'>EPA Region 7</mat-option>
+        <mat-option value='R08'>EPA Region 8</mat-option>
+        <mat-option value='R09'>EPA Region 9</mat-option>
+        <mat-option value='R10'>EPA Region 10</mat-option>
+        <mat-option value='OARM'>EPA Office of Administration and Resources Management (OARM)</mat-option>
+        <mat-option value='OAR'>EPA Office of Air and Radiation (OAR)</mat-option>
+        <mat-option value='OSCPP'>EPA Office of Chemical Safety and Pollution Prevention (OCSPP)</mat-option>
+        <mat-option value='OECA'>EPA Office of Enforcement and Compliance Assurance (OECA)</mat-option>
+        <mat-option value='OEI'>EPA Office of Environmental Information (OEI)</mat-option>
+        <mat-option value='OGC'>EPA Office of General Counsel (OGC)</mat-option>
+        <mat-option value='OIG'>EPA Office of Inspector General (OIG)</mat-option>
+        <mat-option value='OITA'>EPA Office of International and Tribal Affairs (OITA)</mat-option>
+        <mat-option value='OLEM'>EPA Office of Land and Emergency Management (OLEM)</mat-option>
+        <mat-option value='ORD'>EPA Office of Research and Development (ORD)</mat-option>
+        <mat-option value='OW'>EPA Office of Water (OW)</mat-option>
+        <mat-option value='OA'>EPA Office of the Administrator (OA)</mat-option>
+        <mat-option value='OCFO'>EPA Office of the Chief Financial Officer (OCFO)</mat-option>
         <mat-option value='ER'>OLEM - ER Program Support</mat-option>
       </mat-select>
     </mat-form-field>
