@@ -30,11 +30,13 @@ export class ConfirmApprovalDialogComponent {
               @Inject(MAT_DIALOG_DATA) public data) { }
 
   confirm() {
-    this.dialogRef.close({confirmed: true, password: this.passwordForm.value.passwordInput})
+    this.dialogRef.close({confirmed: true, password: this.passwordForm.value.passwordInput});
+    this.passwordForm.reset();
   }
 
   dismiss() {
-    this.dialogRef.close({confirmed: false, password: this.passwordForm.value.passwordInput});
+    this.dialogRef.close({confirmed: false, password: null});
+    this.passwordForm.reset();
   }
 
 }

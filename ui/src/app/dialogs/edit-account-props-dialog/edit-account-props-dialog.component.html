@@ -1,0 +1,64 @@
+<h1 mat-dialog-title>Edit Account Properties</h1>
+<br>
+<div mat-dialog-content>
+  <form novalidate [formGroup]="editAccountPropsForm">
+    <mat-error *ngIf="customerFormError">
+      {{ customerFormError }}
+    </mat-error>
+    <!--username-->
+    <mat-form-field *ngIf="!data.isBulkEdit">
+      <input matInput [(ngModel)]="data.username" type="text" formControlName="username" placeholder="username">
+    </mat-form-field>
+    <!--group-->
+    <!-- GeoPlatform groups -->
+    <mat-form-field>
+      <mat-select [(ngModel)]="data.groups" formControlName="groups" multiple placeholder="Click to select AGOL groups">
+        <mat-option *ngFor="let group of groups" [value]="group.id">
+          {{ group.title }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <!--sponsor-->
+    <mat-form-field>
+      <mat-select [(ngModel)]="data.sponsor" formControlName="sponsor" placeholder="Click to select sponsors">
+        <mat-option *ngFor="let sponsor of sponsors" [value]="sponsor.value">
+          {{ sponsor.display }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <!--reason for account-->
+    <mat-form-field>
+      <mat-select [(ngModel)]="data.reason" required formControlName="reason" placeholder="Click to select reason">
+        <mat-option value='Emergency Response'>Emergency Response</mat-option>
+        <mat-option value='Other Federal Agency'>Other Federal Agency</mat-option>
+        <mat-option value='State Agency'>State Agency</mat-option>
+        <mat-option value='University'>University</mat-option>
+        <mat-option value='Long Term GIS Support'>Long Term GIS Support</mat-option>
+        <mat-option value='Non Government Organization'>Non Government Organization</mat-option>
+        <mat-option value='Tribal Government'>Tribal Government</mat-option>
+        <mat-option value='Citizen Advisor'>Citizen Advisor</mat-option>
+        <mat-option value='Other'>Other</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <!--description-->
+    <mat-form-field>
+      <mat-label>Description</mat-label>
+      <textarea matInput
+                [(ngModel)]="data.description"
+                maxlength="500"
+                formControlName="description"
+                cdkTextareaAutosize
+                #autosize="cdkTextareaAutosize"
+                cdkAutosizeMinRows="1"
+                cdkAutosizeMaxRows="10"></textarea>
+    </mat-form-field>
+  </form>
+</div>
+<div mat-dialog-actions>
+  <button mat-raised-button color="accent" (click)="dismiss()">Cancel</button>
+  <button mat-raised-button color="primary"
+          [disabled]="!editAccountPropsForm.valid"
+          (click)="submit()">
+    Submit
+  </button>
+</div>

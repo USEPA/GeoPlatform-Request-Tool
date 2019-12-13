@@ -46,6 +46,7 @@ import {OauthcallbackComponent} from './oauthcallback/oauthcallback.component';
 import {LoginService} from './services/login.service';
 import {HttpRequestInterceptor} from './http-request.interceptor';
 import { ConfirmApprovalDialogComponent } from './dialogs/confirm-approval-dialog/confirm-approval-dialog.component';
+import { EditAccountPropsDialogComponent } from './dialogs/edit-account-props-dialog/edit-account-props-dialog.component';
 import { RequestFieldCoordDialogComponent } from './dialogs/request-field-coord-dialog/request-field-coord-dialog.component';
 import {environment} from '../environments/environment';
 import {FilterInputComponent} from './filter-input/filter-input.component';
@@ -61,6 +62,7 @@ import { FieldCoordErRequestFormComponent } from './field-coord-er-request-form/
     LoginComponent,
     OauthcallbackComponent,
     ConfirmApprovalDialogComponent,
+    EditAccountPropsDialogComponent,
     RequestFieldCoordDialogComponent,
     FilterInputComponent,
     HomeComponent,
@@ -128,6 +130,7 @@ import { FieldCoordErRequestFormComponent } from './field-coord-er-request-form/
   bootstrap: [AppComponent],
   entryComponents: [
     ConfirmApprovalDialogComponent,
+    EditAccountPropsDialogComponent,
     RequestFieldCoordDialogComponent
   ]
 })

@@ -25,8 +25,6 @@ export class RequestFormComponent implements OnInit {
     email: new FormControl(null, [Validators.required, Validators.email]),
     organization: new FormControl(null, Validators.required),
     sponsor: new FormControl(null, Validators.required),
-    reason: new FormControl('Emergency Response', [Validators.required]),
-    description: new FormControl(null),
     recaptcha: new FormControl(null, Validators.required)
   });
 
