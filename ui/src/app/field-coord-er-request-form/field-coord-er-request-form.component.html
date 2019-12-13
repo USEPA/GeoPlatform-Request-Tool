@@ -40,7 +40,7 @@
     </mat-form-field>
     <!--Field Coordinator / Requester's phone-->
     <mat-form-field>
-      <mat-hint>A 10 digit phone number with no dashes or spaces in between the numbers</mat-hint>
+      <mat-hint>Enter a 10-digit phone number without dashes or spaces.</mat-hint>
       <input matInput required formControlName="requester_phone_number" placeholder="Coordinator / Requester Phone">
       <mat-error *ngIf="fieldTeamCoordErForm.controls['requester_phone_number'].errors">Not a valid phone number</mat-error>
     </mat-form-field>
