@@ -1,7 +1,7 @@
 <mat-card style="flex-basis: 500px; height: 100%">
+  <mat-card-title>Response / Project Request Form</mat-card-title>
   <mat-card-subtitle>Use the form below to request a new emergency response or project be added to the tool.
   </mat-card-subtitle>
-  <mat-divider></mat-divider><br>
   <mat-spinner *ngIf="isLoading" style="left: 40%"></mat-spinner>
   <form *ngIf="!isLoading" novalidate [formGroup]="fieldTeamCoordErForm">
     <!--Emergency Response Name-->
@@ -36,11 +36,11 @@
     </mat-form-field>
     <!--Field Coordinator / Requester's name-->
     <mat-form-field>
-      <input matInput required type="text" formControlName="requester" placeholder="Field Coordinator / Requester Name">
+      <input matInput required type="text" formControlName="requester" placeholder="Coordinator / Requester Name">
     </mat-form-field>
     <!--Field Coordinator / Requester's phone-->
     <mat-form-field>
-      <input matInput required formControlName="requester_phone_number" placeholder="Field Coordinator / Requester Phone">
+      <input matInput required formControlName="requester_phone_number" placeholder="Coordinator / Requester Phone">
       <mat-error *ngIf="fieldTeamCoordErForm.controls['requester_phone_number'].errors">Not a valid phone number</mat-error>
     </mat-form-field>
   </form>
