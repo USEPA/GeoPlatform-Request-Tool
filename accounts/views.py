@@ -185,12 +185,13 @@ class AGOLGroupViewSet(ReadOnlyModelViewSet):
 
     @action(['GET'], detail=False)
     def all(self, request):
-        groups = AGOLGroup.objects.order_by('title')
+        groups = AGOLGroup.objects.all()
         groups_list = list()
         for group in groups:
             groups_list.append({
                 'value': group.pk,
-                'title': group.title
+                'title': group.title.lstrip('​')
             })
-        return Response(groups_list)
+        sorted_group_list = sorted(groups_list, key=lambda x: x['title'])
+        return Response(sorted_group_list)
 
