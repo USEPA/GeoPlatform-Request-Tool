@@ -1,22 +1,27 @@
 {% block html %}
     <div>
-        An Emergency Response Request has been submitted for:
+        An Emergency Response Request or Project has been submitted to the GeoPlatform Account Request
+        Tool (<a href="https://request.ercloud.org">request.ercloud.org</a>). The following
+        information was submitted:
         <ul>
-            <li>Emergency Response Name: {{emergency_response_name}}</li>
-            Field Team Coordinators:
+            <li>Response / Project Name: {{emergency_response_name}}</li>
+            <li> Team Coordinators:
             <ul>
                 {% for value in field_team_coordinators %}
                     <li>{{value}}</li>
                 {% endfor %}
-            </ul>
-            GeoPlatform Groups:
+            </ul></li>
+            <li>GeoPlatform Groups:
             <ul>
                 {% for value in geoplatform_groups %}
                     <li>{{value}}</li>
                 {% endfor %}
-            </ul>
-            <li>Field Coordinator / Requester's name: {{requester}}</li>
-            <li>Field Coordinator / Requester's phone: {{requester_phone_number}}</li>
+            </ul></li>
+            <li>Coordinator / Requester Name: {{requester}}</li>
+            <li>Coordinator / Requester Phone: {{requester_phone_number}}</li>
         </ul>
+        Please log in to the <a href="https://request.ercloud.org/api/admin/">GeoPlatform
+        Account Request Tool Administration</a> to configure a new project or response and notify the coordinator when
+        configuration is complete..
     </div>
 {% endblock %}
