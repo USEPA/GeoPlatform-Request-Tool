@@ -58,7 +58,7 @@
                           [checked]="allChecked"></mat-checkbox>
           </mat-header-cell>
           <mat-cell *cdkCellDef="let row" class="cell" matTooltip="Select record(s) to approve">
-            <mat-checkbox (change)="updateSelectedAccount($event)" [value]="row.id"
+            <mat-checkbox (change)="updateSelectedAccount($event)" [value]="row.id" *ngIf="accountsListProps[row.id]"
                           [checked]="accountsListProps[row.id].isChecked"></mat-checkbox>
           </mat-cell>
         </ng-container>
