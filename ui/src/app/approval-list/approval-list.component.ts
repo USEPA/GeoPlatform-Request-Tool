@@ -3,8 +3,8 @@ import {BaseService} from '../services/base.service';
 import {HttpClient} from '@angular/common/http';
 import {LoadingService} from '../services/loading.service';
 import {catchError, map, share, switchMap, tap} from 'rxjs/operators';
-import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import {MatDialog} from '@angular/material/dialog';
+import {MatSnackBar} from '@angular/material/snack-bar';
 import {iif, Observable, of} from 'rxjs';
 import {EditAccountPropsDialogComponent} from '../dialogs/edit-account-props-dialog/edit-account-props-dialog.component';
 import {ConfirmApprovalDialogComponent} from '../dialogs/confirm-approval-dialog/confirm-approval-dialog.component';
@@ -26,7 +26,7 @@ export interface AccountProps {
 }
 
 export interface Accounts {
-    [id: number]: AccountProps;
+  [id: number]: AccountProps;
 }
 
 @Component({
@@ -57,18 +57,20 @@ export class ApprovalListComponent implements OnInit {
     // this.loginService.is_superuser ? null : this.accounts.filter = {approved_and_created: false};
 
     // set accounts list record properties
-    this.setAccountsListProps();
+    // this.setAccountsListProps();
 
     this.accounts.filter = {approved_and_created: false};
-    this.accounts.getItems().subscribe();
+    this.accounts.getItems().pipe(
+      tap(response => this.setAccountsListProps(response))
+    ).subscribe();
     this.roles = this.http.get<[]>('/v1/account/approvals/roles').pipe(share());
     this.user_types = this.http.get<[]>('/v1/account/approvals/user_types').pipe(share());
   }
 
-  async setAccountsListProps() {
+  setAccountsListProps(init_accounts) {
     this.needsEditing = false;
     this.isApprovalReady = false;
-    const init_accounts = await this.accounts.getItems().toPromise();
+    // const init_accounts = await this.accounts.getItems().toPromise();
     for (const account of init_accounts) {
       let needsEditing = false;
       if (!account.username || !account.email || !account.organization || !account.sponsor || account.groups.length === 0
@@ -150,7 +152,6 @@ export class ApprovalListComponent implements OnInit {
     this.http.put(`/v1/account/approvals/${record.id}/`, record).pipe(
       tap(response => {
         this.accounts.getItems().subscribe();
-        this.setAccountsListProps();
         this.accounts.dataChange.next(this.accounts.data);
         this.snackBar.open('Success', null, {duration: 2000});
       }),
@@ -160,7 +161,7 @@ export class ApprovalListComponent implements OnInit {
 
   editAccountDialog(): void {
     let data = null;
-    if (this.selectedAccountIds.length === 1 ) {
+    if (this.selectedAccountIds.length === 1) {
       data = {
         isBulkEdit: false,
         ...this.accountsListProps[this.selectedAccountIds[0]]
@@ -215,9 +216,9 @@ export class ApprovalListComponent implements OnInit {
         return iif(() => results.confirmed, this.http.post('/v1/account/approvals/approve/',
           {accounts: this.selectedAccountIds, password: results.password}).pipe(
           switchMap(response => iif(() => response !== undefined, this.accounts.getItems().pipe(tap(() => {
-            this.setAccountsListProps().then( () => {
-              this.snackBar.open('Success', null, {duration: 2000});
-            });
+
+            this.snackBar.open('Success', null, {duration: 2000});
+
           }))))
           )
         );
