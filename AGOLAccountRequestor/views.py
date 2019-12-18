@@ -40,11 +40,13 @@ def email_field_coordinator_request(request):
             email_context = request.data
         if 'emergency_response_name' in email_context:
             html_msg = render_to_string('../templates/field_coord_er_request_email.html', email_context)
+            email_subject = "Response/Project Request for Review in GeoPlatform Account Request Tool"
         else:
             html_msg = render_to_string('../templates/field_coord_request_email.html', email_context)
+            email_subject = "Coordinator Request for Review in GeoPlatform Account Request Tool"
         plain_msg = strip_tags(html_msg)
         result = send_mail(
-            subject="Field Coordinator Request",
+            subject=email_subject,
             message=plain_msg,
             from_email=recipient_email,
             recipient_list=[recipient_email],
