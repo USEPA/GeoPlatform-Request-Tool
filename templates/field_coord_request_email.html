@@ -1,6 +1,8 @@
 {% block html %}
     <div>
-        A Field Coordinator Request has been submitted for:
+        A Coordinator Request has been submitted to the GeoPlatform Account Request Tool
+        (<a href="https://request.ercloud.org">request.ercloud.org</a>). The following
+        information was submitted:
         <ul>
             <li>First Name: {{first_name}}</li>
             <li>Last Name: {{last_name}}</li>
@@ -8,7 +10,10 @@
             <li>Email: {{email}}</li>
             <li>Authoritative Group: {{authoritative_group}}</li>
             <li>GeoPlatform User: {{agol_user}}</li>
-            {% if emergency_response %}<li>Emergency Response: {{emergency_response}}</li>{% endif %}
+            {% if emergency_response %}<li>Response / Project: {{emergency_response}}</li>{% endif %}
         </ul>
+     Please log in to the <a href="https://request.ercloud.org/api/admin/">GeoPlatform
+        Account Request Tool Administration</a> to configure a new project or response and notify the
+        coordinator when configuration is complete.
     </div>
 {% endblock %}

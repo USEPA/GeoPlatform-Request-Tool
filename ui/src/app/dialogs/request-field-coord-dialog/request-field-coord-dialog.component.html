@@ -16,6 +16,7 @@
       <input matInput required [(ngModel)]="data.phone_number" placeholder="Phone Number" formControlName="phone_number"
              maxlength="10">
       <mat-error *ngIf="requestFieldCoordForm.controls['phone_number'].errors">Not a valid phone number</mat-error>
+      <mat-hint>Enter a 10-digit phone number without dashes or spaces.</mat-hint>
     </mat-form-field>
     <!--email-->
     <mat-form-field>
