@@ -28,7 +28,7 @@ export interface FieldCoordinator {
 export class FieldCoordListComponent implements OnInit {
   sponsors: BaseService;
   // sponsors: Observable<[]>;
-  displayedColumns = ['first_name', 'last_name', 'email', 'authoritative_group'];
+  displayedColumns = ['first_name', 'last_name', 'email', 'phone_number', 'authoritative_group'];
   field_coordinator: FieldCoordinator;
 
   constructor(public http: HttpClient, loadingService: LoadingService, public snackBar: MatSnackBar,

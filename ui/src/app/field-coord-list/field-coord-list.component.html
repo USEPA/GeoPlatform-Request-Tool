@@ -42,6 +42,12 @@
         </mat-header-cell>
         <mat-cell *cdkCellDef="let row" class="cell">{{ row.email }}</mat-cell>
       </ng-container>
+      <ng-container cdkColumnDef="phone_number">
+        <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
+          Phone Number
+        </mat-header-cell>
+        <mat-cell *cdkCellDef="let row" class="cell">{{ row.phone_number }}</mat-cell>
+      </ng-container>
       <ng-container cdkColumnDef="authoritative_group">
         <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
           Authoritative Group
