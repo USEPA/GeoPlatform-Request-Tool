@@ -33,7 +33,8 @@ def current_user(request):
 @permission_classes((permissions.AllowAny,))
 def email_field_coordinator_request(request):
     try:
-        recipient_email = settings.RECIPIENT_EMAIL
+        gpo_request_email_account = settings.GPO_REQUEST_EMAIL_ACCOUNT
+        recipient_emails = settings.RECIPIENT_EMAILS
         if 'result' in request.data:
             email_context = request.data['result']
         else:
@@ -48,8 +49,8 @@ def email_field_coordinator_request(request):
         result = send_mail(
             subject=email_subject,
             message=plain_msg,
-            from_email=recipient_email,
-            recipient_list=[recipient_email],
+            from_email=gpo_request_email_account,
+            recipient_list=recipient_emails,
             html_message=html_msg,
         )
         return Response(bool(result))
