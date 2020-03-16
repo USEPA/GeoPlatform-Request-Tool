@@ -8,6 +8,9 @@ import {LoginService} from '../services/login.service';
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit {
+  teamCoordinatorsToolTip = 'View contact information for existing Team Coordinators or request to become a Team Coordinator';
+  erRequestToolTip = 'Request to configure a new Response or Project';
+  geoPlatformRequestToolTip = 'Request GeoPlatform user accounts';
 
   constructor(public loginService: LoginService, private router: Router) { }
 

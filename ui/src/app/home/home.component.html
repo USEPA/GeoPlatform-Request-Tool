@@ -8,8 +8,8 @@
       <br>
       </p>
       <p>
-        Steps:<br>
-        1. Become a Team Coordinator<br>
+        How to get started:<br>
+        1. Become a Team Coordinator (and assign Delegates)<br>
         2. Configure a New Response or Project<br>
         3. Request New GeoPlatform User Accounts
       </p>
@@ -24,7 +24,7 @@
             <li class="flex-item" (click)="navigateToUri('/field-coordinators')">
               <mat-card>
                 <mat-card-subtitle></mat-card-subtitle>
-                <mat-card-content>
+                <mat-card-content matTooltip="{{teamCoordinatorsToolTip}}" matTooltipClass="mat-tooltip-blue" matTooltipPosition="above">
                   <mat-icon>people</mat-icon>
                 </mat-card-content>
               </mat-card>
@@ -33,7 +33,7 @@
             <li class="flex-item" (click)="navigateToUri('/field-coordinator-er-request')">
               <mat-card>
                 <mat-card-subtitle></mat-card-subtitle>
-                <mat-card-content>
+                <mat-card-content matTooltip="{{erRequestToolTip}}" matTooltipClass="mat-tooltip-blue" matTooltipPosition="above">
                   <mat-icon>settings_applications</mat-icon>
                 </mat-card-content>
               </mat-card>
@@ -42,7 +42,7 @@
             <li class="flex-item" (click)="navigateToUri('/requestaccount')">
               <mat-card>
                 <mat-card-subtitle></mat-card-subtitle>
-                <mat-card-content>
+                <mat-card-content matTooltip="{{geoPlatformRequestToolTip}}" matTooltipClass="mat-tooltip-blue" matTooltipPosition="above">
                   <mat-icon>control_point</mat-icon>
                 </mat-card-content>
               </mat-card>
