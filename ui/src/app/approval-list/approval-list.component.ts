@@ -73,7 +73,7 @@ export class ApprovalListComponent implements OnInit {
     // const init_accounts = await this.accounts.getItems().toPromise();
     for (const account of init_accounts) {
       let needsEditing = false;
-      if (!account.username || !account.email || !account.organization || !account.sponsor || account.groups.length === 0
+      if (!account.organization || !account.sponsor || account.groups.length === 0
         || !account.reason || !account.description) {
         needsEditing = true;
       }
