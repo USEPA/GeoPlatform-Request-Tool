@@ -47,6 +47,9 @@ class AccountRequests(models.Model):
     class Meta:
         verbose_name_plural = 'Account Requests'
         verbose_name = 'Account Request'
+        permissions = [
+            ('view_all_accountrequests', 'Can view ALL Account Requests regardless of Sponsor')
+        ]
 
 # class AGOLGroupThrough(models.Model):
 #     NEW_OR_EXISTING_CHOICES = (('new', 'New'),

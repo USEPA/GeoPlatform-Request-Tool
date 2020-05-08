@@ -1,9 +1,10 @@
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.mixins import CreateModelMixin
 from .serializers import *
-from rest_framework.permissions import AllowAny, BasePermission, IsAuthenticated
+from rest_framework.permissions import AllowAny, BasePermission, IsAuthenticated, DjangoModelPermissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.filters import BaseFilterBackend
 
 from django.shortcuts import get_list_or_404
 from django.contrib.auth.models import User
@@ -51,7 +52,7 @@ class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
         return Response({"results": sponsors_list})
 
 
-class IsSponsor(IsAuthenticated):
+class IsSponsor(DjangoModelPermissions):
     """
     Object-level permission to only allow owners of an object to edit it.
     """
@@ -84,11 +85,24 @@ class AccountFilterSet(FilterSet):
         fields = ['approved_and_created', 'approved']
 
 
+class SponsorFilterBackend(BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        if request.user.is_superuser or request.user.has_perm('accounts.view_all_accountrequests'):
+            return queryset
+        else:
+            # get list of users that current user is a delegate for
+            sponsors = [x.user for x in request.user.delegate_for.all()]
+            # add current user into list of potential sponsors for the filter in case they are both a sponsor and a delegate
+            sponsors.append(request.user)
+            return queryset.filter(sponsor__in=sponsors)
+
+
 class AccountViewSet(ModelViewSet):
     queryset = AccountRequests.objects.all()
     serializer_class = AccountSerializer
     search_fields = ['first_name', 'last_name', 'username']
     filterset_class = AccountFilterSet
+    filter_backends = ModelViewSet.filter_backends + [SponsorFilterBackend]
     permission_classes = (IsSponsor,)
 
     def perform_update(self, serializer):
@@ -101,16 +115,6 @@ class AccountViewSet(ModelViewSet):
 
         account_request = serializer.save(username_valid=username_valid, agol_id=agol_id, sponsor_notified=sponsor_notified)
         account_request.groups.set(list(set(groups + self.request.data['groups'])))
-
-    def get_queryset(self):
-        if self.request.user.is_superuser:
-            return super().get_queryset()
-        else:
-            # get list of users that current user is a delegate for
-            sponsors = [x.user for x in self.request.user.delegate_for.all()]
-            # add current user into list of potential sponsors for the filter in case they are both a sponsor and a delegate
-            sponsors.append(self.request.user)
-            return super().get_queryset().filter(sponsor__in=sponsors)
 
     # create account (or queue up creation?)
     @action(['POST'], detail=False)
