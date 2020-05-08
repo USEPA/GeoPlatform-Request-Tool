@@ -2,6 +2,11 @@
   <mat-sidenav #filterNav mode="side" opened="false" position="end" class="filter-sidenav">
     <mat-list style="margin-top: 15px;">
       <mat-list-item>
+        <filter-input [(filtered)]="accounts.filter.created"
+                      (filterCleared)="accounts.clearFilter('created')"
+                      label="Created" type="boolean"></filter-input>
+      </mat-list-item>
+      <mat-list-item>
         <filter-input [(filtered)]="accounts.filter.approved_and_created"
                       (filterCleared)="accounts.clearFilter('approved_and_created')"
                       label="Approved & Created" type="boolean"></filter-input>
