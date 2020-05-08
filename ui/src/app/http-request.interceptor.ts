@@ -2,7 +2,7 @@ import {Injectable, Injector} from '@angular/core';
 import {HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse} from "@angular/common/http";
 import {Observable} from "rxjs";
 
-import {LoginService} from "./services/login.service";
+// import {LoginService} from "./services/login.service";
 
 import {tap} from 'rxjs/operators';
 import {Router} from '@angular/router';
@@ -14,11 +14,9 @@ export class HttpRequestInterceptor implements HttpInterceptor {
   }
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const loginService = this.injector.get(LoginService);
-    let auth_header = loginService.access_token ? {Authorization: `Bearer ${loginService.access_token}`} : {};
     if (request.url.indexOf('http') === -1 && request.url.indexOf(environment.local_service_endpoint) === -1) {
       request = request.clone({
-        setHeaders: auth_header,
+        withCredentials: true,
         url: environment.local_service_endpoint + request.url
       });
     }
@@ -28,7 +26,7 @@ export class HttpRequestInterceptor implements HttpInterceptor {
         },
         err => {
           if (err instanceof HttpErrorResponse && err.status == 401) {
-            loginService.clearToken();
+            // loginService.clearToken();
             this.router.navigate(['/login']);
           }
         }));

@@ -7,12 +7,14 @@ from rest_framework import permissions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.conf import settings
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 logger = logging.getLogger('AGOLAccountRequestor')
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+@ensure_csrf_cookie
 def current_user(request):
     permissions = []
     for permission in request.user.user_permissions.all():

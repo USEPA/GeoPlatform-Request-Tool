@@ -1,7 +1,8 @@
 import {Component, OnInit} from '@angular/core';
-import {LoginService} from '../services/login.service';
+import {LoginService} from '../login.service';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {map, catchError, tap} from 'rxjs/operators';
+
 
 @Component({
   selector: 'app-login',
@@ -11,7 +12,6 @@ import {map, catchError, tap} from 'rxjs/operators';
 export class LoginComponent implements OnInit {
   username: string;
   password: string;
-  login_error: string;
 
   constructor(private loginService: LoginService, private route: ActivatedRoute, private router: Router) {
   }
@@ -19,11 +19,9 @@ export class LoginComponent implements OnInit {
   ngOnInit() {
   }
 
-  login() {
-    // let next: string;
-    // if (!isUndefined(this.state.params.next)) next = this.state.params.next;
-    // else next = 'root';
-    this.loginService.sendToLogin();
+  login(loginType: string) {
+    // this.loginService.loginTypeSource.next(loginType);
+    this.loginService.sendToLogin(loginType, window.location.origin + this.route.snapshot.queryParams.next);
   }
 
   // can not use b/c it would break mapping

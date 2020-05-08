@@ -8,10 +8,15 @@ from rest_framework.response import Response
 from django.shortcuts import get_list_or_404
 from django.contrib.auth.models import User
 from django.utils.timezone import now
-from django_filters.rest_framework import FilterSet, BooleanFilter
+from django_filters.rest_framework import FilterSet, BooleanFilter, DateFilter
 from django.db.models import Q
 
 from .models import *
+
+
+def format_username(data):
+    username_extension = 'EPAEXT' if '@epa.gov' not in data['email'] else 'EPA'
+    return f'{data["last_name"].capitalize()}.{data["first_name"].capitalize()}_{username_extension}'
 
 
 class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
@@ -21,8 +26,7 @@ class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
 
     def perform_create(self, serializer):
         agol = AGOL.objects.get(portal_url='https://epa.maps.arcgis.com')
-        username_extension = 'EPAEXT' if '@epa.gov' not in self.request.data['email'] else 'EPA'
-        username = f'{self.request.data["last_name"].capitalize()}.{self.request.data["first_name"].capitalize()}_{username_extension}'
+        username = format_username(self.request.data)
         username_valid, agol_id, groups = agol.check_username(username)
         possible_accounts = agol.find_accounts_by_email(self.request.data['email'])
         account_request = serializer.save(username_valid=username_valid, agol_id=agol_id, username=username,
@@ -68,14 +72,16 @@ class IsSponsor(IsAuthenticated):
 
 class AccountFilterSet(FilterSet):
     approved_and_created = BooleanFilter(method='approved_and_created_func')
-    # created = BooleanFilter(field_name='created', lookup_expr='isnull', exclude=True)
+    approved = BooleanFilter(field_name='approved', lookup_expr='isnull', exclude=True)
+    approved_gte = DateFilter(field_name='approved', lookup_expr='gte')
+    created = BooleanFilter(field_name='created', lookup_expr='isnull', exclude=True)
 
     def approved_and_created_func(self, queryset, name, value):
-        return queryset.exclude(created__isnull=value, approved__isnull=value)
+        return queryset.exclude(created__isnull=value).exclude(approved__isnull=value)
 
     class Meta:
         model = AccountRequests
-        fields = ['approved_and_created']
+        fields = ['approved_and_created', 'approved']
 
 
 class AccountViewSet(ModelViewSet):
@@ -110,6 +116,9 @@ class AccountViewSet(ModelViewSet):
     @action(['POST'], detail=False)
     def approve(self, request):
         account_requests = get_list_or_404(AccountRequests, pk__in=request.data['accounts'])
+        # verify user has permission on each request submitted.
+        for x in account_requests:
+            self.check_object_permissions(request, x)
         AccountRequests.objects.filter(pk__in=request.data['accounts']).update(approved=now())
         agol = AGOL.objects.get(portal_url='https://epa.maps.arcgis.com')
         create_accounts = [x for x in account_requests if x.agol_id is None]

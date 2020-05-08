@@ -5,14 +5,10 @@
 
 export const environment = {
   production: true,
-  oauth_url: 'https://epa.maps.arcgis.com/sharing/rest/oauth2/authorize',
-  oauth_client_id: 'corlAY2HXVlIiR4L',
-  oauth_response_type: 'token',
-  oauth_redirect_uri: 'http://localhost:4200/oauthcallback',
-  local_client_id: '9OSDWC6V7jfELi4K04cuKLEFVgwjUMegUf8Jc1XK',
-  local_service_endpoint: 'http://127.0.0.1:8000/api',
+  oauth_url: 'http://localhost:8000/api/oauth2',
+  local_service_endpoint: 'http://localhost:8000/api',
+  api_url: 'http://localhost:8000/api',
   recaptcha_siteKey: '6LeXQboUAAAAAANBXP4FTZ3Pp9MOazFhXaF5CzQN'
-
 };
 
 /*

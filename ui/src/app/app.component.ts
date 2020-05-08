@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {LoginService} from './services/login.service';
+import {LoginService} from './auth/login.service';
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
 import {Router} from '@angular/router';
 
@@ -15,7 +15,7 @@ export class AppComponent implements OnInit {
   }
 
   logout() {
-    this.loginService.clearToken();
+    this.loginService.logout();
     this.router.navigate(['']);
   }
 }

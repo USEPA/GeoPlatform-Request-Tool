@@ -37,14 +37,14 @@ class AGOLOAuth2(BaseOAuth2):
             }
         )
 
-    # api does support state... need to remove this and test
-    def validate_state(self):
-        return None
-
-    # added so we can verify redirect_uri without having to actually redirect there
-    # a slight hack to allow us to redirect to frontend oauthcallback page
-    def get_redirect_uri(self, state=None):
-        return self.setting('REDIRECT_URI')
+    # # api does support state... need to remove this and test
+    # def validate_state(self):
+    #     return None
+    #
+    # # added so we can verify redirect_uri without having to actually redirect there
+    # # a slight hack to allow us to redirect to frontend oauthcallback page
+    # def get_redirect_uri(self, state=None):
+    #     return self.setting('REDIRECT_URI')
 
 
 def associate_by_username(backend, details, user=None, *args, **kwargs):

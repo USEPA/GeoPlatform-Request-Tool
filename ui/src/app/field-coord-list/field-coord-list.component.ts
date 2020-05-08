@@ -6,7 +6,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {Observable} from 'rxjs';
 import {RequestFieldCoordDialogComponent} from '../dialogs/request-field-coord-dialog/request-field-coord-dialog.component';
-import {LoginService} from '../services/login.service';
+import {LoginService} from '../auth/login.service';
 
 export interface FieldCoordinator {
   value: number;

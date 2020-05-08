@@ -35,15 +35,12 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {HTTP_INTERCEPTORS, HttpClientModule} from '@angular/common/http';
+import {HTTP_INTERCEPTORS, HttpClientModule, HttpClientXsrfModule} from '@angular/common/http';
 import {CdkTableModule} from '@angular/cdk/table';
 import {RECAPTCHA_SETTINGS, RecaptchaModule, RecaptchaSettings, RecaptchaFormsModule} from 'ng-recaptcha';
 import {ApprovalListComponent} from './approval-list/approval-list.component';
 import {FieldCoordListComponent} from './field-coord-list/field-coord-list.component';
 import {LoadingService} from './services/loading.service';
-import {LoginComponent} from './login/login.component';
-import {OauthcallbackComponent} from './oauthcallback/oauthcallback.component';
-import {LoginService} from './services/login.service';
 import {HttpRequestInterceptor} from './http-request.interceptor';
 import { ConfirmApprovalDialogComponent } from './dialogs/confirm-approval-dialog/confirm-approval-dialog.component';
 import { EditAccountPropsDialogComponent } from './dialogs/edit-account-props-dialog/edit-account-props-dialog.component';
@@ -52,6 +49,7 @@ import {environment} from '../environments/environment';
 import {FilterInputComponent} from './filter-input/filter-input.component';
 import { HomeComponent } from './home/home.component';
 import { FieldCoordErRequestFormComponent } from './field-coord-er-request-form/field-coord-er-request-form.component';
+import {AuthModule} from './auth/auth.module';
 
 
 @NgModule({
@@ -59,8 +57,6 @@ import { FieldCoordErRequestFormComponent } from './field-coord-er-request-form/
     AppComponent,
     RequestFormComponent,
     ApprovalListComponent,
-    LoginComponent,
-    OauthcallbackComponent,
     ConfirmApprovalDialogComponent,
     EditAccountPropsDialogComponent,
     RequestFieldCoordDialogComponent,
@@ -111,7 +107,9 @@ import { FieldCoordErRequestFormComponent } from './field-coord-er-request-form/
     FormsModule,
     ReactiveFormsModule,
     RecaptchaModule,
-    RecaptchaFormsModule
+    RecaptchaFormsModule,
+    AuthModule,
+    HttpClientXsrfModule.withOptions({ cookieName: 'csrftoken', headerName: 'X-CSRFToken' }),
   ],
   providers: [{
     provide: RECAPTCHA_SETTINGS,
@@ -125,7 +123,6 @@ import { FieldCoordErRequestFormComponent } from './field-coord-er-request-form/
       multi: true
     },
     LoadingService,
-    LoginService
   ],
   bootstrap: [AppComponent],
   entryComponents: [

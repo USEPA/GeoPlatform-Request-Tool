@@ -6,19 +6,21 @@ import {DataSource} from "@angular/cdk/collections";
 import {map, tap} from 'rxjs/operators';
 
 export interface SearchObject {
-  search?: string,
-  page?: number,
-  page_size?: number,
-  ordering?: string,
+  search?: string;
+  page?: number;
+  page_size?: number;
+  ordering?: string;
   object_id?: string | number;
   content_type?: any;
   approved_and_created?: boolean;
+  created?: boolean;
+  approved?: boolean;
 }
 
 export interface Response {
-  count: number,
-  results: any[]
-  content_type?: number
+  count: number;
+  results: any[];
+  content_type?: number;
 }
 
 export class BaseService {

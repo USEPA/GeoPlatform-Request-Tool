@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'django_filters',
     'oauth2_provider',
     'social_django',
-    'rest_framework_social_oauth2',
+    # 'rest_framework_social_oauth2',
     'accounts'
 ] + local_settings.INSTALLED_APPS
 
@@ -139,7 +139,7 @@ OAUTH2_PROVIDER_REFRESH_TOKEN_MODEL = 'oauth2_provider.RefreshToken'
 
 SOCIAL_AUTH_AGOL_KEY = local_settings.SOCIAL_AUTH_AGOL_KEY
 SOCIAL_AUTH_AGOL_SECRET = local_settings.SOCIAL_AUTH_AGOL_SECRET
-SOCIAL_AUTH_AGOL_REDIRECT_URI = local_settings.SOCIAL_AUTH_AGOL_REDIRECT_URI
+SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS = local_settings.SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS
 
 SOCIAL_AUTH_PIPELINE = local_settings.SOCIAL_AUTH_PIPELINE
 
@@ -151,6 +151,7 @@ REST_FRAMEWORK = local_settings.REST_FRAMEWORK
 DRF_RECAPTCHA_SECRET_KEY = local_settings.DRF_RECAPTCHA_SECRET_KEY
 
 CORS_ORIGIN_WHITELIST = local_settings.CORS_ORIGIN_WHITELIST
+CORS_ALLOW_CREDENTIALS = getattr(local_settings, 'CORS_ALLOW_CREDENTIALS', False)
 
 EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
 SENDGRID_API_KEY = local_settings.SENDGRID_API_KEY

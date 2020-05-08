@@ -140,6 +140,16 @@ class AGOL(models.Model):
             # logger.exception('Error in refreshAllAGOL refresh_catalog')
             raise
 
+    def get_group(self, group_id):
+        r = requests.get(f'{self.portal_url}/sharing/rest/community/groups/{group_id}',
+                         params={'token': self.get_token(), 'f': 'json'})
+        if r.status_code == requests.status_codes.ok:
+            response_json = r.json(strict=False)
+            AGOLGroup.objects.update_or_create(id=response_json.get('id'), defaults={
+                "title": response_json['title'],
+                "agol": self
+            })
+
     def create_users_accounts(self, account_requests, initial_password):
         token = self.get_token()
 
@@ -202,10 +212,10 @@ class AGOL(models.Model):
 
         response = r.json()
         if 'error' in response:
-            return False, None, []
+             return False, None, []
 
         if 'usernames' in response:
-            if response['usernames'][0]['requested'] == response['usernames'][0]['suggested']:
+            if response['usernames'] and response['usernames'][0]['requested'] == response['usernames'][0]['suggested']:
                 return True, None, []
             else:
                 user_url = f'{self.portal_url}/sharing/rest/community/users/{username}'
@@ -215,7 +225,12 @@ class AGOL(models.Model):
                 if 'error' in user_response_json:
                     return False, None, []
                 else:
-                    return False, user_response_json['id'], list(x['id'] for x in user_response_json['groups'])
+                    # todo: ideally move to task runner?
+                    # fixes issue #34
+                    group_ids = list(x['id'] for x in user_response_json['groups'])
+                    for id in (x for x in group_ids if not AGOLGroup.objects.filter(id=x).exists()):
+                        self.get_group(id)
+                    return False, user_response_json['id'], group_ids
 
     def add_to_group(self, accounts, groups):
         token = self.get_token()

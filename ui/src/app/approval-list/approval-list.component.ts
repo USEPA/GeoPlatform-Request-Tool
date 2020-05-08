@@ -8,7 +8,7 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 import {iif, Observable, of} from 'rxjs';
 import {EditAccountPropsDialogComponent} from '../dialogs/edit-account-props-dialog/edit-account-props-dialog.component';
 import {ConfirmApprovalDialogComponent} from '../dialogs/confirm-approval-dialog/confirm-approval-dialog.component';
-import {LoginService} from '../services/login.service';
+import {LoginService} from '../auth/login.service';
 
 export interface AccountProps {
   first_name: string;
@@ -21,6 +21,7 @@ export interface AccountProps {
   sponsor: number;
   description: string;
   approved: boolean;
+  created: boolean;
   isChecked: boolean;
   needsEditing: boolean;
 }
@@ -59,7 +60,7 @@ export class ApprovalListComponent implements OnInit {
     // set accounts list record properties
     // this.setAccountsListProps();
 
-    this.accounts.filter = {approved_and_created: false};
+    this.accounts.filter = {created: false};
     this.accounts.getItems().pipe(
       tap(response => this.setAccountsListProps(response))
     ).subscribe();
@@ -73,8 +74,8 @@ export class ApprovalListComponent implements OnInit {
     // const init_accounts = await this.accounts.getItems().toPromise();
     for (const account of init_accounts) {
       let needsEditing = false;
-      if (!account.organization || !account.sponsor || account.groups.length === 0
-        || !account.reason || !account.description) {
+      // removed group as requirement for editing per issue #31
+      if (!account.organization || !account.sponsor || !account.reason || !account.description) {
         needsEditing = true;
       }
       const acctProps: AccountProps = {
@@ -88,6 +89,7 @@ export class ApprovalListComponent implements OnInit {
         sponsor: account.sponsor,
         description: account.description,
         approved: account.approved,
+        created: account.created,
         isChecked: false,
         needsEditing: needsEditing
       };
@@ -112,7 +114,8 @@ export class ApprovalListComponent implements OnInit {
   getApprovalStatus() {
     let isApprovalReady = true;
     for (const id of this.selectedAccountIds) {
-      if (this.accountsListProps[id].needsEditing || this.accountsListProps[id].approved) {
+      if (this.accountsListProps[id].needsEditing ||
+        (this.accountsListProps[id].approved && this.accountsListProps[id].created)) {
         isApprovalReady = false;
       }
     }
@@ -167,12 +170,19 @@ export class ApprovalListComponent implements OnInit {
         ...this.accountsListProps[this.selectedAccountIds[0]]
       };
     } else {
+      const defaults: AccountProps = this.accountsListProps[this.selectedAccountIds[0]];
+      for (const id of this.selectedAccountIds) {
+        defaults.groups.filter(group => this.accountsListProps[id].groups.includes(group));
+        defaults.sponsor = this.accountsListProps[id].sponsor === defaults.sponsor ? defaults.sponsor : null;
+        defaults.reason = this.accountsListProps[id].reason === defaults.reason ? defaults.reason : '';
+        defaults.description = this.accountsListProps[id].description === defaults.description ? defaults.description : '';
+      }
       data = {
         isBulkEdit: true,
-        groups: [],
-        sponsor: '',
-        reason: '',
-        description: '',
+        groups: defaults.groups,
+        sponsor: defaults.sponsor,
+        reason: defaults.reason,
+        description: defaults.description
       };
     }
     const dialogRef = this.dialog.open(EditAccountPropsDialogComponent, {
@@ -218,7 +228,8 @@ export class ApprovalListComponent implements OnInit {
           switchMap(response => iif(() => response !== undefined, this.accounts.getItems().pipe(tap(() => {
 
             this.snackBar.open('Success', null, {duration: 2000});
-
+            // clear selected accounts after approval issue #33
+            this.selectedAccountIds.length = 0;
           }))))
           )
         );

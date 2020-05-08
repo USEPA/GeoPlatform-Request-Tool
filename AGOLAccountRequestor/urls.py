@@ -39,7 +39,7 @@ urlpatterns = [
     path('api/v1/email_field_coordinator_request/', email_field_coordinator_request),
     path('api/rest-auth/', include('rest_auth.urls')),
     path('api/auth/', include('rest_framework.urls', namespace='rest_framework')),
-    path('api/oauth2/', include('rest_framework_social_oauth2.urls')),
+    path('api/oauth2/', include('social_django.urls', namespace='social_django')),
     path('api/current_user/', current_user),
 
 ]
