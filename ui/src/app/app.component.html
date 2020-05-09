@@ -9,7 +9,9 @@
       <button mat-button [matMenuTriggerFor]="menu" *ngIf="config">{{ config.name }}</button>
       <mat-menu #menu="matMenu">
         <button mat-menu-item routerLink="/accounts/list/">Approval List</button>
-        <button mat-menu-item *ngIf="config && config.is_staff"><a style="text-decoration: none; color: inherit;" [href]="admin_url">Administration</a></button>
+        <a *ngIf="config && config.is_staff" style="text-decoration: none;" [href]="admin_url">
+          <button mat-menu-item>Administration</button>
+          </a>
         <button mat-menu-item (click)="logout()">Logout</button>
       </mat-menu>
       <a href="assets\GPOAcctRequestUserGuide.pdf" target="_blank"
