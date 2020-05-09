@@ -5,10 +5,11 @@
             GeoPlatform Account Request Tool
         </div>
     <div style="padding-right: 25px;">
-      <button mat-button routerLink="/accounts/list/" *ngIf="!(userConfig.config | async)">Team Coordinator Login</button>
-      <button mat-button [matMenuTriggerFor]="menu" *ngIf="(userConfig.config | async) as config">{{ config.name }}</button>
+      <button mat-button routerLink="/accounts/list/" *ngIf="!config">Team Coordinator Login</button>
+      <button mat-button [matMenuTriggerFor]="menu" *ngIf="config">{{ config.name }}</button>
       <mat-menu #menu="matMenu">
         <button mat-menu-item routerLink="/accounts/list/">Approval List</button>
+        <button mat-menu-item *ngIf="config && config.is_staff"><a style="text-decoration: none; color: inherit;" [href]="admin_url">Administration</a></button>
         <button mat-menu-item (click)="logout()">Logout</button>
       </mat-menu>
       <a href="assets\GPOAcctRequestUserGuide.pdf" target="_blank"

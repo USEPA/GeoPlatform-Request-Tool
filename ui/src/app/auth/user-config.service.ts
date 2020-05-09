@@ -9,15 +9,7 @@ export interface UserConfig {
   name: string;
   permissions: string[];
   is_superuser: boolean;
-  groups: string[];
-  ptt?: {
-    id: number;
-    name: string;
-    group: number;
-    group_name: string;
-    request_url_slug: string;
-    region: string;
-  };
+  is_staff: boolean;
 }
 
 @Injectable({
@@ -42,17 +34,17 @@ export class UserConfigService {
     this.config.next();
   }
 
-  checkGroups(groups: string[]) {
-    if (this.current_config.is_superuser) {
-      return true;
-    }
-    for (const group of groups) {
-      if (this.current_config.groups.includes(group)) {
-        return true;
-      }
-    }
-    return false;
-  }
+  // checkGroups(groups: string[]) {
+  //   if (this.current_config.is_superuser) {
+  //     return true;
+  //   }
+  //   for (const group of groups) {
+  //     if (this.current_config.groups.includes(group)) {
+  //       return true;
+  //     }
+  //   }
+  //   return false;
+  // }
 
   checkPermissions(permission: string) {
     return this.current_config.is_superuser ? this.current_config.is_superuser : this.current_config.permissions.includes(permission);

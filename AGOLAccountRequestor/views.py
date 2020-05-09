@@ -26,7 +26,8 @@ def current_user(request):
     current_user = {
         'name': '{} {}'.format(request.user.first_name, request.user.last_name) if request.user.first_name else request.user.username,
         'permissions': set(permissions),
-        'is_superuser': request.user.is_superuser
+        'is_superuser': request.user.is_superuser,
+        'is_staff': request.user.is_staff
     }
     return Response(current_user)
 
