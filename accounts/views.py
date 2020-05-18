@@ -10,7 +10,7 @@ from django.shortcuts import get_list_or_404
 from django.contrib.auth.models import User
 from django.utils.timezone import now
 from django_filters.rest_framework import FilterSet, BooleanFilter, DateFilter
-from django.db.models import Q
+from django.db.models import Q, Count
 
 from .models import *
 
@@ -24,6 +24,9 @@ class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
     queryset = AccountRequests.objects.none()
     serializer_class = AccountRequestSerializer
     permission_classes = (AllowAny,)
+    authentication_classes = ()
+
+
 
     def perform_create(self, serializer):
         agol = AGOL.objects.get(portal_url='https://epa.maps.arcgis.com')
@@ -82,7 +85,7 @@ class AccountFilterSet(FilterSet):
 
     class Meta:
         model = AccountRequests
-        fields = ['approved_and_created', 'approved']
+        fields = ['approved_and_created', 'approved', 'sponsor_notified']
 
 
 class SponsorFilterBackend(BaseFilterBackend):
@@ -185,6 +188,25 @@ class AccountViewSet(ModelViewSet):
             })
         return Response(sponsors_list)
 
+    @action(['GET', 'PUT'], detail=False)
+    def pending_notifications(self, request):
+        # if get send pending notifications with emails
+        if request.method == 'GET':
+            pending_notifications = AccountRequests.objects.filter(sponsor_notified=False).values(
+                'sponsor__email').annotate(
+                total_pending=Count('sponsor__email'))
+
+            for i, notification in enumerate(pending_notifications):
+                delegate_emails = AGOLUserFields.objects \
+                    .filter(user__email=notification['sponsor__email']) \
+                    .values_list('delegates__email', flat=True)
+                pending_notifications[i]['delegates'] = list(filter(None, delegate_emails))
+            return Response(pending_notifications)
+        # post expects array of sponsor emails that have been notified successfully
+        if request.method == 'PUT':
+            AccountRequests.objects.filter(sponsor__email__in=request.data.get('notified_sponsors', [])).update(sponsor_notified=True)
+            return Response()
+
 
 class AGOLGroupViewSet(ReadOnlyModelViewSet):
     queryset = AGOLGroup.objects.none()
@@ -207,4 +229,3 @@ class AGOLGroupViewSet(ReadOnlyModelViewSet):
             })
         sorted_group_list = sorted(groups_list, key=lambda x: x['title'])
         return Response(sorted_group_list)
-
