@@ -59,11 +59,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterField(
             model_name='accountrequests',
-            name='role',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='accounts.AGOLRole'),
-        ),
-        migrations.AlterField(
-            model_name='accountrequests',
             name='sponsor',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL),
         ),
