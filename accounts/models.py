@@ -209,7 +209,7 @@ class AGOL(models.Model):
                 "userLicenseType": account_request.user_type,
                 "fullname": f"{account_request.first_name} {account_request.last_name}",
                 "userType": "creatorUT",
-                "groups": ",".join(str(x) for x in set(list(account_request.groups.all().values_list('id', flat=True) + [account_request.auth_group]))),
+                "groups": ",".join(str(x) for x in set(list(account_request.groups.all().values_list('id', flat=True)) + [account_request.auth_group])),
                 "userCreditAssignment": 2000
             })
 
