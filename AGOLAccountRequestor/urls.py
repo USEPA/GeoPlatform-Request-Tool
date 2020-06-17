@@ -25,6 +25,8 @@ router = routers.DefaultRouter()
 
 router.register('account/request', account_views.AccountRequestViewSet)
 router.register('account/approvals', account_views.AccountViewSet)
+router.register('responses', account_views.ResponseProjectViewSet)
+router.register('sponsors', account_views.SponsorsViewSet)
 router.register('agol/groups', account_views.AGOLGroupViewSet)
 
 admin.site.site_header = "EPA GeoPlatform Account Request Tool"

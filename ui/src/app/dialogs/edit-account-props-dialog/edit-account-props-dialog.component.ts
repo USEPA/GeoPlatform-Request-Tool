@@ -1,15 +1,25 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
+import {iif, Observable, Subject} from 'rxjs';
+import {map, switchMap, tap} from 'rxjs/operators';
+import {UserConfig, UserConfigService} from '../../auth/user-config.service';
 
 export interface AgolGroup {
   id: number;
   title: string;
 }
+
+export interface Response {
+  id: number;
+  name: string;
+}
+
 export interface Sponsor {
-  value: number;
-  display: string;
+  id: number;
+  first_name: string;
+  last_name: string;
 }
 
 @Component({
@@ -18,25 +28,29 @@ export interface Sponsor {
   styleUrls: ['./edit-account-props-dialog.component.css']
 })
 export class EditAccountPropsDialogComponent implements OnInit {
-  groups: AgolGroup[];
-  sponsors: Sponsor[];
+  groups: Subject<AgolGroup[]> = new Subject<AgolGroup[]>();
+  responses: Observable<Response[]>;
+  sponsors: Subject<Sponsor[]> = new Subject<Sponsor[]>();
+  current_user: Observable<UserConfig>;
   // Form Group
   editAccountPropsForm: FormGroup = new FormGroup({
     username: new FormControl(null),
     groups: new FormControl([]),
     sponsor: new FormControl(null, [Validators.required]),
+    response: new FormControl(null, [Validators.required]),
     reason: new FormControl(null, [Validators.required]),
-    description: new FormControl(null, [Validators.required]),
+    description: new FormControl(null),
   });
   customerFormError: string = null;
 
   constructor(private http: HttpClient,
               public dialogRef: MatDialogRef<EditAccountPropsDialogComponent>,
-              @Inject(MAT_DIALOG_DATA) public data) { }
+              @Inject(MAT_DIALOG_DATA) public data, private userConfig: UserConfigService) {
+  }
 
   async ngOnInit() {
-    this.groups = await this.http.get<AgolGroup[]>('/v1/agol/groups').toPromise();
-    this.sponsors = await this.http.get<Sponsor[]>('/v1/account/approvals/sponsors/').toPromise();
+    this.responses = this.http.get<Response[]>('/v1/responses/').pipe(map(response => response['results']));
+    this.getSponsors();
   }
 
   submit() {
@@ -53,6 +67,34 @@ export class EditAccountPropsDialogComponent implements OnInit {
   dismiss() {
     this.dialogRef.close(null);
     this.editAccountPropsForm.reset();
+  }
+
+  getSponsors() {
+    this.userConfig.config.pipe(
+      switchMap(config => {
+        return iif(() => config.is_sponsor,
+          this.http.get<Sponsor>(`/v1/sponsors/${config.id}`).pipe(map(s => [s])),
+          this.http.get<Sponsor[]>('/v1/sponsors/',
+      {params: new HttpParams().set('agol_info__delegates', config.id.toString())}).pipe(
+        map(r => r['results'])
+          ));
+      }),
+      tap(s => {
+        this.sponsors.next(s);
+        if (s.length === 1) {
+          this.editAccountPropsForm.patchValue({sponsor: s[0].id});
+        }
+      })
+    ).subscribe();
+  }
+
+  getGroups(response: number) {
+    if (response) {
+      this.http.get<AgolGroup[]>('/v1/agol/groups',
+        {params: new HttpParams().set('response', response.toString())}).pipe(
+        tap(r => this.groups.next(r))
+      ).subscribe();
+    }
   }
 
 }

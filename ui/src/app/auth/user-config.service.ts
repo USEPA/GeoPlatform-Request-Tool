@@ -10,6 +10,7 @@ export interface UserConfig {
   permissions: string[];
   is_superuser: boolean;
   is_staff: boolean;
+  is_sponsor: boolean;
 }
 
 @Injectable({

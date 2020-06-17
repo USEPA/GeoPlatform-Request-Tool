@@ -24,10 +24,12 @@ def current_user(request):
             permissions.append(permission.codename)
 
     current_user = {
+        'id': request.user.id,
         'name': '{} {}'.format(request.user.first_name, request.user.last_name) if request.user.first_name else request.user.username,
         'permissions': set(permissions),
         'is_superuser': request.user.is_superuser,
-        'is_staff': request.user.is_staff
+        'is_staff': request.user.is_staff,
+        'is_sponsor': request.user.agol_info.sponsor
     }
     return Response(current_user)
 

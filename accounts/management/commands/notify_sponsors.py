@@ -12,9 +12,7 @@ class Command(BaseCommand):
             total=Count('sponsor__email'))
 
         for notification in pending_notifications:
-            to_emails = list(
-                AGOLUserFields.objects.filter(user__email='tbock@innovateteam.com').values_list('delegates__email',
-                                                                                                flat=True))
+            to_emails = list(AGOLUserFields.objects.values_list('delegates__email', flat=True))
             to_emails.append(notification['sponsor__email'])
             results = send_mail(
                 'Pending GeoPlatform Account Requests',

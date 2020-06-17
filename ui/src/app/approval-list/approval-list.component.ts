@@ -5,7 +5,7 @@ import {LoadingService} from '../services/loading.service';
 import {catchError, map, share, switchMap, tap} from 'rxjs/operators';
 import {MatDialog} from '@angular/material/dialog';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {iif, Observable, of} from 'rxjs';
+import {forkJoin, iif, Observable, of} from 'rxjs';
 import {EditAccountPropsDialogComponent} from '../dialogs/edit-account-props-dialog/edit-account-props-dialog.component';
 import {ConfirmApprovalDialogComponent} from '../dialogs/confirm-approval-dialog/confirm-approval-dialog.component';
 import {LoginService} from '../auth/login.service';
@@ -18,6 +18,7 @@ export interface AccountProps {
   groups: [];
   organization: string;
   reason: string;
+  response: number;
   sponsor: number;
   description: string;
   approved: boolean;
@@ -37,8 +38,8 @@ export interface Accounts {
 })
 export class ApprovalListComponent implements OnInit {
   accounts: BaseService;
-  displayedColumns = ['selected', 'first_name', 'last_name', 'email', 'username', 'organization', 'groups', 'sponsor',
-    'reason', 'description', 'approved', 'created'];
+  displayedColumns = ['selected', 'first_name', 'last_name', 'email', 'username', 'organization', 'groups', 'response',
+    'sponsor', 'reason', 'description', 'approved', 'created'];
   // took out "roll" and "user_type"
   selectedAccountIds = [];
   accountsListProps: Accounts = {};
@@ -73,11 +74,6 @@ export class ApprovalListComponent implements OnInit {
     this.isApprovalReady = false;
     // const init_accounts = await this.accounts.getItems().toPromise();
     for (const account of init_accounts) {
-      let needsEditing = false;
-      // removed group as requirement for editing per issue #31
-      if (!account.organization || !account.sponsor || !account.reason || !account.description) {
-        needsEditing = true;
-      }
       const acctProps: AccountProps = {
         first_name: account.first_name,
         last_name: account.first_name,
@@ -86,14 +82,16 @@ export class ApprovalListComponent implements OnInit {
         groups: account.groups,
         organization: account.organization,
         reason: account.reason,
+        response: account.response,
         sponsor: account.sponsor,
         description: account.description,
         approved: account.approved,
         created: account.created,
         isChecked: false,
-        needsEditing: needsEditing
+        needsEditing: null
       };
       this.accountsListProps[account.id] = acctProps;
+      this.setNeedsEditing(account);
     }
 
     this.selectedAccountIds = [];
@@ -152,14 +150,14 @@ export class ApprovalListComponent implements OnInit {
   }
 
   updateRecord(record) {
-    this.http.put(`/v1/account/approvals/${record.id}/`, record).pipe(
+    return this.http.put(`/v1/account/approvals/${record.id}/`, record).pipe(
       tap(response => {
-        this.accounts.getItems().subscribe();
+        this.setNeedsEditing(response);
         this.accounts.dataChange.next(this.accounts.data);
         this.snackBar.open('Success', null, {duration: 2000});
       }),
       catchError(() => of(this.snackBar.open('Error', null, {duration: 3000})))
-    ).subscribe();
+    );
   }
 
   editAccountDialog(): void {
@@ -173,14 +171,14 @@ export class ApprovalListComponent implements OnInit {
       const defaults: AccountProps = this.accountsListProps[this.selectedAccountIds[0]];
       for (const id of this.selectedAccountIds) {
         defaults.groups.filter(group => this.accountsListProps[id].groups.includes(group));
-        defaults.sponsor = this.accountsListProps[id].sponsor === defaults.sponsor ? defaults.sponsor : null;
+        defaults.response = this.accountsListProps[id].response === defaults.response ? defaults.response : null;
         defaults.reason = this.accountsListProps[id].reason === defaults.reason ? defaults.reason : '';
         defaults.description = this.accountsListProps[id].description === defaults.description ? defaults.description : '';
       }
       data = {
         isBulkEdit: true,
         groups: defaults.groups,
-        sponsor: defaults.sponsor,
+        response: defaults.response,
         reason: defaults.reason,
         description: defaults.description
       };
@@ -190,7 +188,9 @@ export class ApprovalListComponent implements OnInit {
       data: data
     });
 
-    dialogRef.afterClosed().subscribe(formInputValues => {
+    dialogRef.afterClosed().pipe(
+      switchMap(formInputValues => {
+      const accountUpdates = [];
       if (formInputValues) {
         for (const id in this.accountsListProps) {
           if (this.accountsListProps[id].isChecked) {
@@ -201,11 +201,14 @@ export class ApprovalListComponent implements OnInit {
                 updatedRecord[key] = formInputValues[key];
               }
             }
-            this.updateRecord(updatedRecord);
+            accountUpdates.push(this.updateRecord(updatedRecord));
           }
         }
       }
-    });
+      return forkJoin(accountUpdates);
+    }),
+      switchMap(() => this.accounts.getItems()),
+      tap(() => this.isApprovalReady = this.getApprovalStatus())).subscribe();
   }
 
   confirmApproval() {
@@ -236,6 +239,15 @@ export class ApprovalListComponent implements OnInit {
       }),
       catchError(() => of(this.snackBar.open('Error', null, {duration: 3000})))
     ).subscribe();
+  }
+
+  setNeedsEditing(account) {
+    let needsEditing = false;
+    // removed group as requirement for editing per issue #31
+    if (!account.organization || !account.response || !account.sponsor || !account.reason || !account.description) {
+      needsEditing = true;
+    }
+    this.accountsListProps[account.id].needsEditing = needsEditing;
   }
 
 }

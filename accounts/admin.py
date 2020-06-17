@@ -14,7 +14,7 @@ class AGOLAdmin(admin.ModelAdmin):
 
 
 admin.site.unregister(User)
-admin.site.unregister(Group)
+# admin.site.unregister(Group)
 
 
 # class AGOLModelMultipleChoiceField(forms.ModelMultipleChoiceField):
@@ -41,31 +41,22 @@ class AGOLUserAdmin(UserAdmin):
     inlines = (AGOLUserFieldsInline,)
 
 
-class AGOLGroupFieldsInline(admin.StackedInline):
-    model = AGOLGroupFields
+# class AGOLGroupFieldsInline(admin.StackedInline):
+    # model = AGOLGroupFields
+    # autocomplete_fields = ['assignable_groups']
 
 
-@admin.register(Group)
-class AGOLGroupAdmin(GroupAdmin):
-    inlines = (AGOLGroupFieldsInline,)
-
-
-def toggle_show(self, request, queryset):
-    for group in queryset:
-        group.show = not group.show
-        group.save(update_fields=['show'])
-
-
-toggle_show.short_description = "Toggle Show in multi-select"
+# @admin.register(Group)
+# class AGOLGroupAdmin(GroupAdmin):
+#     inlines = (AGOLGroupFieldsInline,)
 
 
 @admin.register(AGOLGroup)
 class AGOLGroupAdmin(admin.ModelAdmin):
-    ordering = ['title']
+    ordering = ['-is_auth_group', 'title']
     search_fields = ['title']
-    list_display = ['title', 'show']
-    fields = ['title', 'show']
-    actions = [toggle_show]
+    list_display = ['title', 'is_auth_group']
+    fields = ['title', 'is_auth_group']
 
 
 @admin.register(AccountRequests)
@@ -74,3 +65,22 @@ class RequestAdmin(admin.ModelAdmin):
     search_fields = list_display
     ordering = ['-submitted']
     list_filter = ['approved']
+
+
+@admin.register(AGOLRole)
+class AGOLRoleAdmin(admin.ModelAdmin):
+    list_display = ['name', 'is_available']
+    search_fields = ['name', 'description']
+    ordering = ['-is_available', 'name']
+    list_filter = ['is_available']
+
+
+@admin.register(ResponseProject)
+class ResponseProjectAdmin(admin.ModelAdmin):
+    list_display = ['name']
+    search_fields = ['name']
+    ordering = ['name']
+    fields = ['name', 'assignable_groups', 'role', 'authoritative_group', 'groups']
+    autocomplete_fields = ['groups', 'assignable_groups']
+
+

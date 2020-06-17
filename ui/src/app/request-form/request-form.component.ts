@@ -6,9 +6,9 @@ import {catchError, finalize, map, share, tap} from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {environment} from '../../environments/environment';
 
-interface Sponsor {
-  display: string;
-  value: string;
+interface Response {
+  id: number;
+  name: string;
 }
 
 @Component({
@@ -18,13 +18,13 @@ interface Sponsor {
 })
 export class RequestFormComponent implements OnInit {
   submitting: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-  sponsors: Observable<Sponsor[]>;
+  responses: Observable<Response[]>;
   requestForm: FormGroup = new FormGroup({
     first_name: new FormControl(null, Validators.required),
     last_name: new FormControl(null, Validators.required),
     email: new FormControl(null, [Validators.required, Validators.email]),
     organization: new FormControl(null, Validators.required),
-    sponsor: new FormControl(null, Validators.required),
+    response: new FormControl(null, Validators.required),
     recaptcha: new FormControl(null, Validators.required)
   });
 
@@ -32,7 +32,7 @@ export class RequestFormComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.sponsors = this.http.get<Sponsor[]>(`${environment.local_service_endpoint}/v1/account/request/field_coordinators/`).pipe(
+    this.responses = this.http.get<Response[]>(`${environment.local_service_endpoint}/v1/responses/`).pipe(
       map(response => response['results'])
     );
   }

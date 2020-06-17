@@ -114,18 +114,18 @@
           <mat-cell *cdkCellDef="let row" class="cell">{{ row.organization }}</mat-cell>
         </ng-container>
         <!-- Role -->
-        <ng-container cdkColumnDef="role">
-          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
-            Role
-          </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">
-            <mat-select [(ngModel)]="row.role" (selectionChange)="row.changed = true">
-              <mat-option *ngFor="let role of roles | async" [value]="role.value">
-                {{ role.display }}
-              </mat-option>
-            </mat-select>
-          </mat-cell>
-        </ng-container>
+<!--        <ng-container cdkColumnDef="role">-->
+<!--          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">-->
+<!--            Role-->
+<!--          </mat-header-cell>-->
+<!--          <mat-cell *cdkCellDef="let row" class="cell">-->
+<!--            <mat-select [(ngModel)]="row.role" (selectionChange)="row.changed = true">-->
+<!--              <mat-option *ngFor="let role of roles | async" [value]="role.value">-->
+<!--                {{ role.display }}-->
+<!--              </mat-option>-->
+<!--            </mat-select>-->
+<!--          </mat-cell>-->
+<!--        </ng-container>-->
         <!-- Groups -->
         <ng-container cdkColumnDef="groups">
           <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
@@ -138,16 +138,28 @@
                       matTooltip="No group has been selected.">warning</mat-icon>
           </mat-cell>
         </ng-container>
-        <!-- Sponsor -->
+        <!-- sponsor -->
         <ng-container cdkColumnDef="sponsor">
           <mat-header-cell *cdkHeaderCellDef class="header-cell">
-            Coordinator
+            Sponsor
           </mat-header-cell>
           <mat-cell *cdkCellDef="let row" class="cell">
             <mat-icon *ngIf="row.sponsor" style="color: green;">check</mat-icon>
             <mat-icon *ngIf="!row.sponsor" color="warn"
                       tooltipClass="'mat-tooltip'"
                       matTooltip="No sponsor has been selected.">warning</mat-icon>
+          </mat-cell>
+        </ng-container>
+        <!-- response -->
+        <ng-container cdkColumnDef="response">
+          <mat-header-cell *cdkHeaderCellDef class="header-cell">
+            Response
+          </mat-header-cell>
+          <mat-cell *cdkCellDef="let row" class="cell">
+            <mat-icon *ngIf="row.response" style="color: green;">check</mat-icon>
+            <mat-icon *ngIf="!row.response" color="warn"
+                      tooltipClass="'mat-tooltip'"
+                      matTooltip="No response has been selected.">warning</mat-icon>
           </mat-cell>
         </ng-container>
         <!-- Reason -->
@@ -210,7 +222,7 @@
         </ng-container>
 
         <mat-header-row *cdkHeaderRowDef="displayedColumns" class="header-row"></mat-header-row>
-        <mat-row *cdkRowDef="let row; columns: displayedColumns;" class="row" style="cursor: pointer;">
+        <mat-row *cdkRowDef="let row; columns: displayedColumns;" class="row">
 
         </mat-row>
       </mat-table>

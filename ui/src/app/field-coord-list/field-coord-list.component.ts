@@ -28,16 +28,16 @@ export interface FieldCoordinator {
 export class FieldCoordListComponent implements OnInit {
   sponsors: BaseService;
   // sponsors: Observable<[]>;
-  displayedColumns = ['first_name', 'last_name', 'email', 'phone_number', 'authoritative_group'];
+  displayedColumns = ['first_name', 'last_name', 'email', 'phone_number'];
   field_coordinator: FieldCoordinator;
 
   constructor(public http: HttpClient, loadingService: LoadingService, public snackBar: MatSnackBar,
               public dialog: MatDialog, public loginService: LoginService) {
-    this.sponsors = new BaseService('v1/account/request/field_coordinators/', http, loadingService);
+    this.sponsors = new BaseService('v1/sponsors/', http, loadingService);
   }
 
   ngOnInit() {
-    this.sponsors.filter = {approved_and_created: true};
+    // this.sponsors.filter = {approved_and_created: true};
     this.sponsors.getItems().subscribe();
   }
 

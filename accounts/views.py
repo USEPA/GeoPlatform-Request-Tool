@@ -38,21 +38,21 @@ class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
         if groups:
             account_request.groups.set(groups)
 
-    @action(['GET'], detail=False, )
-    def field_coordinators(self, request):
-        sponsors = User.objects.filter(agol_info__sponsor=True)
-        sponsors_list = list()
-        for sponsor in sponsors:
-            sponsors_list.append({
-                'first_name': sponsor.first_name,
-                'last_name': sponsor.last_name,
-                'display': f'{sponsor.first_name} {sponsor.last_name}',
-                'email': sponsor.email,
-                'phone_number': sponsor.agol_info.phone_number,
-                'authoritative_group': sponsor.agol_info.authoritative_group,
-                'value': sponsor.pk
-            })
-        return Response({"results": sponsors_list})
+    # @action(['GET'], detail=False, )
+    # def field_coordinators(self, request):
+    #     sponsors = User.objects.filter(agol_info__sponsor=True)
+    #     sponsors_list = list()
+    #     for sponsor in sponsors:
+    #         sponsors_list.append({
+    #             'first_name': sponsor.first_name,
+    #             'last_name': sponsor.last_name,
+    #             'display': f'{sponsor.first_name} {sponsor.last_name}',
+    #             'email': sponsor.email,
+    #             'phone_number': sponsor.agol_info.phone_number,
+    #             'authoritative_group': sponsor.agol_info.authoritative_group,
+    #             'value': sponsor.pk
+    #         })
+    #     return Response({"results": sponsors_list})
 
 
 class IsSponsor(DjangoModelPermissions):
@@ -114,7 +114,10 @@ class AccountViewSet(ModelViewSet):
 
         '''check if sponsor changing and mark sponsor_notified to false but if sponsor_notified is false it should stay false'''
         existing_record = AccountRequests.objects.get(pk=self.request.data['id'])
-        sponsor_notified = existing_record.sponsor.pk == self.request.data['sponsor'] and existing_record.sponsor_notified
+
+        sponsor_notified = existing_record.sponsor_notified
+        if sponsor_notified:
+            sponsor_notified = existing_record.sponsor.pk == self.request.data['sponsor'] and existing_record.sponsor_notified
 
         account_request = serializer.save(username_valid=username_valid, agol_id=agol_id, sponsor_notified=sponsor_notified)
         account_request.groups.set(list(set(groups + self.request.data['groups'])))
@@ -170,23 +173,23 @@ class AccountViewSet(ModelViewSet):
             options.append({'display': display, 'value': value})
         return Response(options)
 
-    @action(['GET'], detail=False)
-    def sponsors(self, request):
-        sponsors = User.objects.filter(agol_info__sponsor=True)
-        sponsors_list = list()
-        for sponsor in sponsors:
-            if sponsor.last_name:
-                display = f'{sponsor.first_name} {sponsor.last_name}'
-            else:
-                display = None
-            username = sponsor.agol_info.agol_username if sponsor.agol_info.agol_username else sponsor.username
-            sponsors_list.append({
-                'value': sponsor.pk,
-                'display': display,
-                'username': username,
-                'email': sponsor.email,
-            })
-        return Response(sponsors_list)
+    # @action(['GET'], detail=False)
+    # def sponsors(self, request):
+    #     sponsors = User.objects.filter(agol_info__sponsor=True)
+    #     sponsors_list = list()
+    #     for sponsor in sponsors:
+    #         if sponsor.last_name:
+    #             display = f'{sponsor.first_name} {sponsor.last_name}'
+    #         else:
+    #             display = None
+    #         username = sponsor.agol_info.agol_username if sponsor.agol_info.agol_username else sponsor.username
+    #         sponsors_list.append({
+    #             'value': sponsor.pk,
+    #             'display': display,
+    #             'username': username,
+    #             'email': sponsor.email,
+    #         })
+    #     return Response(sponsors_list)
 
     @action(['GET', 'PUT'], detail=False)
     def pending_notifications(self, request):
@@ -213,10 +216,11 @@ class AGOLGroupViewSet(ReadOnlyModelViewSet):
     serializer_class = AGOLGroupSerializer
     ordering = ['title']
     pagination_class = None
+    filter_fields = ['response']
 
     # only show groups for which the user the user has access per agol group fields assignable groups
     def get_queryset(self):
-        return AGOLGroup.objects.filter(Q(show=True) | Q(assignable_groups__group__in=self.request.user.groups.all()))
+        return AGOLGroup.objects.filter(response__groups__in=self.request.user.groups.all())
 
     @action(['GET'], detail=False)
     def all(self, request):
@@ -229,3 +233,19 @@ class AGOLGroupViewSet(ReadOnlyModelViewSet):
             })
         sorted_group_list = sorted(groups_list, key=lambda x: x['title'])
         return Response(sorted_group_list)
+
+
+class ResponseProjectViewSet(ReadOnlyModelViewSet):
+    queryset = ResponseProject.objects.all()
+    serializer_class = ResponseProjectSerializer
+    ordering = ['name']
+    permission_classes = [AllowAny]
+
+
+class SponsorsViewSet(ReadOnlyModelViewSet):
+    queryset = User.objects.filter(agol_info__sponsor=True)
+    serializer_class = SponsorSerializer
+    ordering = ['last_name']
+    permission_classes = [AllowAny]
+    search_fields = ['last_name', 'first_name', 'email']
+    filter_fields = ['groups__response', 'agol_info__delegates']

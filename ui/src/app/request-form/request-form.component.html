@@ -22,9 +22,9 @@
       <input matInput type="text" required formControlName="organization" placeholder="Organization">
     </mat-form-field>
     <mat-form-field>
-      <mat-select formControlName="sponsor" placeholder="Team Coordinator" required>
-        <mat-option *ngFor="let sponsor of sponsors | async" [value]="sponsor.value">
-          {{ sponsor.display }}
+      <mat-select formControlName="response" placeholder="Response/Project" required>
+        <mat-option *ngFor="let response of responses | async" [value]="response.id">
+          {{ response.name }}
         </mat-option>
       </mat-select>
       <mat-hint>This team coordinator will be assigned to review your request.</mat-hint>

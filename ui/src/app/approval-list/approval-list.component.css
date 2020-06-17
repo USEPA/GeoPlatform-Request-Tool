@@ -6,15 +6,32 @@
 }
 
 
+/*.header-cell.cdk-column-created,*/
+/*.header-cell.cdk-column-approved,*/
+/*.header-cell.cdk-column-groups,*/
+/*.header-cell.cdk-column-response,*/
+/*.header-cell.cdk-column-sponsor,*/
+/*.header-cell.cdk-column-reason,*/
+/*.header-cell.cdk-column-description {*/
+/*  max-width: 75px;*/
+/*  !*text-align: center;*!*/
+/*  !*justify-content: center;*!*/
+/*}*/
 .header-cell.cdk-column-created,
-.header-cell.cdk-column-approved {
-  max-width: 60px;
-  /*text-align: center;*/
-  /*justify-content: center;*/
-}
-
-.cell.cdk-column-created, .cell.cdk-column-approved {
-  max-width: 60px;
+.header-cell.cdk-column-approved,
+.header-cell.cdk-column-groups,
+.header-cell.cdk-column-response,
+.header-cell.cdk-column-sponsor,
+.header-cell.cdk-column-reason,
+.header-cell.cdk-column-description,
+.cell.cdk-column-created,
+.cell.cdk-column-approved,
+.cell.cdk-column-groups,
+.cell.cdk-column-response,
+.cell.cdk-column-sponsor,
+.cell.cdk-column-reason,
+.cell.cdk-column-description {
+  max-width: 75px;
   /*text-align: center;*/
   justify-content: center;
 }

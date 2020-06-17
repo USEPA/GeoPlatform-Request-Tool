@@ -10,22 +10,32 @@
       <input matInput required [(ngModel)]="data.username" type="text" formControlName="username" placeholder="GeoPlatform Username">
     </mat-form-field>
     <!--group-->
+    <!--response-->
+    <mat-form-field>
+      <mat-select required [(ngModel)]="data.response" formControlName="response" placeholder="Response"
+                  (ngModelChange)="getGroups($event)">
+        <mat-option *ngFor="let response of responses | async" [value]="response.id">
+          {{ response.name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+        <!--sponsor-->
+    <mat-form-field>
+      <mat-select required [(ngModel)]="data.sponsor" formControlName="sponsor" placeholder="Team Coordinator">
+        <mat-option *ngFor="let sponsor of sponsors | async" [value]="sponsor.id">
+          {{ sponsor.first_name }} {{ sponsor.last_name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
     <!-- GeoPlatform groups -->
     <mat-form-field>
       <mat-select [(ngModel)]="data.groups" formControlName="groups" multiple placeholder="GeoPlatform Groups">
-        <mat-option *ngFor="let group of groups" [value]="group.id">
+        <mat-option *ngFor="let group of groups | async" [value]="group.id">
           {{ group.title }}
         </mat-option>
       </mat-select>
     </mat-form-field>
-    <!--sponsor-->
-    <mat-form-field>
-      <mat-select required [(ngModel)]="data.sponsor" formControlName="sponsor" placeholder="Team Coordinator">
-        <mat-option *ngFor="let sponsor of sponsors" [value]="sponsor.value">
-          {{ sponsor.display }}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
+
     <!--reason for account-->
     <mat-form-field>
       <mat-select required [(ngModel)]="data.reason" required formControlName="reason" placeholder="Reason">
@@ -43,7 +53,7 @@
     <!--description-->
     <mat-form-field>
       <mat-label>Description</mat-label>
-      <textarea matInput required
+      <textarea matInput
                 [(ngModel)]="data.description"
                 maxlength="500"
                 formControlName="description"
