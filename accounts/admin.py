@@ -58,6 +58,12 @@ class AGOLGroupAdmin(admin.ModelAdmin):
     list_display = ['title', 'is_auth_group']
     fields = ['title', 'is_auth_group']
 
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 @admin.register(AccountRequests)
 class RequestAdmin(admin.ModelAdmin):
@@ -73,6 +79,12 @@ class AGOLRoleAdmin(admin.ModelAdmin):
     search_fields = ['name', 'description']
     ordering = ['-is_available', 'name']
     list_filter = ['is_available']
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(ResponseProject)
