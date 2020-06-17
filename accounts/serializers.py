@@ -1,4 +1,4 @@
-from rest_framework.serializers import ModelSerializer, CharField, RelatedField
+from rest_framework.serializers import ModelSerializer, CharField, PrimaryKeyRelatedField
 from .models import *
 from rest_framework.decorators import api_view
 from rest_framework_recaptcha.fields import ReCaptchaField
@@ -6,7 +6,7 @@ from rest_framework_recaptcha.fields import ReCaptchaField
 
 class AccountRequestSerializer(ModelSerializer):
     recaptcha = ReCaptchaField()
-    response = RelatedField(required=True, queryset=ResponseProject.objects.all())
+    response = PrimaryKeyRelatedField(required=True, queryset=ResponseProject.objects.all())
 
     class Meta:
         model = AccountRequests
@@ -14,7 +14,7 @@ class AccountRequestSerializer(ModelSerializer):
 
 
 class AccountSerializer(ModelSerializer):
-    response = RelatedField(required=True, queryset=ResponseProject.objects.all())
+    response = PrimaryKeyRelatedField(required=True, queryset=ResponseProject.objects.all())
 
     class Meta:
         model = AccountRequests

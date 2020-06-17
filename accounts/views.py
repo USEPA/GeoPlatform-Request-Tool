@@ -195,19 +195,23 @@ class AccountViewSet(ModelViewSet):
     def pending_notifications(self, request):
         # if get send pending notifications with emails
         if request.method == 'GET':
-            pending_notifications = AccountRequests.objects.filter(sponsor_notified=False).values(
-                'sponsor__email').annotate(
-                total_pending=Count('sponsor__email'))
+            pending_notifications = AccountRequests.objects.filter(sponsor_notified=False)\
+                .values('response__groups__user__email')\
+                .annotate(total_pending=Count('response__groups__user__email'))
 
             for i, notification in enumerate(pending_notifications):
                 delegate_emails = AGOLUserFields.objects \
-                    .filter(user__email=notification['sponsor__email']) \
+                    .filter(user__email=notification['response__groups__user__email'], user__agol_info__sponsor=False) \
                     .values_list('delegates__email', flat=True)
+                pending_notifications[i]['sponsor'] = pending_notifications[i].pop('response__groups__user__email')
                 pending_notifications[i]['delegates'] = list(filter(None, delegate_emails))
+
             return Response(pending_notifications)
+
         # post expects array of sponsor emails that have been notified successfully
         if request.method == 'PUT':
-            AccountRequests.objects.filter(sponsor__email__in=request.data.get('notified_sponsors', [])).update(sponsor_notified=True)
+            AccountRequests.objects.filter(response__groups__user__email__in=request.data.get('notified_sponsors', []))\
+                .update(sponsor_notified=True)
             return Response()
 
 
