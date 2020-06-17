@@ -57,6 +57,7 @@ class AGOLGroupAdmin(admin.ModelAdmin):
     search_fields = ['title']
     list_display = ['title', 'is_auth_group']
     fields = ['title', 'is_auth_group']
+    readonly_fields = ['title']
 
     def has_add_permission(self, request):
         return False
@@ -79,6 +80,7 @@ class AGOLRoleAdmin(admin.ModelAdmin):
     search_fields = ['name', 'description']
     ordering = ['-is_available', 'name']
     list_filter = ['is_available']
+    readonly_fields = ['name']
 
     def has_add_permission(self, request):
         return False
