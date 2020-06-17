@@ -205,7 +205,7 @@ class AGOL(models.Model):
                 "lastname": account_request.last_name,
                 "username": account_request.username,
                 "password": initial_password,
-                "role": account_request.role,
+                "role": account_request.role.id,
                 "userLicenseType": account_request.user_type,
                 "fullname": f"{account_request.first_name} {account_request.last_name}",
                 "userType": "creatorUT",
