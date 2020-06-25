@@ -80,7 +80,8 @@ class AGOLRoleAdmin(admin.ModelAdmin):
     search_fields = ['name', 'description']
     ordering = ['-is_available', 'name']
     list_filter = ['is_available']
-    readonly_fields = ['name']
+    fields = ['name', 'id', 'description', 'agol', 'is_available']
+    readonly_fields = ['name', 'id', 'description', 'agol']
 
     def has_add_permission(self, request):
         return False

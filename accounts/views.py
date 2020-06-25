@@ -245,6 +245,9 @@ class ResponseProjectViewSet(ReadOnlyModelViewSet):
     ordering = ['name']
     permission_classes = [AllowAny]
 
+    def get_queryset(self):
+        return ResponseProject.objects.filter(groups__in=self.request.user.groups.all())
+
 
 class SponsorsViewSet(ReadOnlyModelViewSet):
     queryset = User.objects.filter(agol_info__sponsor=True)
