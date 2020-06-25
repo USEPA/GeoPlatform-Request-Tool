@@ -247,6 +247,8 @@ class ResponseProjectViewSet(ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
+        if self.request.user.is_anonymous:
+            return super().get_queryset()
         sponsors = User.objects.filter(agol_info__delegates=self.request.user)
         return ResponseProject.objects.filter(Q(users=self.request.user) | Q(users__in=sponsors))
 
