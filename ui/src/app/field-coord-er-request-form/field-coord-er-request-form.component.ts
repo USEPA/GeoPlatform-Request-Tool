@@ -35,7 +35,7 @@ export class FieldCoordErRequestFormComponent implements OnInit {
 
   async ngOnInit() {
     this.agol_groups = await this.http.get<AgolGroup[]>('/v1/agol/groups/all/').toPromise();
-    this.field_coordinators = await this.http.get<FieldCoordinator[]>('/v1/account/approvals/sponsors/').toPromise();
+    this.field_coordinators = await this.http.get<FieldCoordinator[]>('/v1/sponsors/').toPromise();
     this.isLoading = false;
   }
 

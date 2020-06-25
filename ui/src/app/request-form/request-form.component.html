@@ -22,12 +22,12 @@
       <input matInput type="text" required formControlName="organization" placeholder="Organization">
     </mat-form-field>
     <mat-form-field>
-      <mat-select formControlName="response" placeholder="Response/Project" required>
+      <mat-select formControlName="response" placeholder="Response / Project" required>
         <mat-option *ngFor="let response of responses | async" [value]="response.id">
           {{ response.name }}
         </mat-option>
       </mat-select>
-      <mat-hint>This team coordinator will be assigned to review your request.</mat-hint>
+      <mat-hint>You will be assigned to this response / project.</mat-hint>
     </mat-form-field>
     <br>
     <re-captcha formControlName="recaptcha"></re-captcha>

@@ -12,7 +12,7 @@
     <!--group-->
     <!--response-->
     <mat-form-field>
-      <mat-select required [(ngModel)]="data.response" formControlName="response" placeholder="Response"
+      <mat-select required [(ngModel)]="data.response" formControlName="response" placeholder="Response / Project"
                   (ngModelChange)="getGroups($event)">
         <mat-option *ngFor="let response of responses | async" [value]="response.id">
           {{ response.name }}
@@ -38,7 +38,7 @@
 
     <!--reason for account-->
     <mat-form-field>
-      <mat-select required [(ngModel)]="data.reason" required formControlName="reason" placeholder="Reason">
+      <mat-select required [(ngModel)]="data.reason" required formControlName="reason" placeholder="Reason / Affiliation">
         <mat-option value='Emergency Response'>Emergency Response</mat-option>
         <mat-option value='Other Federal Agency'>Other Federal Agency</mat-option>
         <mat-option value='State Agency'>State Agency</mat-option>
