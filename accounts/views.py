@@ -196,21 +196,21 @@ class AccountViewSet(ModelViewSet):
         # if get send pending notifications with emails
         if request.method == 'GET':
             pending_notifications = AccountRequests.objects.filter(sponsor_notified=False)\
-                .values('response__groups__user__email')\
-                .annotate(total_pending=Count('response__groups__user__email'))
+                .values('response__users__email')\
+                .annotate(total_pending=Count('response__users__email'))\
+                .filter(total_pending__gt=0)
 
             for i, notification in enumerate(pending_notifications):
-                delegate_emails = AGOLUserFields.objects \
-                    .filter(user__email=notification['response__groups__user__email'], user__agol_info__sponsor=False) \
-                    .values_list('delegates__email', flat=True)
-                pending_notifications[i]['sponsor'] = pending_notifications[i].pop('response__groups__user__email')
+                delegate_emails = User.objects.filter(delegate_for__user__email=notification['response__users__email']) \
+                    .values_list('email', flat=True)
+                pending_notifications[i]['sponsor'] = pending_notifications[i].pop('response__users__email')
                 pending_notifications[i]['delegates'] = list(filter(None, delegate_emails))
 
             return Response(pending_notifications)
 
         # post expects array of sponsor emails that have been notified successfully
         if request.method == 'PUT':
-            AccountRequests.objects.filter(response__groups__user__email__in=request.data.get('notified_sponsors', []))\
+            AccountRequests.objects.filter(response__users__email__in=request.data.get('notified_sponsors', []))\
                 .update(sponsor_notified=True)
             return Response()
 
@@ -224,7 +224,8 @@ class AGOLGroupViewSet(ReadOnlyModelViewSet):
 
     # only show groups for which the user the user has access per agol group fields assignable groups
     def get_queryset(self):
-        return AGOLGroup.objects.filter(response__groups__in=self.request.user.groups.all())
+        sponsors = User.objects.filter(agol_info__delegates=self.request.user)
+        return AGOLGroup.objects.filter(Q(response__users=self.request.user) | Q(response__users__in=sponsors))
 
     @action(['GET'], detail=False)
     def all(self, request):
@@ -246,7 +247,8 @@ class ResponseProjectViewSet(ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
-        return ResponseProject.objects.filter(groups__in=self.request.user.groups.all())
+        sponsors = User.objects.filter(agol_info__delegates=self.request.user)
+        return ResponseProject.objects.filter(Q(users=self.request.user) | Q(users__in=sponsors))
 
 
 class SponsorsViewSet(ReadOnlyModelViewSet):
@@ -255,4 +257,4 @@ class SponsorsViewSet(ReadOnlyModelViewSet):
     ordering = ['last_name']
     permission_classes = [AllowAny]
     search_fields = ['last_name', 'first_name', 'email']
-    filter_fields = ['groups__response', 'agol_info__delegates']
+    filter_fields = ['response', 'agol_info__delegates']

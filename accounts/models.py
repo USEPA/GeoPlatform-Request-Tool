@@ -322,7 +322,8 @@ class AGOLUserFields(models.Model):
 
 
 class ResponseProject(models.Model):
-    groups = models.ManyToManyField(Group, related_name='response', verbose_name='Organizational/User Groups')
+    users = models.ManyToManyField(User, related_name='response', verbose_name='Sponsors',
+                                   limit_choices_to={'agol_info__sponsor': True})
     name = models.CharField('Name', max_length=500)
     assignable_groups = models.ManyToManyField('AGOLGroup', related_name='response',
                                                verbose_name='GeoPlatform Assignable Groups')

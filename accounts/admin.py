@@ -40,7 +40,11 @@ class AGOLUserFieldsInline(admin.StackedInline):
 class AGOLUserAdmin(UserAdmin):
     inlines = (AGOLUserFieldsInline,)
 
-
+    # hacky solution b/c of https://code.djangoproject.com/ticket/29707
+    def get_search_results(self, request, queryset, search_term):
+        if 'responseproject' in request.META['HTTP_REFERER']:
+            queryset = queryset.filter(agol_info__sponsor=True)
+        return super().get_search_results(request, queryset, search_term)
 # class AGOLGroupFieldsInline(admin.StackedInline):
     # model = AGOLGroupFields
     # autocomplete_fields = ['assignable_groups']
@@ -95,7 +99,6 @@ class ResponseProjectAdmin(admin.ModelAdmin):
     list_display = ['name']
     search_fields = ['name']
     ordering = ['name']
-    fields = ['name', 'assignable_groups', 'role', 'authoritative_group', 'groups']
-    autocomplete_fields = ['groups', 'assignable_groups']
-
+    fields = ['name', 'assignable_groups', 'role', 'authoritative_group', 'users']
+    autocomplete_fields = ['users', 'assignable_groups']
 
