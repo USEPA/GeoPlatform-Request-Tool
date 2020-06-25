@@ -38,7 +38,6 @@ class AccountRequests(models.Model):
     sponsor = models.ForeignKey(User, on_delete=models.PROTECT, blank=True, null=True)
     sponsor_notified = models.BooleanField(default=False)
     reason = models.CharField(max_length=200, choices=REASON_CHOICES, default='Emergency Response')
-    description = models.CharField(max_length=500, blank=True, null=True)
     recaptcha = models.TextField()
     submitted = models.DateTimeField(auto_now_add=True)
     approved = models.DateTimeField(null=True, blank=True)

@@ -174,18 +174,6 @@
                       matTooltip="No reason has been provided.">warning</mat-icon>
           </mat-cell>
         </ng-container>
-        <!-- Description -->
-        <ng-container cdkColumnDef="description">
-          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
-            Description
-          </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">
-            <mat-icon *ngIf="row.description" style="color: green;">check</mat-icon>
-            <mat-icon *ngIf="!row.description" color="warn"
-                      tooltipClass="'mat-tooltip'"
-                      matTooltip="No description has been provided.">warning</mat-icon>
-          </mat-cell>
-        </ng-container>
         <!-- User Types -->
         <ng-container cdkColumnDef="user_type">
           <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">

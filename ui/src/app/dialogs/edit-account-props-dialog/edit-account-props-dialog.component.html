@@ -50,18 +50,7 @@
         <mat-option value='Other'>Other</mat-option>
       </mat-select>
     </mat-form-field>
-    <!--description-->
-    <mat-form-field>
-      <mat-label>Description</mat-label>
-      <textarea matInput
-                [(ngModel)]="data.description"
-                maxlength="500"
-                formControlName="description"
-                cdkTextareaAutosize
-                #autosize="cdkTextareaAutosize"
-                cdkAutosizeMinRows="1"
-                cdkAutosizeMaxRows="10"></textarea>
-    </mat-form-field>
+
   </form>
 </div>
 <div mat-dialog-actions>

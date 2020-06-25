@@ -39,7 +39,6 @@ export class EditAccountPropsDialogComponent implements OnInit {
     sponsor: new FormControl(null, [Validators.required]),
     response: new FormControl(null, [Validators.required]),
     reason: new FormControl(null, [Validators.required]),
-    description: new FormControl(null),
   });
   customerFormError: string = null;
 

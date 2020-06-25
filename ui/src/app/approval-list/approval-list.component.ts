@@ -20,7 +20,6 @@ export interface AccountProps {
   reason: string;
   response: number;
   sponsor: number;
-  description: string;
   approved: boolean;
   created: boolean;
   isChecked: boolean;
@@ -39,7 +38,7 @@ export interface Accounts {
 export class ApprovalListComponent implements OnInit {
   accounts: BaseService;
   displayedColumns = ['selected', 'first_name', 'last_name', 'email', 'username', 'organization', 'groups', 'response',
-    'sponsor', 'reason', 'description', 'approved', 'created'];
+    'sponsor', 'reason', 'approved', 'created'];
   // took out "roll" and "user_type"
   selectedAccountIds = [];
   accountsListProps: Accounts = {};
@@ -84,7 +83,6 @@ export class ApprovalListComponent implements OnInit {
         reason: account.reason,
         response: account.response,
         sponsor: account.sponsor,
-        description: account.description,
         approved: account.approved,
         created: account.created,
         isChecked: false,
@@ -173,14 +171,12 @@ export class ApprovalListComponent implements OnInit {
         defaults.groups.filter(group => this.accountsListProps[id].groups.includes(group));
         defaults.response = this.accountsListProps[id].response === defaults.response ? defaults.response : null;
         defaults.reason = this.accountsListProps[id].reason === defaults.reason ? defaults.reason : '';
-        defaults.description = this.accountsListProps[id].description === defaults.description ? defaults.description : '';
       }
       data = {
         isBulkEdit: true,
         groups: defaults.groups,
         response: defaults.response,
         reason: defaults.reason,
-        description: defaults.description
       };
     }
     const dialogRef = this.dialog.open(EditAccountPropsDialogComponent, {
