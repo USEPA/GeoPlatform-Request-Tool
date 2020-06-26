@@ -9,7 +9,7 @@ from rest_framework.filters import BaseFilterBackend
 from django.shortcuts import get_list_or_404
 from django.contrib.auth.models import User
 from django.utils.timezone import now
-from django_filters.rest_framework import FilterSet, BooleanFilter, DateFilter
+from django_filters.rest_framework import FilterSet, BooleanFilter, DateFilter, NumberFilter
 from django.db.models import Q, Count
 
 from .models import *
@@ -240,17 +240,31 @@ class AGOLGroupViewSet(ReadOnlyModelViewSet):
         return Response(sorted_group_list)
 
 
+class ResponseProjectFilterSet(FilterSet):
+    for_approver = BooleanFilter(method='for_approver_func')
+
+    def for_approver_func(self, queryset, name, value):
+        if not value:
+            return queryset
+
+        sponsors = User.objects.filter(agol_info__delegates=self.request.user)
+        return queryset.filter(Q(users=self.request.user) | Q(users__in=sponsors))
+
+
 class ResponseProjectViewSet(ReadOnlyModelViewSet):
     queryset = ResponseProject.objects.all()
     serializer_class = ResponseProjectSerializer
     ordering = ['name']
     permission_classes = [AllowAny]
+    pagination_class = None
+    filterset_class = ResponseProjectFilterSet
 
-    def get_queryset(self):
-        if self.request.user.is_anonymous:
-            return super().get_queryset()
-        sponsors = User.objects.filter(agol_info__delegates=self.request.user)
-        return ResponseProject.objects.filter(Q(users=self.request.user) | Q(users__in=sponsors))
+    # def get_queryset(self):
+    #     if self.request.user.is_anonymous:
+    #         return super().get_queryset()
+    #
+    #     sponsors = User.objects.filter(agol_info__delegates=self.request.user)
+    #     return ResponseProject.objects.filter(Q(users=self.request.user) | Q(users__in=sponsors))
 
 
 class SponsorsViewSet(ReadOnlyModelViewSet):

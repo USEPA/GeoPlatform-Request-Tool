@@ -32,9 +32,7 @@ export class RequestFormComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.responses = this.http.get<Response[]>(`${environment.local_service_endpoint}/v1/responses/`).pipe(
-      map(response => response['results'])
-    );
+    this.responses = this.http.get<Response[]>(`${environment.local_service_endpoint}/v1/responses/`);
   }
 
   submit() {

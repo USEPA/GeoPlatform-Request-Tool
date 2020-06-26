@@ -48,7 +48,8 @@ export class EditAccountPropsDialogComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.responses = this.http.get<Response[]>('/v1/responses/').pipe(map(response => response['results']));
+    this.responses = this.http.get<Response[]>('/v1/responses/', {
+      params: new HttpParams().set('for_approver', 'true')});
     this.getSponsors();
   }
 
