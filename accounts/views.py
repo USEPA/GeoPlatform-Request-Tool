@@ -105,7 +105,7 @@ class SponsorFilterBackend(BaseFilterBackend):
 class AccountViewSet(ModelViewSet):
     queryset = AccountRequests.objects.all()
     serializer_class = AccountSerializer
-    search_fields = ['first_name', 'last_name', 'username']
+    search_fields = ['first_name', 'last_name', 'username', 'organization']
     filterset_class = AccountFilterSet
     filter_backends = ModelViewSet.filter_backends + [SponsorFilterBackend]
     permission_classes = (IsSponsor,)
