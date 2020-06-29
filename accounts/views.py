@@ -94,9 +94,9 @@ class SponsorFilterBackend(BaseFilterBackend):
             return queryset
         else:
             # get list of users that current user is a delegate for
-            sponsors = [x.user for x in request.user.delegate_for.all()]
+            sponsors = set([x.user for x in request.user.delegate_for.all()])
             # add current user into list of potential sponsors for the filter in case they are both a sponsor and a delegate
-            sponsors.append(request.user)
+            sponsors.add(request.user)
             return queryset.filter(response__users__in=sponsors)
 
 
@@ -259,10 +259,11 @@ class ResponseProjectViewSet(ReadOnlyModelViewSet):
     pagination_class = None
     filterset_class = ResponseProjectFilterSet
 
-    def filter_queryset(self, queryset):
-        if 'status' not in self.request.query_params:
-            queryset = queryset.exclude(status_in=['cancled', 'etc.'])
-        return super(ResponseProjectViewSet, self).filter_queryset(queryset)
+    # todo: disable response
+    # def filter_queryset(self, queryset):
+    #     if 'status' not in self.request.query_params:
+    #         queryset = queryset.exclude(status_in=['cancled', 'etc.'])
+    #     return super(ResponseProjectViewSet, self).filter_queryset(queryset)
 
 class SponsorsViewSet(ReadOnlyModelViewSet):
     queryset = User.objects.filter(agol_info__sponsor=True)
