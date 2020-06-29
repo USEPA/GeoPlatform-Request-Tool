@@ -198,7 +198,9 @@ class AccountViewSet(ModelViewSet):
     def pending_notifications(self, request):
         # if get send pending notifications with emails
         if request.method == 'GET':
-            pending_notifications = AccountRequests.objects.filter(sponsor_notified=False, approved=False, created=False)\
+            pending_notifications = AccountRequests.objects.filter(sponsor_notified=False,
+                                                                   approved__isnull=True,
+                                                                   created__isnull=True)\
                 .values('response__users__email')\
                 .annotate(total_pending=Count('response__users__email'))\
                 .filter(total_pending__gt=0)
