@@ -266,7 +266,7 @@ class AGOL(models.Model):
                     return False, None, []
                 else:
                     # fixes issue #34
-                    group_ids = list(x['id'] for x in user_response_json['groups'])
+                    group_ids = list(x['id'] for x in user_response_json.get('groups', []))
                     for id in (x for x in group_ids if not AGOLGroup.objects.filter(id=x).exists()):
                         self.get_group(id)
                     return False, user_response_json['id'], group_ids
