@@ -114,14 +114,15 @@ class AccountViewSet(ModelViewSet):
         agol = AGOL.objects.get(portal_url='https://epa.maps.arcgis.com')
         username_valid, agol_id, groups = agol.check_username(self.request.data['username'])
 
-        '''check if sponsor changing and mark sponsor_notified to false but if sponsor_notified is false it should stay false'''
-        existing_record = AccountRequests.objects.get(pk=self.request.data['id'])
+        # removed due to changes in how notification are handled and how relationships to sponsors work
+        # '''check if sponsor changing and mark sponsor_notified to true but if sponsor_notified is false it should stay false'''
+        # existing_record = AccountRequests.objects.get(pk=self.request.data['id'])
+        #
+        # sponsor_notified = existing_record.sponsor_notified
+        # if sponsor_notified:
+        #     sponsor_notified = existing_record.sponsor.pk == self.request.data['sponsor'] and existing_record.sponsor_notified
 
-        sponsor_notified = existing_record.sponsor_notified
-        if sponsor_notified:
-            sponsor_notified = existing_record.sponsor.pk == self.request.data['sponsor'] and existing_record.sponsor_notified
-
-        account_request = serializer.save(username_valid=username_valid, agol_id=agol_id, sponsor_notified=sponsor_notified)
+        account_request = serializer.save(username_valid=username_valid, agol_id=agol_id)
         account_request.groups.set(list(set(groups + self.request.data['groups'])))
 
     # create account (or queue up creation?)
@@ -197,7 +198,7 @@ class AccountViewSet(ModelViewSet):
     def pending_notifications(self, request):
         # if get send pending notifications with emails
         if request.method == 'GET':
-            pending_notifications = AccountRequests.objects.filter(sponsor_notified=False)\
+            pending_notifications = AccountRequests.objects.filter(sponsor_notified=False, approved=False, created=False)\
                 .values('response__users__email')\
                 .annotate(total_pending=Count('response__users__email'))\
                 .filter(total_pending__gt=0)

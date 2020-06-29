@@ -18,7 +18,7 @@ class AccountSerializer(ModelSerializer):
 
     class Meta:
         model = AccountRequests
-        exclude = ['recaptcha', 'user_type']
+        exclude = ['recaptcha', 'user_type', 'sponsor_notified']
 
 
 class AGOLGroupSerializer(ModelSerializer):
