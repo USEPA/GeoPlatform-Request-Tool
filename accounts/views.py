@@ -65,10 +65,12 @@ class IsSponsor(DjangoModelPermissions):
         if request.user.is_superuser:
             return True
 
-        if obj.sponsor == request.user:
-            return True
+        sponsors = set([x.user.pk for x in request.user.delegate_for.all()])
+        # add current user into list of potential sponsors for the filter in case
+        # they are both a sponsor and a delegate
+        sponsors.add(request.user.pk)
 
-        if obj.sponsor.agol_info.delegates.filter(pk=request.user.pk).exists():
+        if obj.response.users.filter(pk__in=sponsors).exists():
             return True
 
         return False
