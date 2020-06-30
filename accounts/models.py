@@ -208,7 +208,7 @@ class AGOL(models.Model):
                 "userLicenseType": account_request.user_type,
                 "fullname": f"{account_request.first_name} {account_request.last_name}",
                 "userType": "creatorUT",
-                "groups": ",".join(str(x) for x in set(list(account_request.groups.all().values_list('id', flat=True)) + [account_request.auth_group])),
+                "groups": ",".join(str(x) for x in set(list(account_request.groups.all().values_list('id', flat=True)) + [account_request.auth_group.id])),
                 "userCreditAssignment": 2000
             })
 
@@ -224,8 +224,10 @@ class AGOL(models.Model):
         response_json = response.json()
 
         if 'success' in response_json and response_json['success']:
+            success = []
             for account in AccountRequests.objects.filter(pk__in=[x.pk for x in account_requests])\
                 .exclude(username__in=response_json['notInvited']):
+                success.append(account.pk)
                 user_url = f'{self.portal_url}/sharing/rest/community/users/{account.username}'
                 user_response = requests.get(user_url, params={'token': token, 'f': 'json'})
                 user_response_json = user_response.json()
@@ -234,7 +236,7 @@ class AGOL(models.Model):
                 else:
                     account.agol_id = user_response_json['id']
                     account.save(update_fields=['agol_id'])
-            return True
+            return success
         else:
             return False
 
@@ -255,7 +257,11 @@ class AGOL(models.Model):
              return False, None, []
 
         if 'usernames' in response:
+            # if it suggested matches requested...great this is normal for new accounts
             if response['usernames'] and response['usernames'][0]['requested'] == response['usernames'][0]['suggested']:
+                return True, None, []
+            # if list is blank the account appears to not exist but may have been previously deleted
+            elif len(response['usernames']) == 0:
                 return True, None, []
             else:
                 user_url = f'{self.portal_url}/sharing/rest/community/users/{username}'

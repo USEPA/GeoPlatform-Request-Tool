@@ -123,32 +123,42 @@ class AccountViewSet(ModelViewSet):
         #     sponsor_notified = existing_record.sponsor.pk == self.request.data['sponsor'] and existing_record.sponsor_notified
 
         account_request = serializer.save(username_valid=username_valid, agol_id=agol_id)
-        account_request.groups.set(list(set(groups + self.request.data['groups'])))
+        new_groups = AGOLGroup.objects.filter(pk__in=list(set(groups + self.request.data['groups'])))
+        account_request.groups.set(new_groups)
 
     # create account (or queue up creation?)
     @action(['POST'], detail=False)
     def approve(self, request):
         account_requests = get_list_or_404(AccountRequests, pk__in=request.data['accounts'])
+        success = []
         # verify user has permission on each request submitted.
         for x in account_requests:
             self.check_object_permissions(request, x)
         AccountRequests.objects.filter(pk__in=request.data['accounts']).update(approved=now())
         agol = AGOL.objects.get(portal_url='https://epa.maps.arcgis.com')
         create_accounts = [x for x in account_requests if x.agol_id is None]
+        create_success = len(create_accounts) == 0
         if len(create_accounts) > 0:
-            create_success = agol.create_users_accounts(account_requests, request.data['password'])
+            success += agol.create_users_accounts(account_requests, request.data['password'])
+            if len(success) == len(create_accounts):
+                create_success = True
+
         else:
             create_success = True
 
-        group_requests = AccountRequests.objects.filter(pk__in=request.data['accounts'], agol_id__isnull=False)
-        groups = [str(g['groups']) for g in group_requests.values('groups') if g['groups']]
-        if len(group_requests) > 0 and len(groups) > 0:
-            group_success = agol.add_to_group([str(a.username) for a in group_requests], groups)
-        else:
-            group_success = True
+        # add existing users to groups
+        group_requests = [x for x in account_requests if x.agol_id is not None]
+        group_success = len(group_requests) == 0
+        for g in group_requests:
+            if g.groups.count() > 0:
+                group_success = agol.add_to_group([g.username], [str(x) for x in g.groups.values_list('id', flat=True)])
+                if group_success:
+                    success.append(g.pk)
+            else:
+                group_success = True
 
+        AccountRequests.objects.filter(pk__in=success).update(created=now())
         if create_success and group_success:
-            AccountRequests.objects.filter(pk__in=[x.pk for x in account_requests]).update(created=now())
             return Response()
         if not create_success:
             return Response("Error creating and updating accounts")
