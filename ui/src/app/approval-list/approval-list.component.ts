@@ -147,6 +147,14 @@ export class ApprovalListComponent implements OnInit {
     }
   }
 
+  clearAllSelected() {
+    Object.keys(this.accountsListProps).forEach(id => {
+      this.accountsListProps[id].isChecked = false;
+      this.allChecked = false;
+    });
+    this.selectedAccountIds = this.getSelectedAccountIds();
+  }
+
   updateRecord(record) {
     return this.http.put(`/v1/account/approvals/${record.id}/`, record).pipe(
       tap(response => {
@@ -186,23 +194,23 @@ export class ApprovalListComponent implements OnInit {
 
     dialogRef.afterClosed().pipe(
       switchMap(formInputValues => {
-      const accountUpdates = [];
-      if (formInputValues) {
-        for (const id in this.accountsListProps) {
-          if (this.accountsListProps[id].isChecked) {
-            const updatedRecord = this.accountsListProps[id];
-            updatedRecord['id'] = Number(id);
-            for (const key in formInputValues) {
-              if (key in updatedRecord) {
-                updatedRecord[key] = formInputValues[key];
+        const accountUpdates = [];
+        if (formInputValues) {
+          for (const id in this.accountsListProps) {
+            if (this.accountsListProps[id].isChecked) {
+              const updatedRecord = this.accountsListProps[id];
+              updatedRecord['id'] = Number(id);
+              for (const key in formInputValues) {
+                if (key in updatedRecord) {
+                  updatedRecord[key] = formInputValues[key];
+                }
               }
+              accountUpdates.push(this.updateRecord(updatedRecord));
             }
-            accountUpdates.push(this.updateRecord(updatedRecord));
           }
         }
-      }
-      return forkJoin(accountUpdates);
-    }),
+        return forkJoin(accountUpdates);
+      }),
       switchMap(() => this.accounts.getItems()),
       tap(() => this.isApprovalReady = this.getApprovalStatus())).subscribe();
   }
@@ -228,7 +236,7 @@ export class ApprovalListComponent implements OnInit {
 
             this.snackBar.open('Success', null, {duration: 2000});
             // clear selected accounts after approval issue #33
-            this.selectedAccountIds.length = 0;
+            this.clearAllSelected();
           }))))
           )
         );
