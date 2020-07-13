@@ -3,6 +3,7 @@ from unittest.mock import patch, MagicMock
 from .models import AGOL, AccountRequests
 from django.contrib.auth.models import User
 from .views import format_username
+import json
 
 
 def mock_check_username_empty(*args, **kwargs):
@@ -13,6 +14,7 @@ def mock_check_username_empty(*args, **kwargs):
             }
 
     return MockResponse()
+
 
 def mock_check_username(*args, **kwargs):
     class MockResponse:
@@ -25,6 +27,7 @@ def mock_check_username(*args, **kwargs):
 
     return MockResponse()
 
+
 def mock_existing_check_username(*args, **kwargs):
     class MockResponse:
         def json(self):
@@ -35,6 +38,7 @@ def mock_existing_check_username(*args, **kwargs):
             }
 
     return MockResponse()
+
 
 def mock_get_user(*args, **kwargs):
     class MockResponse:
@@ -48,22 +52,29 @@ def mock_get_user(*args, **kwargs):
 
 
 def mock_create_user(*args, **kwargs):
+    class MockRequest:
+        body = 'nothing'
+
     class MockResponse:
+        text = '''{"success": ["name.a@epa.gov"], "notInvited": []}'''
+        request = MockRequest()
+
         def json(self):
-            return {
-                "success": ['Smo.Joe@epa.gov'],
-                "notInvited": []
-            }
+            return json.loads(self.text)
 
     return MockResponse()
 
+
 def mock_fail_create_user(*args, **kwargs):
+    class MockRequest:
+        body = 'nothing'
+
     class MockResponse:
+        text = '''{"success": [], "notInvited": ["name.a@epa.gov"]}'''
+        request = MockRequest()
+
         def json(self):
-            return {
-                "success": [],
-                "notInvited": ['name.a@epa.gov']
-            }
+            return json.loads(self.text)
 
     return MockResponse()
 
@@ -103,7 +114,7 @@ class TestAccounts(TestCase):
         agol = AGOL.objects.get(pk=1)
         agol.get_token = MagicMock(return_value='token')
         results, idk, idk2 = agol.check_username('doesntmatter')
-        self.assertFalse(results)
+        self.assertTrue(results)
 
     @patch('accounts.models.requests.post', side_effect=mock_fail_create_user)
     @patch('accounts.models.requests.get', side_effect=mock_get_user)
@@ -127,4 +138,12 @@ class TestAccounts(TestCase):
         self.assertTrue(result)
         exists = AccountRequests.objects.filter(agol_id='ffffffff-ffff-ffff-ffff-ffffffffffff').exists()
         self.assertTrue(exists)
+
+    def test_invitations(self):
+        agol = AGOL.objects.get(pk=1)
+        agol.get_token = MagicMock(return_value='token')
+        requests = AccountRequests.objects.all()
+        invitations = agol.generate_invitations(requests, 'password')
+        self.assertTrue('000b6ee121bb4739a5021e0f0241ff01' in invitations[0]["groups"])
+        self.assertTrue('00237b674c3347a18e0fb2bfcdb248e1' in invitations[0]["groups"])
 

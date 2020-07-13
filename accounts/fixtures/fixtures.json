@@ -1,1 +1,111 @@
-[{"model": "auth.user", "pk": 1, "fields": {"password": "secret password", "last_login": "2020-05-06T21:22:04.324Z", "is_superuser": true, "username": "aname", "first_name": "a", "last_name": "name", "email": "aname@epa.gov", "is_staff": true, "is_active": true, "date_joined": "2020-03-15T22:11:57Z", "groups": [], "user_permissions": []}},{"model": "accounts.accountrequests", "pk": 1, "fields": {"first_name": "Joe", "last_name": "Smo", "email": "Smo.Joe@epa.gov", "possible_existing_account": "", "organization": "Org", "username": "Smo.Joe_EPAEXT", "username_valid": true, "user_type": "user_type", "role": "role", "sponsor": 1, "sponsor_notified": false, "reason": "Emergency Response", "description": "test", "recaptcha": "supersecret", "submitted": "2020-03-19T14:35:39.647Z", "approved": null, "created": null, "agol_id": null, "groups": []}}, {"model": "accounts.agol", "pk": 1, "fields": {"portal_url": "https://epa.maps.arcgis.com", "org_id": "org_id", "user": 1}}, {"model": "accounts.agoluserfields", "pk": 1, "fields": {"agol_username": "", "sponsor": true, "authoritative_group": "R09", "phone_number": null, "user": 1, "delegates": []}}]
+[
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "password": "secret password",
+      "last_login": "2020-05-06T21:22:04.324Z",
+      "is_superuser": true,
+      "username": "aname",
+      "first_name": "a",
+      "last_name": "name",
+      "email": "aname@epa.gov",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2020-03-15T22:11:57Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "accounts.accountrequests",
+    "pk": 1,
+    "fields": {
+      "first_name": "Joe",
+      "last_name": "Smo",
+      "email": "Smo.Joe@epa.gov",
+      "possible_existing_account": "",
+      "organization": "Org",
+      "username": "Smo.Joe_EPAEXT",
+      "username_valid": true,
+      "user_type": "user_type",
+      "role": "specialid",
+      "sponsor": 1,
+      "sponsor_notified": false,
+      "reason": "Emergency Response",
+      "recaptcha": "supersecret",
+      "submitted": "2020-03-19T14:35:39.647Z",
+      "approved": null,
+      "created": null,
+      "agol_id": null,
+      "groups": ["000b6ee1-21bb-4739-a502-1e0f0241ff01"],
+      "auth_group": "00237b67-4c33-47a1-8e0f-b2bfcdb248e1",
+      "response": 1
+    }
+  },
+  {
+    "model": "accounts.agol",
+    "pk": 1,
+    "fields": {
+      "portal_url": "https://epa.maps.arcgis.com",
+      "org_id": "org_id",
+      "user": 1
+    }
+  },
+  {
+    "model": "accounts.agoluserfields",
+    "pk": 1,
+    "fields": {
+      "agol_username": "",
+      "sponsor": true,
+      "phone_number": null,
+      "user": 1,
+      "delegates": []
+    }
+  },
+  {
+    "model": "accounts.agolgroup",
+    "pk": "000b6ee1-21bb-4739-a502-1e0f0241ff01",
+    "fields": {
+      "title": "Special Group",
+      "agol": 1,
+      "is_auth_group": false,
+      "requests": [1]
+    }
+  },
+  {
+    "model": "accounts.agolgroup",
+    "pk": "00237b67-4c33-47a1-8e0f-b2bfcdb248e1",
+    "fields": {
+      "title": "Auth Group",
+      "agol": 1,
+      "is_auth_group": true,
+      "requests": []
+    }
+  },
+    {
+    "model": "accounts.agolrole",
+    "pk": "specialid",
+    "fields": {
+      "name": "The One",
+      "description": "",
+      "is_available": true,
+      "agol": 1
+    }
+  },
+  {
+    "model": "accounts.responseproject",
+    "pk": 1,
+    "fields": {
+      "name": "test",
+      "role": "specialid",
+      "authoritative_group": "00237b67-4c33-47a1-8e0f-b2bfcdb248e1",
+      "users": [
+        1
+      ],
+      "assignable_groups": [
+        "000b6ee1-21bb-4739-a502-1e0f0241ff01"
+      ]
+    }
+  }
+]

@@ -75,7 +75,7 @@ export class ApprovalListComponent implements OnInit {
     for (const account of init_accounts) {
       const acctProps: AccountProps = {
         first_name: account.first_name,
-        last_name: account.first_name,
+        last_name: account.last_name,
         username: account.username,
         email: account.email,
         groups: account.groups,

@@ -6,37 +6,50 @@ from social_core.exceptions import AuthException
 class AGOLOAuth2(BaseOAuth2):
     name = 'agol'
     ID_KEY = 'username'
-    AUTHORIZATION_URL = 'https://epa.maps.arcgis.com/sharing/rest/oauth2/authorize'
-    ACCESS_TOKEN_URL = 'https://epa.maps.arcgis.com/sharing/rest/oauth2/token'
+    _AUTHORIZATION_URL = 'https://{}/sharing/rest/oauth2/authorize'
+    _ACCESS_TOKEN_URL = 'https://{}/sharing/rest/oauth2/token'
     REQUIRES_EMAIL_VALIDATION = False
     ACCESS_TOKEN_METHOD = 'POST'
+    REDIRECT_STATE = False
     EXTRA_DATA = [
         ('refresh_token', 'refresh_token'),
         ('expires_in', 'expires'),
-        ('username', 'username')
+        ('username', 'username'),
+        ('email', 'email')
     ]
+
+    def _base_url(self):
+        _domain = self.setting('DOMAIN')
+        domain = _domain if _domain else 'www.arcgis.com'
+        return domain
+
+    def authorization_url(self):
+        return self._AUTHORIZATION_URL.format(self._base_url())
+
+    def access_token_url(self):
+        return self._ACCESS_TOKEN_URL.format(self._base_url())
 
     def get_user_details(self, response):
         if 'error' in response:
             return {}
 
         return {
-            'username': response['username'],
-            'email': response['email'],
-            'fullname': response['fullName'],
-            'first_name': response['fullName'].split()[0],
-            'last_name': response['fullName'].split()[1]
+            'username': response.get('username'),
+            'email': response.get('email'),
+            'fullname': response.get('fullName'),
+            'first_name': response.get('firstName'),
+            'last_name': response.get('lastName'),
+            'agol_groups': [x.get('id') for x in response.get('groups')] # get list of group ids user is a member of
         }
 
     def user_data(self, access_token, *args, **kwargs):
         return self.get_json(
-            'https://epa.maps.arcgis.com/sharing/rest/community/self',
+            'https://{}/sharing/rest/community/self'.format(self._base_url()),
             params={
                 'token': access_token,
                 'f': 'json'
             }
         )
-
     # # api does support state... need to remove this and test
     # def validate_state(self):
     #     return None

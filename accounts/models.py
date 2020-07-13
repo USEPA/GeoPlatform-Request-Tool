@@ -190,11 +190,7 @@ class AGOL(models.Model):
                 "agol": self
             })
 
-    def create_users_accounts(self, account_requests, initial_password):
-        token = self.get_token()
-
-        url = f'{self.portal_url}/sharing/rest/portals/self/invite/'
-
+    def generate_invitations(self, account_requests, initial_password):
         invitations = list()
 
         for account_request in account_requests:
@@ -208,16 +204,24 @@ class AGOL(models.Model):
                 "userLicenseType": account_request.user_type,
                 "fullname": f"{account_request.first_name} {account_request.last_name}",
                 "userType": "creatorUT",
-                "groups": ",".join(str(x) for x in set(list(account_request.groups.all().values_list('id', flat=True)) + [account_request.auth_group.id])),
                 "userCreditAssignment": 2000
             })
+        return invitations
 
-        # goofy way of encoding data since request library does not seem to appreciate the nested structure.
+    def create_users_accounts(self, account_requests, initial_password):
+        token = self.get_token()
+
+        url = f'{self.portal_url}/sharing/rest/portals/self/invite/'
+
+        invitations = self.generate_invitations(account_requests, initial_password)
+
+        # goofy way of encoding data since requests library does not seem to appreciate the nested structure.
         data = {
             "invitationList": json.dumps({"invitations": invitations}),
             "f": "json",
             "token": token
         }
+
         data = urlencode(data)
         response = requests.post(url, data=data, headers={'Content-type': 'application/x-www-form-urlencoded'})
 
@@ -344,36 +348,3 @@ class ResponseProject(models.Model):
     class Meta:
         verbose_name_plural = 'Responses/Projects'
         verbose_name = 'Response/Project'
-
-    #     max_length=200,
-    #     choices=[
-    #         ('', 'Unknown'),
-    #         ('R01', 'Region 1 - New England'),
-    #         ('R02', 'Region 2 - NJ, NY, Puerto Rico, US Virgin Islands'),
-    #         ('R03', 'Region 3 - Mid Atlantic'),
-    #         ('R04', 'Region 4 - Southeast'),
-    #         ('R05', 'Region 5 - Great Lakes'),
-    #         ('R06', 'Region 6 - Central South'),
-    #         ('R07', 'Region 7 - IA, KS, MO, NE'),
-    #         ('R08', 'Region 8 - CO, MT, ND, SD, UT, WY'),
-    #         ('R09', 'Region 9 - Pacific Southwest'),
-    #         ('R10', 'Region 10 - Pacific Northwest'),
-    #         ('OARM', 'EPA Office of Administration and Resources Management'),
-    #         ('OAR', 'EPA Office of Air and Radiation'),
-    #         ('OSCPP', 'EPA Office of Chemical Safety and Pollution Prevention'),
-    #         ('OECA', 'EPA Office of Enforcement and Compliance Assurance'),
-    #         ('OEI', 'EPA Office of Environmental Information'),
-    #         ('OGC', 'EPA Office of General Counsel'),
-    #         ('OIG', 'EPA Office of Inspector General'),
-    #         ('OITA', 'EPA Office of International and Tribal Affairs'),
-    #         ('OLEM', 'EPA Office of Land and Emergency Management'),
-    #         ('ORD', 'EPA Office of Research and Development'),
-    #         ('OW', 'EPA Office of Water'),
-    #         ('OA', 'EPA Office of the Administrator'),
-    #         ('OCFO', 'EPA Office of the Chief Financial Officer'),
-    #         ('ER', 'OLEM - ER Program Support')
-    #     ],
-    #     default='',
-    # )
-
-

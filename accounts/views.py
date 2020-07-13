@@ -29,7 +29,7 @@ class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
 
 
     def perform_create(self, serializer):
-        agol = AGOL.objects.get(portal_url='https://epa.maps.arcgis.com')
+        agol = AGOL.objects.first()
         username = format_username(self.request.data)
         username_valid, agol_id, groups = agol.check_username(username)
         possible_accounts = agol.find_accounts_by_email(self.request.data['email'])
@@ -111,7 +111,7 @@ class AccountViewSet(ModelViewSet):
     permission_classes = (IsSponsor,)
 
     def perform_update(self, serializer):
-        agol = AGOL.objects.get(portal_url='https://epa.maps.arcgis.com')
+        agol = AGOL.objects.first()
         username_valid, agol_id, groups = agol.check_username(self.request.data['username'])
 
         # removed due to changes in how notification are handled and how relationships to sponsors work
@@ -135,7 +135,7 @@ class AccountViewSet(ModelViewSet):
         for x in account_requests:
             self.check_object_permissions(request, x)
         AccountRequests.objects.filter(pk__in=request.data['accounts']).update(approved=now())
-        agol = AGOL.objects.get(portal_url='https://epa.maps.arcgis.com')
+        agol = AGOL.objects.first()
         create_accounts = [x for x in account_requests if x.agol_id is None]
         create_success = len(create_accounts) == 0
         if len(create_accounts) > 0:
@@ -146,8 +146,8 @@ class AccountViewSet(ModelViewSet):
         else:
             create_success = True
 
-        # add existing users to groups
-        group_requests = [x for x in account_requests if x.agol_id is not None]
+        # add users to groups for either existing or newly created
+        group_requests = [x for x in AccountRequests.objects.filter(pk__in=request.data['accounts'], agol_id__isnull=False)]
         group_success = len(group_requests) == 0
         for g in group_requests:
             if g.groups.count() > 0:
@@ -287,3 +287,5 @@ class SponsorsViewSet(ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     search_fields = ['last_name', 'first_name', 'email']
     filter_fields = ['response', 'agol_info__delegates']
+
+
