@@ -36,7 +36,11 @@
   justify-content: center;
 }
 
-.cdk-column-first_name,
-.cdk-column-last_name {
-  max-width: 100px;
+/*.cdk-column-first_name,*/
+/*.cdk-column-last_name {*/
+/*  max-width: 100px;*/
+/*}*/
+
+.cdk-column-email {
+  min-width: 150px;
 }
