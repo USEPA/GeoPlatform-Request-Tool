@@ -31,8 +31,12 @@
 .cell.cdk-column-sponsor,
 .cell.cdk-column-reason,
 .cell.cdk-column-description {
-  max-width: 75px;
+  max-width: 70px;
   /*text-align: center;*/
   justify-content: center;
 }
 
+.cdk-column-first_name,
+.cdk-column-last_name {
+  max-width: 100px;
+}
