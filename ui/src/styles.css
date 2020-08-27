@@ -38,6 +38,7 @@ mat-sidenav-content {
 mat-table {
   padding-right: 30px;
 }
+
 .table {
   flex: 1 1 auto;
   overflow: auto;
@@ -49,7 +50,7 @@ mat-table mat-row:nth-child(odd) {
 }
 
 mat-row.row.mat-row:hover {
-    background: rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.08);
 }
 
 mat-form-field {
@@ -66,6 +67,7 @@ mat-form-field {
 .table .mat-cell {
   font-size: 12px;
 }
+
 .table .mat-icon {
   font-size: 18px;
 }
@@ -77,7 +79,7 @@ mat-form-field {
 }
 
 /*.mat-select-value-text {*/
-  /*white-space: normal !important;*/
+/*white-space: normal !important;*/
 /*}*/
 
 .mat-tooltip {
@@ -100,3 +102,13 @@ mat-form-field {
 mat-list-item.filter-btn div {
   justify-content: space-between;
 }
+
+.snackbar-success {
+  background-color: green !important;
+}
+
+.snackbar-error {
+  background-color: darkorange !important;
+  color: black !important;
+}
+

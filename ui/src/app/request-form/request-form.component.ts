@@ -3,7 +3,7 @@ import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, finalize, map, share, tap} from 'rxjs/operators';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import {MatSnackBar} from '@angular/material/snack-bar';
 import {environment} from '../../environments/environment';
 
 interface Response {
@@ -32,6 +32,7 @@ export class RequestFormComponent implements OnInit {
   }
 
   ngOnInit() {
+
     this.responses = this.http.get<Response[]>(`${environment.local_service_endpoint}/v1/responses/`);
   }
 
@@ -39,11 +40,18 @@ export class RequestFormComponent implements OnInit {
     this.submitting.next(true);
     this.http.post(`${environment.local_service_endpoint}/v1/account/request/`, this.requestForm.value).pipe(
       tap(response => {
-        this.matSnackBar.open('Success', null, {duration: 2000});
+        this.matSnackBar.open('Request has been successfully submitted', 'Dismiss', {
+          panelClass: ['snackbar-success'],
+          verticalPosition: 'top'
+        });
         this.requestForm.reset();
       }),
       finalize(() => this.submitting.next(false)),
-      catchError(() => of(this.matSnackBar.open('Error', null, {duration: 2000})))
+      catchError(() => of(this.matSnackBar.open('Error', null, {
+        verticalPosition: 'top',
+        duration: 8000,
+        panelClass: ['snackbar-error']
+      })))
     ).subscribe();
   }
 

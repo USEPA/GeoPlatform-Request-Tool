@@ -26,8 +26,6 @@ class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
     permission_classes = (AllowAny,)
     authentication_classes = ()
 
-
-
     def perform_create(self, serializer):
         agol = AGOL.objects.first()
         username = format_username(self.request.data)
