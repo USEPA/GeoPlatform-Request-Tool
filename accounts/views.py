@@ -17,7 +17,8 @@ from .models import *
 
 def format_username(data):
     username_extension = 'EPAEXT' if '@epa.gov' not in data['email'] else 'EPA'
-    return f'{data["last_name"].capitalize()}.{data["first_name"].capitalize()}_{username_extension}'
+    username = f'{data["last_name"].capitalize()}.{data["first_name"].capitalize()}_{username_extension}'
+    return username.replace(' ', '')
 
 
 class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
