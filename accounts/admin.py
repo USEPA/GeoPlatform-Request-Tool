@@ -72,10 +72,10 @@ class AGOLGroupAdmin(admin.ModelAdmin):
 
 @admin.register(AccountRequests)
 class RequestAdmin(admin.ModelAdmin):
-    list_display = ['last_name', 'first_name', 'email', 'username', 'submitted']
+    list_display = ['last_name', 'first_name', 'email', 'username', 'response', 'submitted']
     search_fields = list_display
     ordering = ['-submitted']
-    list_filter = ['approved']
+    list_filter = ['approved', 'response']
 
 
 @admin.register(AGOLRole)
