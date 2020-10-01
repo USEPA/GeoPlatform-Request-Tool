@@ -183,7 +183,7 @@ class AGOL(models.Model):
     def get_group(self, group_id):
         r = requests.get(f'{self.portal_url}/sharing/rest/community/groups/{group_id}',
                          params={'token': self.get_token(), 'f': 'json'})
-        if r.status_code == requests.status_codes.ok:
+        if r.status_code == requests.codes.ok:
             response_json = r.json(strict=False)
             AGOLGroup.objects.update_or_create(id=response_json.get('id'), defaults={
                 "title": response_json['title'],
