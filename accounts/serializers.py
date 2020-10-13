@@ -35,7 +35,8 @@ class ResponseProjectSerializer(ModelSerializer):
 
 class SponsorSerializer(ModelSerializer):
     phone_number = CharField(source='agol_info.phone_number')
+    username = CharField(source='agol_info.agol_username')
 
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'email', 'phone_number']
+        fields = ['id', 'first_name', 'last_name', 'email', 'phone_number', 'username']
