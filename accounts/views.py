@@ -228,6 +228,11 @@ class AccountViewSet(ModelViewSet):
                 .update(sponsor_notified=True)
             return Response()
 
+    def get_serializer_class(self):
+        if self.request.query_params.get('include_sponsor_details', False):
+            return AccountWithSponsorSerializer
+        return AccountSerializer
+
 
 class AGOLGroupViewSet(ReadOnlyModelViewSet):
     queryset = AGOLGroup.objects.none()
