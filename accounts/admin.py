@@ -42,7 +42,7 @@ class AGOLUserAdmin(UserAdmin):
 
     # hacky solution b/c of https://code.djangoproject.com/ticket/29707
     def get_search_results(self, request, queryset, search_term):
-        if 'responseproject' in request.META['HTTP_REFERER']:
+        if 'responseproject' in request.META.get('HTTP_REFERER', ''):
             queryset = queryset.filter(agol_info__sponsor=True)
         return super().get_search_results(request, queryset, search_term)
 # class AGOLGroupFieldsInline(admin.StackedInline):
