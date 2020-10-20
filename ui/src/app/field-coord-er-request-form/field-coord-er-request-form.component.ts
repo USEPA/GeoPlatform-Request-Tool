@@ -26,7 +26,7 @@ export class FieldCoordErRequestFormComponent implements OnInit {
     geoplatform_groups: new FormControl(null, Validators.required),
     requester: new FormControl(null, Validators.required),
     requester_phone_number: new FormControl(null,
-      [Validators.required, Validators.pattern('[6-9]\\d{9}')])
+      [Validators.required, Validators.pattern('[2-9]\\d{9}')])
   });
 
   constructor(public http: HttpClient, public matSnackBar: MatSnackBar) {

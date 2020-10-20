@@ -22,7 +22,7 @@ export class RequestFieldCoordDialogComponent implements OnInit {
       first_name: new FormControl(null, [Validators.required]),
       last_name: new FormControl(null, [Validators.required]),
       phone_number: new FormControl(null, [Validators.required,
-        Validators.pattern('[6-9]\\d{9}')]),
+        Validators.pattern('[2-9]\\d{9}')]),
       email: new FormControl(null, [Validators.required, Validators.email]),
       authoritative_group: new FormControl(null, [Validators.required]),
       agol_user: new FormControl(null, [Validators.required]),
