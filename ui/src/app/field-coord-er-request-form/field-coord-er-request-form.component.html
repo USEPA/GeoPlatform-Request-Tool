@@ -2,8 +2,7 @@
   <mat-card-title>Response / Project Request Form</mat-card-title>
   <mat-card-subtitle>Use the form below to request a new emergency response or project be added to the tool.
   </mat-card-subtitle>
-  <mat-spinner *ngIf="isLoading" style="left: 40%"></mat-spinner>
-  <form *ngIf="!isLoading" novalidate [formGroup]="fieldTeamCoordErForm">
+  <form novalidate [formGroup]="fieldTeamCoordErForm">
     <!--Emergency Response Name-->
     <mat-form-field>
       <input matInput required type="text" formControlName="emergency_response_name" placeholder="Response or Project Name">
@@ -12,18 +11,17 @@
     <mat-form-field>
       <mat-label>Team Coordinators</mat-label>
       <mat-select required formControlName="field_team_coordinators" multiple>
-        <mat-option *ngFor="let field_coordinator of field_coordinators"
-                    [value]="field_coordinator.display + ' (' + field_coordinator.username + ')'">
-            <span *ngIf="field_coordinator.display">
-              {{field_coordinator.display + ' (' + field_coordinator.username + ')'}}
+        <mat-option *ngFor="let field_coordinator of field_coordinators | async"
+                    [value]="field_coordinator.first_name + ' ' + field_coordinator.last_name">
+            <span>
+              {{field_coordinator.first_name + ' ' + field_coordinator.last_name}}
             </span>
-            <span *ngIf="!field_coordinator.display">{{field_coordinator.username}}</span>
         </mat-option>
       </mat-select>
       <mat-hint>If needed, return to the Team Coordinators page to request additional Coordinators.</mat-hint>
     </mat-form-field>
     <!-- GeoPlatform groups -->
-    <mat-form-field>
+    <mat-form-field *ngIf="isLoading">
       <mat-label>GeoPlatform Groups</mat-label>
       <mat-select required formControlName="geoplatform_groups" multiple>
         <mat-option *ngIf="agol_groups.length == 0" [value]="">{{'None'}}</mat-option>

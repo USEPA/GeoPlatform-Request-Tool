@@ -1,10 +1,11 @@
 import {Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
-import {BehaviorSubject} from 'rxjs';
+import {BehaviorSubject, Observable} from 'rxjs';
 import {HttpClient} from '@angular/common/http';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {FieldCoordinator} from '../field-coord-list/field-coord-list.component';
-
+import {map} from 'rxjs/operators';
+import {Response} from '../services/base.service';
 export interface AgolGroup {
   value: number;
   title: string;
@@ -17,7 +18,7 @@ export interface AgolGroup {
 })
 export class FieldCoordErRequestFormComponent implements OnInit {
   isLoading: Boolean;
-  field_coordinators: FieldCoordinator[];
+  field_coordinators: Observable<FieldCoordinator[]>;
   agol_groups: AgolGroup[];
   submitting: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   fieldTeamCoordErForm: FormGroup = new FormGroup({
@@ -35,8 +36,10 @@ export class FieldCoordErRequestFormComponent implements OnInit {
 
   async ngOnInit() {
     this.agol_groups = await this.http.get<AgolGroup[]>('/v1/agol/groups/all/').toPromise();
-    this.field_coordinators = await this.http.get<FieldCoordinator[]>('/v1/sponsors/').toPromise();
-    this.isLoading = false;
+    this.field_coordinators = this.http.get<Response>('/v1/sponsors/').pipe(
+      map(response => response.results)
+    );
+    // this.isLoading = false;
   }
 
   async submit() {
