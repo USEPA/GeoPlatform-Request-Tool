@@ -75,7 +75,11 @@ class RequestAdmin(admin.ModelAdmin):
     list_display = ['last_name', 'first_name', 'email', 'username']
     search_fields = list_display
     ordering = ['-submitted']
-    list_filter = ['approved', 'response']
+    list_filter = ['response', 'submitted', 'approved', 'created']
+    fields = ['first_name', 'last_name', 'email', 'possible_existing_account', 'organization', 'username',
+              'username_valid', 'user_type', 'role', 'groups', 'auth_group', 'sponsor', 'sponsor_notified', 'reason',
+              'approved', 'created', 'response']
+    autocomplete_fields = ['groups']
 
 
 @admin.register(AGOLRole)
