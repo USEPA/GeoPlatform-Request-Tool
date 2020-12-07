@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpErrorResponse, HttpParams} from '@angular/common/http';
 import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, finalize, map, share, tap} from 'rxjs/operators';
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -36,8 +36,23 @@ export class RequestFormComponent implements OnInit {
     this.responses = this.http.get<Response[]>(`${environment.local_service_endpoint}/v1/responses/`);
   }
 
-  submit() {
+  async submit() {
     this.submitting.next(true);
+    // check if an open account request has already been submitted for this email
+    const enteredEmail = this.requestForm.controls.email.value;
+    const params = new HttpParams().set('email', enteredEmail);
+    const result: [] = await this.http.get<any>(`${environment.local_service_endpoint}/v1/account/request/`, {params: params}).toPromise()
+      .then((responses) => {
+        return responses.results;
+    });
+    if (result && result.length > 0) {
+      this.matSnackBar.open(`Account Request already submitted for ${enteredEmail}`, 'Dismiss', {
+        panelClass: ['snackbar-error'],
+        verticalPosition: 'top'
+      });
+      return false;
+    }
+
     this.http.post(`${environment.local_service_endpoint}/v1/account/request/`, this.requestForm.value).pipe(
       tap(response => {
         this.matSnackBar.open('Request has been successfully submitted', 'Dismiss', {

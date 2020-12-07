@@ -15,6 +15,8 @@ export interface SearchObject {
   approved_and_created?: boolean;
   created?: boolean;
   approved?: boolean;
+
+  [key: string]: any;
 }
 
 export interface Response {
@@ -40,7 +42,7 @@ export class BaseService {
     return this.dataChange.value;
   }
 
-  getList(search_object: SearchObject = {}): Observable<Response> {
+  getList<Any>(search_object: SearchObject = {}): Observable<Response> {
     let url = `/${this.base_url}`;
     return this.http.get<Response>(url,
       {

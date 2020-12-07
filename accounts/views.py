@@ -21,11 +21,12 @@ def format_username(data):
     return username.replace(' ', '')
 
 
-class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
+class AccountRequestViewSet(ModelViewSet):
     queryset = AccountRequests.objects.none()
     serializer_class = AccountRequestSerializer
     permission_classes = (AllowAny,)
     authentication_classes = ()
+    filter_fields = ['email']
 
     def perform_create(self, serializer):
         agol = AGOL.objects.first()
