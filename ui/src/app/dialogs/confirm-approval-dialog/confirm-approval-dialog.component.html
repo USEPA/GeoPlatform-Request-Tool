@@ -1,33 +1,43 @@
 <h1 mat-dialog-title>Please confirm
-  <span *ngIf="data.password_needed">and provide initial password for these accounts.</span></h1>
+  <span *ngIf="data.password_needed">and provide initial password for these accounts.</span>
+  <span *ngIf="data.action === 'delete' && data.selected_request">you would like to delete this request: <br>
+    <b>{{data.selected_request.first_name}} {{data.selected_request.last_name}}, {{data.selected_request.email}}</b>
+  </span>
+</h1>
 <div mat-dialog-content>
-  <p *ngIf="data.password_needed">
-    Password Requirements<br/>
-    1 Letter<br/>
-    1 Number<br/>
-    13 Characters Long
-  </p>
-  <form novalidate [formGroup]="passwordForm" *ngIf="data.password_needed">
-    <mat-form-field style="width: 100%">
-      <input matInput required placeholder="Initial Password" formControlName="passwordInput" type="password">
-
-      <mat-error *ngIf="passwordForm.controls.passwordInput.invalid">
-        {{ passwordForm.controls.passwordInput.hasError('pattern') ? 'Does not meet complexity requirements' : '' }}
-
-      </mat-error>
-    </mat-form-field>
-    <mat-form-field style="width: 100%; padding-top: 10px;">
-      <input matInput required placeholder="Confirm Password" formControlName="passwordConfirm" type="password">
-    </mat-form-field>
-      <mat-error *ngIf="!passwordForm.valid">
-        {{ passwordForm.hasError('passwordMatch') ? 'Passwords do not match' : '' }}
-      </mat-error>
-  </form>
+  <ng-container *ngIf="data.password_needed">
+    <p>
+      Password Requirements<br/>
+      1 Letter<br/>
+      1 Number<br/>
+      13 Characters Long
+    </p>
+    <form *ngIf="data.password_needed" novalidate [formGroup]="passwordForm">
+      <mat-form-field style="width: 100%">
+        <input matInput required placeholder="Initial Password" formControlName="passwordInput" type="password">
+        <mat-error *ngIf="passwordForm.controls.passwordInput.invalid">
+          {{ passwordForm.controls.passwordInput.hasError('pattern') ? 'Does not meet complexity requirements' : '' }}
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field style="width: 100%; padding-top: 10px;">
+        <input matInput required placeholder="Confirm Password" formControlName="passwordConfirm" type="password">
+      </mat-form-field>
+        <mat-error *ngIf="!passwordForm.valid">
+          {{ passwordForm.hasError('passwordMatch') ? 'Passwords do not match' : '' }}
+        </mat-error>
+    </form>
+  </ng-container>
 </div>
-<div mat-dialog-actions style="display: flex; justify-content: space-between; flex-direction: row;">
+<div mat-dialog-actions style="display: flex; justify-content: flex-end; flex-direction: row;">
   <button mat-raised-button color="accent" (click)="dismiss()">Cancel</button>
-  <button mat-raised-button
-          color="warn" (click)="confirm()" [disabled]="!passwordForm.valid" *ngIf="data.password_needed">Approve
+  <button *ngIf="data.password_needed" mat-raised-button color="warn" (click)="confirm()" [disabled]="!passwordForm.valid">
+    Approve
   </button>
-  <button mat-raised-button color="warn" (click)="confirm()" *ngIf="!data.password_needed">Approve</button>
+  <button *ngIf="!data.password_needed && data.action !== 'delete'" mat-raised-button color="warn" (click)="confirm()">
+    Approve
+  </button>
+  <button *ngIf="data.action === 'delete'" mat-raised-button style="background-color: red; color: white;"
+          (click)="confirm()">
+    Delete
+  </button>
 </div>

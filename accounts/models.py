@@ -47,8 +47,9 @@ class AccountRequests(models.Model):
 
     def save(self, *args, **kwargs):
         # this resets role and auth_group if the response changes
-        self.role = self.response.role
-        self.auth_group = self.response.authoritative_group
+        if self.response:
+            self.role = self.response.role
+            self.auth_group = self.response.authoritative_group
         super().save(*args, **kwargs)
 
     class Meta:

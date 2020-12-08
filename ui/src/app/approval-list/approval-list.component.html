@@ -203,9 +203,19 @@
             Created
           </mat-header-cell>
           <mat-cell *cdkCellDef="let row" class="cell">
-
             <mat-icon *ngIf="row.created" style="color: green;">check</mat-icon>
             <mat-icon *ngIf="!row.created" style="color: red;">close</mat-icon>
+          </mat-cell>
+        </ng-container>
+        <!--Delete-->
+        <ng-container cdkColumnDef="delete">
+          <mat-header-cell *cdkHeaderCellDef class="header-cell">
+            Delete
+          </mat-header-cell>
+          <mat-cell *cdkCellDef="let row" class="cell" [matTooltip]="!row.approved ? 'Delete unapproved request' : ''">
+            <button *ngIf="!row.approved" mat-icon-button (click)="confirmDeleteAccountRequests($event, row)">
+              <mat-icon>delete</mat-icon>
+            </button>
           </mat-cell>
         </ng-container>
 

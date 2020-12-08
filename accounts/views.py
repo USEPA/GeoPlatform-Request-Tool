@@ -1,7 +1,6 @@
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.mixins import CreateModelMixin
-from .serializers import *
-from rest_framework.permissions import AllowAny, BasePermission, IsAuthenticated, DjangoModelPermissions
+from rest_framework.permissions import AllowAny, BasePermission, IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.filters import BaseFilterBackend
@@ -13,6 +12,8 @@ from django_filters.rest_framework import FilterSet, BooleanFilter, DateFilter, 
 from django.db.models import Q, Count
 
 from .models import *
+from .serializers import *
+from .permissions import IsSponsor
 
 
 def format_username(data):
@@ -22,10 +23,9 @@ def format_username(data):
 
 
 class AccountRequestViewSet(ModelViewSet):
-    queryset = AccountRequests.objects.none()
+    queryset = AccountRequests.objects.all()
     serializer_class = AccountRequestSerializer
-    permission_classes = (AllowAny,)
-    authentication_classes = ()
+    permission_classes = (IsSponsor,)
     filter_fields = ['email']
 
     def perform_create(self, serializer):
@@ -53,27 +53,6 @@ class AccountRequestViewSet(ModelViewSet):
     #             'value': sponsor.pk
     #         })
     #     return Response({"results": sponsors_list})
-
-
-class IsSponsor(DjangoModelPermissions):
-    """
-    Object-level permission to only allow owners of an object to edit it.
-    """
-    def has_object_permission(self, request, view, obj):
-        # must be sponsor or superuser to edit
-
-        if request.user.is_superuser:
-            return True
-
-        sponsors = set([x.user.pk for x in request.user.delegate_for.all()])
-        # add current user into list of potential sponsors for the filter in case
-        # they are both a sponsor and a delegate
-        sponsors.add(request.user.pk)
-
-        if obj.response.users.filter(pk__in=sponsors).exists():
-            return True
-
-        return False
 
 
 class AccountFilterSet(FilterSet):

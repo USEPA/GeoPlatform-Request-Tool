@@ -1,14 +1,17 @@
 import {Component, OnInit} from '@angular/core';
-import {BaseService} from '../services/base.service';
-import {HttpClient} from '@angular/common/http';
-import {LoadingService} from '../services/loading.service';
+import {HttpClient, HttpErrorResponse} from '@angular/common/http';
 import {catchError, map, share, switchMap, tap} from 'rxjs/operators';
 import {MatDialog} from '@angular/material/dialog';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {forkJoin, iif, Observable, of} from 'rxjs';
+import {forkJoin, iif, Observable, of, throwError} from 'rxjs';
+
+import {LoginService} from '../auth/login.service';
+import {BaseService} from '../services/base.service';
+import {LoadingService} from '../services/loading.service';
+import {CONFIG_SETTINGS} from '../config_settings';
 import {EditAccountPropsDialogComponent} from '../dialogs/edit-account-props-dialog/edit-account-props-dialog.component';
 import {ConfirmApprovalDialogComponent} from '../dialogs/confirm-approval-dialog/confirm-approval-dialog.component';
-import {LoginService} from '../auth/login.service';
+
 
 export interface AccountProps {
   first_name: string;
@@ -38,7 +41,7 @@ export interface Accounts {
 export class ApprovalListComponent implements OnInit {
   accounts: BaseService;
   displayedColumns = ['selected', 'first_name', 'last_name', 'email', 'username', 'organization', 'groups', 'response',
-    'sponsor', 'reason', 'approved', 'created'];
+    'sponsor', 'reason', 'approved', 'created', 'delete'];
   // took out "roll" and "user_type"
   selectedAccountIds = [];
   accountsListProps: Accounts = {};
@@ -245,6 +248,35 @@ export class ApprovalListComponent implements OnInit {
     ).subscribe();
   }
 
+  confirmDeleteAccountRequests(event, selectedRequest) {
+    event.stopPropagation();
+
+    const dialogRef = this.dialog.open(ConfirmApprovalDialogComponent, {
+      width: '600px',
+      data: {
+        action: 'delete',
+        selected_request: selectedRequest
+      }
+    });
+    dialogRef.afterClosed().pipe(switchMap(results => {
+        return iif(() => results.confirmed,
+          this.http.delete(`/v1/account/request/${selectedRequest.id}`).pipe(
+          switchMap(response => iif(() => response !== undefined,
+            this.accounts.getItems().pipe(tap((accountRequests) => {
+            this.snackBar.open('Deleted', null, {duration: 2000});
+            this.setAccountsListProps(accountRequests);
+            this.clearAllSelected();
+          }))))
+          )
+        );
+      }),
+      catchError((err) => {
+        of(this.handleErrorResponse(err));
+        return throwError(err);
+      })
+    ).subscribe();
+  }
+
   setNeedsEditing(account) {
     let needsEditing = false;
     // removed group as requirement for editing per issue #31
@@ -254,4 +286,27 @@ export class ApprovalListComponent implements OnInit {
     this.accountsListProps[account.id].needsEditing = needsEditing;
   }
 
+  handleErrorResponse(err: HttpErrorResponse, customErrorMessages?: string[]) {
+    if (err && err.error && err.error.detail) {
+      this.snackBar.open(err.error.detail, null, {
+        duration: CONFIG_SETTINGS.snackbar_duration, panelClass: ['snackbar-error']
+      });
+    } else if (err && err.error && typeof err.error === 'string') {
+      this.snackBar.open(err.error, null, {
+        duration: CONFIG_SETTINGS.snackbar_duration, panelClass: ['snackbar-error']
+      });
+    } else if (err && err.error && err.error instanceof Array) {
+      this.snackBar.open(`Error: ${JSON.stringify(err.error[0])}`, null, {
+        duration: CONFIG_SETTINGS.snackbar_duration, panelClass: ['snackbar-error']
+      });
+    } else if (customErrorMessages.length > 0) {
+      this.snackBar.open(customErrorMessages.join(', '), null, {
+        duration: CONFIG_SETTINGS.snackbar_duration, panelClass: ['snackbar-error']
+      });
+    } else {
+      this.snackBar.open('Error occurred.', null, {
+        duration: CONFIG_SETTINGS.snackbar_duration, panelClass: ['snackbar-error']
+      });
+    }
+  }
 }

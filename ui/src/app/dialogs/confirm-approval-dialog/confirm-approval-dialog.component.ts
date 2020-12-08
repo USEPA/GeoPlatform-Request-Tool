@@ -1,7 +1,13 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import {FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
+import {AccountProps} from '../../approval-list/approval-list.component';
 
+export interface ConfirmDialogData {
+  action?: string;
+  password_needed?: boolean;
+  selected_request?: AccountProps;
+}
 
 export const passwordMatchValidator: ValidatorFn = (control: FormGroup): ValidationErrors | null => {
   const password = control.get('passwordInput');
@@ -16,7 +22,7 @@ export const passwordMatchValidator: ValidatorFn = (control: FormGroup): Validat
   styleUrls: ['./confirm-approval-dialog.component.css']
 })
 
-export class ConfirmApprovalDialogComponent {
+export class ConfirmApprovalDialogComponent implements OnInit {
   passwordForm: FormGroup = new FormGroup({
     passwordInput: new FormControl(null,
       [Validators.required, Validators.pattern('(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d@$!%*#?&]{13,}')]
@@ -27,7 +33,10 @@ export class ConfirmApprovalDialogComponent {
   );
 
   constructor(public dialogRef: MatDialogRef<ConfirmApprovalDialogComponent>,
-              @Inject(MAT_DIALOG_DATA) public data) { }
+              @Inject(MAT_DIALOG_DATA) public data: ConfirmDialogData) { }
+
+  ngOnInit() {
+  }
 
   confirm() {
     this.dialogRef.close({confirmed: true, password: this.passwordForm.value.passwordInput});
