@@ -213,7 +213,7 @@
             Delete
           </mat-header-cell>
           <mat-cell *cdkCellDef="let row" class="cell" [matTooltip]="!row.approved ? 'Delete unapproved request' : ''">
-            <button *ngIf="!row.approved" mat-icon-button (click)="confirmDeleteAccountRequests($event, row)">
+            <button *ngIf="!row.approved" mat-icon-button (click)="confirmDeleteAccountRequest($event, row)">
               <mat-icon>delete</mat-icon>
             </button>
           </mat-cell>

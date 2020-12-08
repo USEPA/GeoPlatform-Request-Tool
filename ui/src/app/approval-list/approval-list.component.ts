@@ -248,7 +248,7 @@ export class ApprovalListComponent implements OnInit {
     ).subscribe();
   }
 
-  confirmDeleteAccountRequests(event, selectedRequest) {
+  confirmDeleteAccountRequest(event, selectedRequest) {
     event.stopPropagation();
 
     const dialogRef = this.dialog.open(ConfirmApprovalDialogComponent, {
