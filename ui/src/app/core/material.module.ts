@@ -1,0 +1,83 @@
+import {NgModule} from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+import {
+  MatToolbarModule, MatMenuModule, MatListModule, MatCardModule, MatFormFieldModule, MatInputModule, MatSelectModule,
+  MatButtonModule, MatCheckboxModule, MatDialogModule, MatIconModule, MatProgressSpinnerModule, MatTabsModule,
+  MatSnackBarModule, MatTableModule, MatGridListModule, MatSidenavModule, MatExpansionModule, MatDatepickerModule, MatTooltipModule,
+  MatSortModule, MatNativeDateModule, MatProgressBarModule, MatAutocompleteModule, MatPaginatorModule, MatButtonToggleModule,
+  MatChipsModule, MatRippleModule, MatRadioModule, MatSlideToggleModule, MatSliderModule
+} from '@angular/material';
+
+@NgModule({
+  imports: [
+    CommonModule,
+    MatToolbarModule,
+    MatMenuModule,
+    MatListModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatCheckboxModule,
+    MatDialogModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatTabsModule,
+    MatSnackBarModule,
+    MatTableModule,
+    MatGridListModule,
+    MatSidenavModule,
+    MatExpansionModule,
+    MatDatepickerModule,
+    MatTooltipModule,
+    MatSortModule,
+    MatNativeDateModule,
+    MatProgressBarModule,
+    MatAutocompleteModule,
+    MatPaginatorModule,
+    MatButtonToggleModule,
+    MatChipsModule,
+    MatRippleModule,
+    MatRadioModule,
+    MatSlideToggleModule,
+    MatSliderModule
+  ],
+  exports: [
+    CommonModule,
+    MatToolbarModule,
+    MatMenuModule,
+    MatListModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatCheckboxModule,
+    MatDialogModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatTabsModule,
+    MatSnackBarModule,
+    MatTableModule,
+    MatGridListModule,
+    MatSidenavModule,
+    MatExpansionModule,
+    MatDatepickerModule,
+    MatTooltipModule,
+    MatSortModule,
+    MatNativeDateModule,
+    MatProgressBarModule,
+    MatAutocompleteModule,
+    MatPaginatorModule,
+    MatButtonToggleModule,
+    MatChipsModule,
+    MatRippleModule,
+    MatRadioModule,
+    MatSlideToggleModule,
+    MatSliderModule
+   ],
+})
+
+export class CustomMaterialModule { }

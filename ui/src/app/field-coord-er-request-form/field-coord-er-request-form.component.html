@@ -21,17 +21,9 @@
       <mat-hint>If needed, return to the Team Coordinators page to request additional Coordinators.</mat-hint>
     </mat-form-field>
     <!-- GeoPlatform groups -->
-    <mat-form-field *ngIf="isLoading">
-      <mat-label>GeoPlatform Groups</mat-label>
-      <mat-select required formControlName="geoplatform_groups" multiple>
-        <mat-option *ngIf="agol_groups.length == 0" [value]="">{{'None'}}</mat-option>
-        <mat-option *ngFor="let agol_group of agol_groups"
-                    [value]="agol_group.title">
-          {{agol_group.title}}
-        </mat-option>
-      </mat-select>
-      <mat-hint>Select all applicable groups.</mat-hint>
-    </mat-form-field>
+    <app-tag-input label="GeoPlatform Groups" [formControl]="fieldTeamCoordErForm.controls.geoplatform_groups"
+                   [tags]="this.tags" hint="Select all applicable groups.">
+    </app-tag-input>
     <!--Field Coordinator / Requester's name-->
     <mat-form-field>
       <input matInput required type="text" formControlName="requester" placeholder="Coordinator / Requester Name">
@@ -44,10 +36,8 @@
     </mat-form-field>
   </form>
   <br>
-  <button mat-raised-button color="primary"
-          [disabled]="!fieldTeamCoordErForm.valid || (submitting | async)"
-          (click)="submit()"
-          style="float: right">
-    Submit
+  <button mat-raised-button color="primary" [disabled]="!fieldTeamCoordErForm.valid" (click)="submit()" style="float: right">
+    <span *ngIf="!submitting.value">Submit</span>
+    <mat-spinner *ngIf="submitting.value" style="margin: 5px;" color="warn" diameter="30"></mat-spinner>
   </button>
 </mat-card>

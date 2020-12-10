@@ -14,6 +14,7 @@ from django.db.models import Q, Count
 from .models import *
 from .serializers import *
 from .permissions import IsSponsor
+from core.mixins import ContentTypeListMixin
 
 
 def format_username(data):
@@ -214,7 +215,7 @@ class AccountViewSet(ModelViewSet):
         return AccountSerializer
 
 
-class AGOLGroupViewSet(ReadOnlyModelViewSet):
+class AGOLGroupViewSet(ContentTypeListMixin, ReadOnlyModelViewSet):
     queryset = AGOLGroup.objects.none()
     serializer_class = AGOLGroupSerializer
     ordering = ['title']
@@ -223,6 +224,13 @@ class AGOLGroupViewSet(ReadOnlyModelViewSet):
 
     # only show groups for which the user the user has access per agol group fields assignable groups
     def get_queryset(self):
+        if self.request.query_params:
+            if 'all' in self.request.query_params and self.request.query_params['all'] == 'true':
+                return AGOLGroup.objects.all()
+            elif 'search' in self.request.query_params:
+                search_text = self.request.query_params['search']
+                return AGOLGroup.objects.filter(title__contains=search_text)
+
         sponsors = User.objects.filter(agol_info__delegates=self.request.user)
         return AGOLGroup.objects.filter(Q(response__users=self.request.user) | Q(response__users__in=sponsors))
 
