@@ -233,6 +233,13 @@ class AGOLGroupViewSet(ContentTypeListMixin, ReadOnlyModelViewSet):
             elif 'search' in self.request.query_params:
                 search_text = self.request.query_params['search']
                 return AGOLGroup.objects.filter(title__contains=search_text)
+            elif 'is_auth_group' in self.request.query_params:
+                is_auth_group = False
+                if self.request.query_params.get('is_auth_group').lower() == 'true':
+                    is_auth_group = True
+                elif self.request.query_params.get('is_auth_group').lower() == 'false':
+                    is_auth_group = False
+                return AGOLGroup.objects.filter(is_auth_group=is_auth_group)
 
         sponsors = User.objects.filter(agol_info__delegates=self.request.user)
         return AGOLGroup.objects.filter(Q(response__users=self.request.user) | Q(response__users__in=sponsors))
