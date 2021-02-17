@@ -28,6 +28,7 @@ class AccountRequests(models.Model):
     last_name = models.CharField(max_length=200)
     email = models.EmailField()
     possible_existing_account = models.CharField(max_length=300, blank=True, null=True)
+    is_existing_account = models.BooleanField(default=False)
     organization = models.CharField(max_length=200)
     username = models.CharField(max_length=200)
     username_valid = models.BooleanField(default=False)

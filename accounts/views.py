@@ -35,8 +35,10 @@ class AccountRequestViewSet(ModelViewSet):
         username = format_username(self.request.data)
         username_valid, agol_id, groups = agol.check_username(username)
         possible_accounts = agol.find_accounts_by_email(self.request.data['email'])
+        is_existing_account = True if agol_id is not None else False
         account_request = serializer.save(username_valid=username_valid, agol_id=agol_id, username=username,
-                                          possible_existing_account=possible_accounts)
+                                          possible_existing_account=possible_accounts,
+                                          is_existing_account=is_existing_account)
         if groups:
             account_request.groups.set(groups)
 
