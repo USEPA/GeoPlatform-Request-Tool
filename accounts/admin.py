@@ -1,8 +1,18 @@
+from django.conf import settings
 from django.contrib import admin
-from .models import *
-from django.contrib.auth.admin import UserAdmin, GroupAdmin
+from django.forms import ModelForm
 from django import forms
+from django.core.mail import send_mail
+
+import urllib
+import logging
+
+from django.contrib.auth.admin import UserAdmin, GroupAdmin
 from django.contrib.auth.models import User
+from .models import *
+
+
+logger = logging.getLogger('AGOLAccountRequestor')
 
 # hack to make full name show up in autocomplete b/c nothing else worked
 User.__str__ = lambda x: f"{x.first_name} {x.last_name}"
@@ -98,11 +108,55 @@ class AGOLRoleAdmin(admin.ModelAdmin):
         return False
 
 
+class ResponseProjectAdminForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(ResponseProjectAdminForm, self).__init__(*args, **kwargs)
+        self.fields['is_disabled'].help_text = 'Setting this will send an email notification to ' \
+                                               'assigned sponsors and their delegates.'
+
+
 @admin.register(ResponseProject)
 class ResponseProjectAdmin(admin.ModelAdmin):
     list_display = ['name']
     search_fields = ['name']
     ordering = ['name']
-    fields = ['name', 'assignable_groups', 'role', 'authoritative_group', 'users']
+    fields = ['name', 'assignable_groups', 'role', 'authoritative_group', 'users', 'is_disabled']
     autocomplete_fields = ['users', 'assignable_groups']
+    form = ResponseProjectAdminForm
 
+    def save_model(self, request, obj, form, change):
+        if change and obj.is_disabled and AccountRequests.objects.filter(response=obj, agol_id__isnull=False).exists():
+            email_response_project_disabled(obj)
+        super(ResponseProjectAdmin, self).save_model(request, obj, form, change)
+
+
+def email_response_project_disabled(response_project):
+    try:
+        from_email_account = settings.GPO_REQUEST_EMAIL_ACCOUNT
+        recipient_emails = set()
+        for sponsor in response_project.users.all():
+            recipient_emails.add(sponsor.email)
+            # delegate_emails = set([u.user.email for u in sponsor.delegate_for.all() if hasattr(u.user, 'email')])
+            # recipient_emails.update(delegate_emails)
+        # define link to relevant user accounts
+        url = 'https://{domain}/home/organization.html?'.format(domain=settings.SOCIAL_AUTH_AGOL_DOMAIN)
+        query_params = {'showFilters': 'false', 'view': 'table', 'sortOrder': 'asc', 'sortField': 'fullname'}
+        # get account request AGOL IDs to define in link
+        agol_ids = list(str(acct.agol_id).replace('-', '') for acct in AccountRequests.objects.filter(response=response_project,
+                                                                                                      agol_id__isnull=False))
+        agol_ids_param = ' OR '.join(agol_ids)
+        query_params['searchTerm'] = agol_ids_param
+        link = url + urllib.parse.urlencode(query_params) + '#members'
+        email_subject = "GeoPlatform Account Response/Project has been disabled"
+        msg = f'GeoPlatform Account Request Tool Response/Project <b>{response_project.name}</b> has been disabled. '\
+              f'Please go to this GeoPlatform dashboard link <a href="{link}">Relevant Response/Project GeoPlatform Accounts List</a> ' \
+              f'to make appropriate account changes and notify the users of your changes.'
+        send_mail(
+            subject=email_subject,
+            message=msg,
+            from_email=from_email_account,
+            recipient_list=recipient_emails,
+            html_message=msg,
+        )
+    except Exception as e:
+        logger.error("Email Error: There was an error emailing the disabled Response Project's assigned sponsors and their delegates.")

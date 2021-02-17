@@ -343,6 +343,7 @@ class ResponseProject(models.Model):
     authoritative_group = models.ForeignKey('AGOLGroup', on_delete=models.PROTECT,
                                             verbose_name='Geoplatform Authoritative Group',
                                             limit_choices_to={'is_auth_group': True})
+    is_disabled = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name

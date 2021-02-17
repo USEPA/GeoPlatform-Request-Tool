@@ -32,8 +32,8 @@ export class RequestFormComponent implements OnInit {
   }
 
   ngOnInit() {
-
-    this.responses = this.http.get<Response[]>(`${environment.local_service_endpoint}/v1/responses/`);
+    const params = new HttpParams().set('is_disabled', String(false));
+    this.responses = this.http.get<Response[]>(`${environment.local_service_endpoint}/v1/responses/`, {params: params});
   }
 
   async submit() {

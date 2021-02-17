@@ -269,11 +269,16 @@ class ResponseProjectViewSet(ReadOnlyModelViewSet):
     pagination_class = None
     filterset_class = ResponseProjectFilterSet
 
-    # todo: disable response
-    # def filter_queryset(self, queryset):
-    #     if 'status' not in self.request.query_params:
-    #         queryset = queryset.exclude(status_in=['cancled', 'etc.'])
-    #     return super(ResponseProjectViewSet, self).filter_queryset(queryset)
+    def filter_queryset(self, queryset):
+        if 'is_disabled' in self.request.query_params:
+            is_disabled = False
+            if self.request.query_params.get('is_disabled').lower() == 'true':
+                is_disabled = True
+            elif self.request.query_params.get('is_disabled').lower() == 'false':
+                is_disabled = False
+            queryset = queryset.filter(is_disabled=is_disabled)
+        return super(ResponseProjectViewSet, self).filter_queryset(queryset)
+
 
 class SponsorsViewSet(ReadOnlyModelViewSet):
     queryset = User.objects.filter(agol_info__sponsor=True)
