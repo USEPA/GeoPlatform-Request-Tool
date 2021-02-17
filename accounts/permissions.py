@@ -3,16 +3,6 @@ from rest_framework.permissions import DjangoModelPermissions
 
 
 class IsSponsor(DjangoModelPermissions):
-
-    def has_permission(self, request, view):
-        # must be sponsor or superuser to edit
-
-        if request.user.is_superuser:
-            return True
-
-        is_sponsor = request.user.groups.filter(name='Sponsors').exists()
-        return is_sponsor
-
     """
     Object-level permission to only allow owners of an object to edit it.
     """

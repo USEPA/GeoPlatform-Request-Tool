@@ -26,7 +26,8 @@ def format_username(data):
 class AccountRequestViewSet(ModelViewSet):
     queryset = AccountRequests.objects.all()
     serializer_class = AccountRequestSerializer
-    permission_classes = (IsSponsor,)
+    permission_classes = (AllowAny,)
+    authentication_classes = ()
     filter_fields = ['email']
 
     def perform_create(self, serializer):
