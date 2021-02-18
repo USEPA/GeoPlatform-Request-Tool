@@ -5,6 +5,7 @@ import {HttpClient} from '@angular/common/http';
 import {COMMA, ENTER} from '@angular/cdk/keycodes';
 import {Observable} from 'rxjs';
 import {debounceTime, map, startWith, switchMap} from 'rxjs/operators';
+import {isArray} from 'rxjs/internal-compatibility';
 
 import {BaseService, Response} from '@services/base.service';
 import {LoadingService} from '@services/loading.service';
@@ -55,11 +56,11 @@ export class TagInputComponent implements OnInit {
         }
       }),
       map((response) => {
-        if (response.results) {
+        if (isArray(response)) {
           if (this.tags && this.tags.length > 0) {
-            return response.results.filter(result => this.tags.indexOf(result.title) === -1);
+            return response.filter(result => this.tags.indexOf(result.title) === -1);
           }
-          return response.results;
+          return response;
         }
       }),
     );

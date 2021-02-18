@@ -218,7 +218,7 @@ class AccountViewSet(ModelViewSet):
         return AccountSerializer
 
 
-class AGOLGroupViewSet(ContentTypeListMixin, ReadOnlyModelViewSet):
+class AGOLGroupViewSet(ReadOnlyModelViewSet):
     queryset = AGOLGroup.objects.none()
     serializer_class = AGOLGroupSerializer
     ordering = ['title']

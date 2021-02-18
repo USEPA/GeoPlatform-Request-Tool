@@ -1,9 +1,9 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
 import {ReplaySubject} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {map, tap} from 'rxjs/operators';
 
 import {BaseService} from '@services/base.service';
 import {FieldCoordinator} from '../../field-coord-list/field-coord-list.component';
@@ -18,7 +18,6 @@ import {AgolGroup} from '../edit-account-props-dialog/edit-account-props-dialog.
   styleUrls: ['./request-field-coord-dialog.component.css']
 })
 export class RequestFieldCoordDialogComponent implements OnInit {
-  groupsService: BaseService;
   authGroupChoices: ReplaySubject<AgolGroup[]> = new ReplaySubject<AgolGroup[]>();
   requestFieldCoordForm: FormGroup = new FormGroup({
     first_name: new FormControl(null, [Validators.required]),
@@ -34,15 +33,15 @@ export class RequestFieldCoordDialogComponent implements OnInit {
   constructor(public dialogRef: MatDialogRef<RequestFieldCoordDialogComponent>,
               public http: HttpClient, public loadingService: LoadingService,
               @Inject(MAT_DIALOG_DATA) public data: FieldCoordinator) {
-    this.groupsService = new BaseService('v1/agol/groups', this.http, this.loadingService);
   }
 
   async ngOnInit() {
-    await this.groupsService.getList<AgolGroup>({is_auth_group: true}).pipe(
-      map((response) => {
-        this.authGroupChoices.next(response.results);
+    this.http.get<AgolGroup[]>('/v1/agol/groups',
+      {params: new HttpParams().set('is_auth_group', String(true))}).pipe(
+      tap((res) => {
+        this.authGroupChoices.next(res);
       })
-    ).toPromise();
+    ).subscribe();
   }
 
   submit() {
