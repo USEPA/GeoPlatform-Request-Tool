@@ -1,4 +1,5 @@
 import logging
+from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
@@ -39,7 +40,8 @@ def current_user(request):
 def email_field_coordinator_request(request):
     try:
         gpo_request_email_account = settings.GPO_REQUEST_EMAIL_ACCOUNT
-        recipient_emails = settings.RECIPIENT_EMAILS
+        # send request emails to Coordinator Admin group
+        recipient_emails = list(User.objects.filter(groups__name='Coordinator Admin').values_list('email', flat=True))
         if 'result' in request.data:
             email_context = request.data['result']
         else:

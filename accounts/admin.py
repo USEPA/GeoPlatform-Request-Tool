@@ -136,8 +136,11 @@ def email_response_project_disabled(response_project):
         recipient_emails = set()
         for sponsor in response_project.users.all():
             recipient_emails.add(sponsor.email)
-            # delegate_emails = set([u.user.email for u in sponsor.delegate_for.all() if hasattr(u.user, 'email')])
-            # recipient_emails.update(delegate_emails)
+            delegate_emails = set()
+            for delegate in sponsor.agol_info.delegates.all():
+                if hasattr(delegate, 'email'):
+                    delegate_emails.add(delegate.email)
+            recipient_emails.update(delegate_emails)
         # define link to relevant user accounts
         url = 'https://{domain}/home/organization.html?'.format(domain=settings.SOCIAL_AUTH_AGOL_DOMAIN)
         query_params = {'showFilters': 'false', 'view': 'table', 'sortOrder': 'asc', 'sortField': 'fullname'}
