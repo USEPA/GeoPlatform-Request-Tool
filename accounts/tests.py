@@ -3,13 +3,13 @@ from unittest.mock import patch, MagicMock
 from django.shortcuts import get_list_or_404
 from django.contrib.auth.models import User
 from django.utils.timezone import now
-
+from urllib.parse import parse_qs
 import json
 
 from .models import AGOL, AGOLUserFields, AccountRequests
 from .views import format_username, SponsorsViewSet
 from .permissions import IsSponsor
-
+from .func import *
 
 def mock_check_username_empty(*args, **kwargs):
     class MockResponse:
@@ -56,35 +56,42 @@ def mock_get_user(*args, **kwargs):
     return MockResponse()
 
 
-def mock_create_user(*args, **kwargs):
+def mock_create_user(url, data, headers, *args, **kwargs):
+    json_data = parse_qs(data)
+    email_address = [x['email'] for x in json.loads(json_data['invitationList'][0])['invitations']]
+    response = {"success": email_address, "notInvited": []}
+
     class MockRequest:
         body = 'nothing'
 
     class MockResponse:
-        text = '''{"success": ["name.a@epa.gov"], "notInvited": []}'''
+        text = ''
         request = MockRequest()
 
         def json(self):
-            return json.loads(self.text)
+            return response
 
     return MockResponse()
 
 
-def mock_fail_create_user(*args, **kwargs):
+def mock_fail_create_user(url, data, headers, *args, **kwargs):
+    json_data = parse_qs(data)
+    email_address = [x['email'] for x in json.loads(json_data['invitationList'][0])['invitations']]
+    response = {"success": [], "notInvited": email_address}
+
     class MockRequest:
         body = 'nothing'
 
     class MockResponse:
-        text = '''{"success": [], "notInvited": ["name.a@epa.gov"]}'''
         request = MockRequest()
 
         def json(self):
-            return json.loads(self.text)
+            return response
 
     return MockResponse()
 
 
-def mock_add_to_group(*args, **kwargs):
+def mock_add_to_group(response, *args, **kwargs):
     class MockRequest:
         body = 'nothing'
 
@@ -92,9 +99,7 @@ def mock_add_to_group(*args, **kwargs):
         status_code = 200
 
         def json(self):
-            return {
-                "notAdded": [""]
-            }
+            return response
     return MockResponse()
 
 
@@ -103,10 +108,6 @@ class TestAccounts(TestCase):
 
     def setUp(self):
         self.factory = RequestFactory()
-        agol_user = AGOLUserFields.objects.first()
-        self.user = agol_user.user
-        self.account_requests = None
-        self.is_sponsor = IsSponsor()
 
     def test_username_formatting(self):
         data = {'email': 'myname@epa.gov', 'first_name': 'Joe', 'last_name': 'Smo'}
@@ -158,89 +159,99 @@ class TestAccounts(TestCase):
     def test_create_account(self, mock_post, mock_get):
         agol = AGOL.objects.get(pk=1)
         agol.get_token = MagicMock(return_value='token')
-        requests = AccountRequests.objects.all()
+        # only test with non existing accounts
+        requests = AccountRequests.objects.filter(agol_id=None)
         result = agol.create_users_accounts(requests, 'password')
-        self.assertTrue(result)
+        expected_output = [x.pk for x in requests]
+        result.sort()
+        self.assertEqual(result, expected_output)
         exists = AccountRequests.objects.filter(agol_id='ffffffff-ffff-ffff-ffff-ffffffffffff').exists()
         self.assertTrue(exists)
+        exists = AccountRequests.objects.filter(agol_id='69ac034ef09e4abca2fe67fda9cf6bda').exists()
+        self.assertTrue(exists)
 
-    @patch('accounts.models.requests.post', side_effect=mock_create_user)
-    @patch('accounts.models.requests.get', side_effect=mock_get_user)
-    def test_create_accounts(self, mock_post, mock_get):
-        agol = AGOL.objects.get(pk=1)
+
+    @patch('accounts.models.AGOL.create_users_accounts')
+    def test_create_multiple_accounts_without_password(self, create_users_accounts):
+        # get all requests
+        requests = AccountRequests.objects.all()
+        # mock create_users_accounts to return only account pks that don't have agol_id
+        requested_pks = [x.pk for x in requests if x.agol_id is None]
+        create_users_accounts.return_value = requested_pks
+        results = create_accounts(requests)
+        # sort results so we can compare
+        results.sort()
+        self.assertEqual([x.pk for x in requests], results)
+
+
+    @patch('accounts.models.AGOL.add_to_group')
+    def test_add_to_group_with_multiple_accounts_without_password(self, mock_add_to_group):
+        # get all requests
+        AccountRequests.objects.filter(agol_id__isnull=True).update(agol_id='ffffffffffffffffffffffffffffffff')
+        requests = AccountRequests.objects.all()
+        # mock create_users_accounts to return only account pks that don't have agol_id
+
+        mock_add_to_group.return_value = False
+        results = add_accounts_to_groups(requests)
+        self.assertEqual([2], list(results))
+
+        mock_add_to_group.return_value = True
+        results = add_accounts_to_groups(requests)
+        self.assertEqual([1, 2], list(results))
+
+
+    @patch('requests.post')
+    def test_add_to_group(self, mock_post):
+        mock_response = MagicMock()
+
+        mock_post.return_value = mock_response
+        agol = AGOL.objects.first()
         agol.get_token = MagicMock(return_value='token')
-        success = []
 
-        account_requests = self.account_requests
-        if account_requests is None:
-            account_requests = get_list_or_404(AccountRequests)
+        mock_response.json.return_value = {"error": None}
+        result = agol.add_to_group('username', 'group')
+        self.assertFalse(result)
 
-        AccountRequests.objects.all().update(approved=now())
-        create_accounts = [x for x in account_requests if x.agol_id is None]
-        create_success = len(create_accounts) == 0
-        if len(create_accounts) > 0:
-            success += agol.create_users_accounts(account_requests, 'password')
-            if len(success) == len(create_accounts):
-                create_success = True
-        else:
-            create_success = True
+        mock_response.json.return_value = {"notAdded": ['username']}
+        result = agol.add_to_group('username', 'group')
+        self.assertFalse(result)
 
-        if not create_success:
-            self.assertFalse("Error creating and updating accounts")
-        else:
-            self.assertTrue(True)
-        return success
+        mock_response.json.return_value = {"notAdded": []}
+        result = agol.add_to_group('username', 'group')
+        self.assertTrue(result)
+
+
+
 
     def test_invitations(self):
         agol = AGOL.objects.get(pk=1)
         agol.get_token = MagicMock(return_value='token')
-        requests = AccountRequests.objects.all()
+        requests = AccountRequests.objects.filter(agol_id=None)
         invitations = agol.generate_invitations(requests, 'password')
-        self.assertTrue('000b6ee121bb4739a5021e0f0241ff01' in invitations[0]["groups"])
-        self.assertTrue('00237b674c3347a18e0fb2bfcdb248e1' in invitations[0]["groups"])
+        self.assertTrue(requests[0].email in invitations[0]["email"])
+        self.assertTrue(requests[0].first_name in invitations[0]["firstname"])
+        self.assertTrue(requests[0].last_name in invitations[0]["lastname"])
 
-    def test_user_has_account_request_permission(self, account_requests=None):
+    def test_user_has_account_request_permission(self):
         request = self.factory.get('/account/approvals')
-        request.user = self.user
-        if account_requests is None:
-            account_requests = get_list_or_404(AccountRequests)
-        for ac in account_requests:
-            self.is_sponsor.has_object_permission(request, SponsorsViewSet, ac)
-        self.assertTrue(1)
 
-    @patch('accounts.models.requests.post', side_effect=mock_add_to_group)
-    def test_user_approvals(self, mock_post):
-        agol = AGOL.objects.get(pk=1)
-        agol.get_token = MagicMock(return_value='token')
+        # does sponsor have permission
+        sponsor = User.objects.get(pk=1)
 
-        self.account_requests = get_list_or_404(AccountRequests)
-        account_requests = self.account_requests
-        success = []
+        request.user = sponsor
+        for ac in AccountRequests.objects.all():
+            result = IsSponsor().has_object_permission(request, SponsorsViewSet, ac)
+            self.assertTrue(result)
 
-        # verify user has permission on each request
-        self.test_user_has_account_request_permission(account_requests)
+        # does unrelated user have permission
+        unrelated_user = User.objects.get(pk=2)
+        request.user = unrelated_user
+        for ac in AccountRequests.objects.all():
+            result = IsSponsor().has_object_permission(request, SponsorsViewSet, ac)
+            self.assertFalse(result)
 
-        create_success = False
-        created_accounts = self.test_create_accounts()
-        if len(created_accounts) > 0:
-            success.extend(created_accounts)
-            create_success = True
-
-        # add users to groups for either existing or newly created
-        group_requests = [x for x in AccountRequests.objects.filter(agol_id__isnull=False)]
-        group_success = len(group_requests) == 0
-        for g in group_requests:
-            if g.groups.count() > 0:
-                group_success = agol.add_to_group([g.username], [str(x) for x in g.groups.values_list('id', flat=True)])
-                if group_success:
-                    success.append(g.pk)
-            else:
-                group_success = True
-
-        AccountRequests.objects.filter(pk__in=success).update(created=now())
-        if create_success and group_success:
-            self.assertTrue(1)
-        if not create_success:
-            self.assertFalse("Error creating and updating accounts")
-        if not group_success:
-            self.assertFalse("Accounts created. Existing account NOT updated.")
+        # after making delegate does user have permission
+        sponsor.agol_info.delegates.set([unrelated_user])
+        for ac in AccountRequests.objects.all():
+            result = IsSponsor().has_object_permission(request, SponsorsViewSet, ac)
+            self.assertTrue(result)

@@ -14,6 +14,8 @@ from django.db.models import Q, Count
 from .models import *
 from .serializers import *
 from .permissions import IsSponsor
+from .func import create_accounts, add_accounts_to_groups, update_requests_groups
+
 from core.mixins import ContentTypeListMixin
 
 
@@ -39,24 +41,8 @@ class AccountRequestViewSet(ModelViewSet):
         account_request = serializer.save(username_valid=username_valid, agol_id=agol_id, username=username,
                                           possible_existing_account=possible_accounts,
                                           is_existing_account=is_existing_account)
-        if groups:
-            account_request.groups.set(groups)
 
-    # @action(['GET'], detail=False, )
-    # def field_coordinators(self, request):
-    #     sponsors = User.objects.filter(agol_info__sponsor=True)
-    #     sponsors_list = list()
-    #     for sponsor in sponsors:
-    #         sponsors_list.append({
-    #             'first_name': sponsor.first_name,
-    #             'last_name': sponsor.last_name,
-    #             'display': f'{sponsor.first_name} {sponsor.last_name}',
-    #             'email': sponsor.email,
-    #             'phone_number': sponsor.agol_info.phone_number,
-    #             'authoritative_group': sponsor.agol_info.authoritative_group,
-    #             'value': sponsor.pk
-    #         })
-    #     return Response({"results": sponsors_list})
+        update_requests_groups(account_request, groups)
 
 
 class AccountFilterSet(FilterSet):
@@ -95,57 +81,35 @@ class AccountViewSet(ModelViewSet):
 
     def perform_update(self, serializer):
         agol = AGOL.objects.first()
-        username_valid, agol_id, groups = agol.check_username(self.request.data['username'])
-
-        # removed due to changes in how notification are handled and how relationships to sponsors work
-        # '''check if sponsor changing and mark sponsor_notified to true but if sponsor_notified is false it should stay false'''
-        # existing_record = AccountRequests.objects.get(pk=self.request.data['id'])
-        #
-        # sponsor_notified = existing_record.sponsor_notified
-        # if sponsor_notified:
-        #     sponsor_notified = existing_record.sponsor.pk == self.request.data['sponsor'] and existing_record.sponsor_notified
-
+        username_valid, agol_id, existing_groups = agol.check_username(self.request.data['username'])
         account_request = serializer.save(username_valid=username_valid, agol_id=agol_id)
-        new_groups = AGOLGroup.objects.filter(pk__in=list(set(groups + self.request.data['groups'])))
-        account_request.groups.set(new_groups)
+        update_requests_groups(account_request, existing_groups, self.request.data['groups'])
 
     # create account (or queue up creation?)
     @action(['POST'], detail=False)
     def approve(self, request):
-        account_requests = get_list_or_404(AccountRequests, pk__in=request.data['accounts'])
-        success = []
+        account_requests_list = get_list_or_404(AccountRequests, pk__in=request.data['accounts'])
+        account_requests = AccountRequests.objects.filter(pk__in=request.data['accounts'])
+
         # verify user has permission on each request submitted.
         for x in account_requests:
             self.check_object_permissions(request, x)
-        AccountRequests.objects.filter(pk__in=request.data['accounts']).update(approved=now())
-        agol = AGOL.objects.first()
-        create_accounts = [x for x in account_requests if x.agol_id is None]
-        create_success = len(create_accounts) == 0
-        if len(create_accounts) > 0:
-            success += agol.create_users_accounts(account_requests, request.data['password'])
-            if len(success) == len(create_accounts):
-                create_success = True
 
-        else:
-            create_success = True
+        # create accounts that don't exist
+        create_success = create_accounts(account_requests, request.data.get('password', None))
 
-        # add users to groups for either existing or newly created
-        group_requests = [x for x in AccountRequests.objects.filter(pk__in=request.data['accounts'], agol_id__isnull=False)]
-        group_success = len(group_requests) == 0
-        for g in group_requests:
-            if g.groups.count() > 0:
-                group_success = agol.add_to_group([g.username], [str(x) for x in g.groups.values_list('id', flat=True)])
-                if group_success:
-                    success.append(g.pk)
-            else:
-                group_success = True
+        # add accounts to groups
+        group_success = add_accounts_to_groups(account_requests)
 
+        success = [x.pk for x in account_requests_list if x.pk in create_success and x.pk in group_success]
         AccountRequests.objects.filter(pk__in=success).update(created=now())
-        if create_success and group_success:
+
+        # todo: this whole things needs more testing
+        if len(create_success) == len(account_requests_list) and len(group_success) == len(account_requests_list):
             return Response()
-        if not create_success:
+        if len(create_success) != len(account_requests_list):
             return Response("Error creating and updating accounts")
-        if not group_success:
+        if len(group_success) != len(account_requests_list):
             return Response("Accounts created. Existing account NOT updated.")
 
         return Response(status=400)

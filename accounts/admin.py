@@ -80,6 +80,18 @@ class AGOLGroupAdmin(admin.ModelAdmin):
         return False
 
 
+class GroupAdminInline(admin.TabularInline):
+    model = AGOLGroup.requests.through
+    readonly_fields = ['group', 'is_member']
+    extra = 0
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(AccountRequests)
 class RequestAdmin(admin.ModelAdmin):
     list_display = ['last_name', 'first_name', 'email', 'username']
@@ -87,9 +99,9 @@ class RequestAdmin(admin.ModelAdmin):
     ordering = ['-submitted']
     list_filter = ['response', 'submitted', 'approved', 'created']
     fields = ['first_name', 'last_name', 'email', 'possible_existing_account', 'organization', 'username',
-              'username_valid', 'user_type', 'role', 'groups', 'auth_group', 'sponsor', 'sponsor_notified', 'reason',
+              'username_valid', 'user_type', 'role', 'auth_group', 'sponsor', 'sponsor_notified', 'reason',
               'approved', 'created', 'response']
-    autocomplete_fields = ['groups']
+    inlines = [GroupAdminInline]
 
 
 @admin.register(AGOLRole)

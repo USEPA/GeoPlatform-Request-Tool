@@ -6,7 +6,6 @@ import time
 from django.contrib.auth.models import User, Group
 from urllib.parse import urlencode
 import json
-from django.utils.timezone import now
 from django.core.exceptions import ValidationError
 
 
@@ -34,7 +33,7 @@ class AccountRequests(models.Model):
     username_valid = models.BooleanField(default=False)
     user_type = models.CharField(max_length=200, choices=USER_TYPE_CHOICES, default='creatorUT')
     role = models.ForeignKey('AGOLRole', on_delete=models.DO_NOTHING, blank=True, null=True)
-    groups = models.ManyToManyField('AGOLGroup', blank=True, related_name='account_requests')
+    groups = models.ManyToManyField('AGOLGroup', blank=True, related_name='account_requests', through='GroupMembership')
     auth_group = models.ForeignKey('AGOLGroup', on_delete=models.DO_NOTHING, blank=True, null=True)
     sponsor = models.ForeignKey(User, on_delete=models.PROTECT, blank=True, null=True)
     sponsor_notified = models.BooleanField(default=False)
@@ -72,11 +71,17 @@ class AGOLGroup(models.Model):
     id = models.UUIDField(primary_key=True)
     title = models.CharField(max_length=500)
     agol = models.ForeignKey('AGOL', on_delete=models.CASCADE, related_name='groups')
-    requests = models.ManyToManyField('AccountRequests')
+    requests = models.ManyToManyField('AccountRequests', through='GroupMembership')
     is_auth_group = models.BooleanField(default=False)
 
     def __str__(self):
         return self.title
+
+
+class GroupMembership(models.Model):
+    group = models.ForeignKey('AGOLGroup', on_delete=models.CASCADE)
+    request = models.ForeignKey('AccountRequests', on_delete=models.CASCADE)
+    is_member = models.BooleanField(default=False)
 
 
 class AGOLRole(models.Model):
@@ -208,6 +213,8 @@ class AGOL(models.Model):
                 "userType": "creatorUT",
                 "userCreditAssignment": 2000
             })
+            # todo: deal with passwords in invitations
+
         return invitations
 
     def create_users_accounts(self, account_requests, initial_password):
@@ -283,24 +290,27 @@ class AGOL(models.Model):
                         self.get_group(id)
                     return False, user_response_json['id'], group_ids
 
-    def add_to_group(self, accounts, groups):
+    def add_to_group(self, user, group):
         token = self.get_token()
-        for group in groups:
-            url = f'{self.portal_url}/sharing/rest/community/groups/{group.replace("-", "")}/addUsers'
 
-            data = {
-                'users': ",".join(accounts),
-                'f': 'json',
-                'token': token
-            }
-            r = requests.post(url, data=data)
+        url = f'{self.portal_url}/sharing/rest/community/groups/{str(group).replace("-", "")}/addUsers'
 
-            response_json = r.json()
+        data = {
+            'users': user,
+            'f': 'json',
+            'token': token
+        }
+        r = requests.post(url, data=data)
+
+        response_json = r.json()
 
         if 'error' in response_json:
             return False
 
-        return r.status_code == requests.codes.ok
+        if user in response_json['notAdded']:
+            return False
+
+        return True
 
     def find_accounts_by_email(self, email):
         token = self.get_token()
