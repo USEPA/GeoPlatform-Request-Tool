@@ -53,8 +53,8 @@ export class ApprovalListComponent implements OnInit {
   user_types: Observable<[]>;
   searchInput = new FormControl(null);
 
-  constructor(public http: HttpClient, loadingService: LoadingService, public snackBar: MatSnackBar,
-              public dialog: MatDialog, public loginService: LoginService) {
+  constructor(public http: HttpClient, loadingService: LoadingService, public snackBar: MatSnackBar = null,
+              public dialog: MatDialog = null, public loginService: LoginService = null) {
     this.accounts = new BaseService('v1/account/approvals/', http, loadingService);
   }
 
