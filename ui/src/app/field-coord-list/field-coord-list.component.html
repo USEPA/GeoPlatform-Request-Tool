@@ -1,8 +1,7 @@
 <mat-sidenav-container class="container">
   <div class="list-header" style="display: flex; flex-direction: row; justify-content: space-between">
     <mat-form-field style="width:250px; padding-left: 25px; padding-top: 15px;">
-      <input matInput type="text" placeholder="Search" [(ngModel)]="sponsors.filter.search"
-             (keyup.enter)="sponsors.runSearch()" name="search"/>
+      <input [formControl]="searchInput" matInput type="text" placeholder="Search"/>
       <button style="position:absolute; top:-5px; right:0px;" type="button" mat-icon-button
               (click)="sponsors.clearSearch()"
               *ngIf="sponsors.filter.search">

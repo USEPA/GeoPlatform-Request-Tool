@@ -1,8 +1,9 @@
 import {Component, OnInit} from '@angular/core';
 import {HttpClient, HttpErrorResponse} from '@angular/common/http';
-import {catchError, map, share, switchMap, tap} from 'rxjs/operators';
+import {catchError, debounceTime, share, skip, startWith, switchMap, tap} from 'rxjs/operators';
 import {MatDialog} from '@angular/material/dialog';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import {FormControl} from '@angular/forms';
 import {forkJoin, iif, Observable, of, throwError} from 'rxjs';
 
 import {LoginService} from '../auth/login.service';
@@ -50,6 +51,7 @@ export class ApprovalListComponent implements OnInit {
   isApprovalReady: boolean;
   roles: Observable<[]>;
   user_types: Observable<[]>;
+  searchInput = new FormControl(null);
 
   constructor(public http: HttpClient, loadingService: LoadingService, public snackBar: MatSnackBar,
               public dialog: MatDialog, public loginService: LoginService) {
@@ -69,6 +71,18 @@ export class ApprovalListComponent implements OnInit {
     ).subscribe();
     this.roles = this.http.get<[]>('/v1/account/approvals/roles').pipe(share());
     this.user_types = this.http.get<[]>('/v1/account/approvals/user_types').pipe(share());
+
+    this.searchInput.valueChanges.pipe(
+      startWith(this.searchInput.value),
+      skip(1),
+      debounceTime(300),
+      tap(searchInput => this.search(searchInput))
+    ).subscribe();
+  }
+
+  search(search: any) {
+    this.accounts.filter.search = search;
+    return this.accounts.runSearch();
   }
 
   setAccountsListProps(init_accounts) {
