@@ -1,66 +1,91 @@
-import {getTestBed, TestBed, tick} from '@angular/core/testing';
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+
+import {ApprovalListComponent} from './approval-list.component';
+import {MatTableModule} from '@angular/material';
+import {of} from 'rxjs';
+import {MatDialog} from '@angular/material/dialog';
+import {FilterInputComponent} from '../filter-input/filter-input.component';
+import {CustomMaterialModule} from '../core/material.module';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {CdkTableModule} from '@angular/cdk/table';
+import {HttpClient, HttpErrorResponse} from '@angular/common/http';
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
-import {HttpClient, HttpXhrBackend} from '@angular/common/http';
-
-import {environment} from '@environments/environment';
-import { ApprovalListComponent } from './approval-list.component';
-import {BaseService} from '@services/base.service';
 import {LoadingService} from '@services/loading.service';
+import {LoginService} from '../auth/login.service';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
+class MatDialogMock {
+  public open() {
+    return {afterClosed: () => of({confirmed: true})};
+  }
+}
+
+class MatSnackBarStub {
+  open() {
+    return {
+      onAction: () => of({})
+    };
+  }
+}
 
 describe('ApprovalListComponent', () => {
   let component: ApprovalListComponent;
-  const http: HttpClient = new HttpClient(new HttpXhrBackend({ build: () => new XMLHttpRequest() }));
-  const loadingService: LoadingService = new LoadingService();
+  let fixture: ComponentFixture<ApprovalListComponent>;
+  let httpClient: HttpClient;
+  let httpTestingController: HttpTestingController;
+  let matSnackBar: MatSnackBar;
+
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      imports: [
+        CustomMaterialModule,
+        FormsModule,
+        ReactiveFormsModule,
+        MatTableModule,
+        CdkTableModule,
+        HttpClientTestingModule,
+        BrowserAnimationsModule
+      ],
+      declarations: [ApprovalListComponent, FilterInputComponent],
+      providers: [
+        {provide: MatDialog, useClass: MatDialogMock},
+        {provide: LoadingService, useValue: {setLoading: () => null}},
+        {provide: LoginService, useValue: {}},
+        {provide: MatSnackBar, useClass: MatSnackBarStub}
+      ]
+    })
+      .compileComponents();
+  }));
 
   beforeEach(() => {
-    component = new ApprovalListComponent(http, loadingService);
+    fixture = TestBed.createComponent(ApprovalListComponent);
+    component = fixture.componentInstance;
+    matSnackBar = TestBed.get(MatSnackBar);
+    httpTestingController = TestBed.get(HttpTestingController);
+    fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-});
 
-describe('ApprovalApiService', () => {
-  let injector: TestBed;
-  const http: HttpClient = new HttpClient(new HttpXhrBackend({ build: () => new XMLHttpRequest() }));
-  const loadingService: LoadingService = new LoadingService();
-  const endpoint = 'v1/account/approvals/approve';
-  // const service: BaseService = new BaseService('v1/account/approvals/approve', http, loadingService);
-  let httpMock: HttpTestingController;
-
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-    });
-    injector = getTestBed();
-    httpMock = injector.get(HttpTestingController);
+  it('should notify users of successful approval', () => {
+    spyOn(matSnackBar, 'open');
+    spyOn(component.accounts, 'getItems').and.returnValue(of([{}]));
+    component.confirmApproval();
+    const req = httpTestingController.expectOne('/v1/account/approvals/approve/');
+    req.flush('');
+    expect(matSnackBar.open).toHaveBeenCalledWith('Success', null, Object({ duration: 2000 }));
   });
 
-  afterEach(() => {
-    httpMock.verify();
-  });
-
-  it('should return an Observable<string>', () => {
-    const expectedResponse = 'Accounts created. Existing account NOT updated.';
-
-    const body = {
-      accounts: [1, 2],
-      password: 'mock password'
-    };
-    const url = `${environment.local_test_service_endpoint}/${endpoint}`;
-    http.post(url, body).subscribe(resp => {
-      expect(resp).toEqual(expectedResponse);
-    });
-
-    const req = httpMock.expectOne(url);
-    expect(req.request.method).toBe('POST');
-    expect(req.request.url).toBe(url);
-    expect(req.request.body).toEqual(body);
-
-    req.flush(body);
-    httpMock.verify();
-    tick(); // blocks execution and waits for all the pending promises to be resolved.
+  it('should notify users of error if returned from server', () => {
+    spyOn(matSnackBar, 'open');
+    spyOn(component.accounts, 'getItems').and.returnValue(of([{}]));
+    component.confirmApproval();
+    const req = httpTestingController.expectOne('/v1/account/approvals/approve/');
+    const errorResponse = new HttpErrorResponse({error: 'error', status: 403});
+    req.flush('', errorResponse);
+    expect(matSnackBar.open).toHaveBeenCalledWith('Error', null, {duration: 3000});
   });
 });

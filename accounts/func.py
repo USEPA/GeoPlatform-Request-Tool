@@ -43,12 +43,17 @@ def update_requests_groups(account_request: AccountRequests, existing_groups: [s
     if requested_groups is None:
         requested_groups = []
     account_request.groups.set([])
-    if len(existing_groups) > 0:
-        # capture groups they are already part of
-        for group in existing_groups:
-            GroupMembership.objects.update_or_create(group_id=group, request=account_request, defaults={'is_member': True})
+    # force set everything requested back to is_member False and only set to True if they are currently set to the group
     if len(requested_groups) > 0:
         for group in requested_groups:
             # confirm group is part of related response
             if UUID(group) in account_request.response.assignable_groups.values_list('id', flat=True):
-                GroupMembership.objects.update_or_create(group_id=group, request=account_request)
+                GroupMembership.objects.update_or_create(group_id=group, request=account_request,
+                                                         defaults={'is_member': False})
+
+    if len(existing_groups) > 0:
+        # capture groups they are already part of
+        for group in existing_groups:
+            GroupMembership.objects.update_or_create(group_id=group, request=account_request,
+                                                     defaults={'is_member': True})
+
