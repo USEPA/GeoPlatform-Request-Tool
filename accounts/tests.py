@@ -222,16 +222,6 @@ class TestAccounts(TestCase):
         result = agol.add_to_group('username', 'group')
         self.assertTrue(result)
 
-    @patch.dict('os.environ', {'search': 'Smo.Joe_EPAEXT'})
-    def test_get_requests_by_search_param(self):
-        if 'search' in os.environ:
-            search_text = os.environ['search']
-            search_params = Q()
-            for search_field in AccountViewSet.search_fields:
-                search_params.add(Q(**{search_field + '__contains': search_text}), Q.OR)
-            search_results = AccountRequests.objects.filter(search_params)
-            self.assertTrue(len(list(search_results)) == 1)
-
 
     def test_invitations(self):
         agol = AGOL.objects.get(pk=1)
@@ -270,22 +260,18 @@ class TestAccounts(TestCase):
 class TestAGOLGroups(TestCase):
     fixtures = ['fixtures.json']
 
-    # Get AGOLGroups by param tests #
-    @patch.dict('os.environ', {'all': 'true'})
+    # get_queryset AGOLGroups tests
     def test_get_agol_groups_by_all_param(self):
-        if 'all' in os.environ:
-            if os.environ.get('all', 'false') == 'true':
+        query_params = {'all': 'true'}
+        if 'all' in query_params:
+            if query_params.get('all', 'false') == 'true':
                 all_results = list(AGOLGroup.objects.all())
                 self.assertIsNotNone(all_results)
 
-    @patch.dict('os.environ', {'is_auth_group': 'true'})
     def test_get_agol_groups_by_is_auth_group_param(self):
-        if 'is_auth_group' in os.environ:
-            is_auth_group = os.environ['is_auth_group']
-            if is_auth_group == 'true':
-                is_auth_group = True
-            elif is_auth_group == 'false':
-                is_auth_group = False
+        query_params = {'is_auth_group': True}
+        if 'is_auth_group' in query_params:
+            is_auth_group = query_params['is_auth_group']
             is_auth_group_results = list(AGOLGroup.objects.filter(is_auth_group=is_auth_group))
             self.assertIsNotNone(is_auth_group_results)
 
@@ -295,17 +281,3 @@ class TestAGOLGroups(TestCase):
         sponsor_results = AGOLGroup.objects.filter(Q(response__users=sponsor) | Q(response__users__in=sponsors))
         self.assertTrue(len(sponsor_results) > 0)
 
-
-class TestSponsor(TestCase):
-    fixtures = ['fixtures.json']
-
-    # Get Sponsors by param tests #
-    @patch.dict('os.environ', {'search': 'sponsor'})
-    def test_get_sponsors_by_search_param(self):
-        if 'search' in os.environ:
-            search_text = os.environ['search']
-            search_params = Q()
-            for search_field in SponsorsViewSet.search_fields:
-                search_params.add(Q(**{search_field + '__contains': search_text}), Q.OR)
-            search_results = User.objects.filter(agol_info__sponsor=True).filter(search_params)
-            self.assertTrue(len(list(search_results)) == 1)

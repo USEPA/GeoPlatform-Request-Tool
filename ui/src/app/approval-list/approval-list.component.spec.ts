@@ -2,7 +2,7 @@ import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {ApprovalListComponent} from './approval-list.component';
 import {MatTableModule} from '@angular/material';
-import {of} from 'rxjs';
+import {Observable, of} from 'rxjs';
 import {MatDialog} from '@angular/material/dialog';
 import {FilterInputComponent} from '../filter-input/filter-input.component';
 import {CustomMaterialModule} from '../core/material.module';
@@ -14,6 +14,12 @@ import {LoadingService} from '@services/loading.service';
 import {LoginService} from '../auth/login.service';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MatSnackBar} from '@angular/material/snack-bar';
+
+import {environment} from '@environments/environment';
+// @ts-ignore
+import * as mockData from './approval-list-mock-data.json';
+
+
 
 class MatDialogMock {
   public open() {
@@ -87,5 +93,18 @@ describe('ApprovalListComponent', () => {
     const errorResponse = new HttpErrorResponse({error: 'error', status: 403});
     req.flush('', errorResponse);
     expect(matSnackBar.open).toHaveBeenCalledWith('Error', null, {duration: 3000});
+  });
+
+  it('should notify users of successful approval update with group as property', () => {
+    spyOn(matSnackBar, 'open');
+    spyOn(component, 'setNeedsEditing').and.callFake((param) => {
+      expect(param).toBe(mockData.updateApprovalTest);
+    });
+    component.updateRecord(mockData.updateApprovalTest).subscribe();
+    const url = `/v1/account/approvals/${mockData.updateApprovalTest.id}/`;
+    const req = httpTestingController.expectOne(url);
+    expect(req.request.method).toBe('PUT');
+    req.flush(mockData.updateApprovalTest);
+    expect(matSnackBar.open).toHaveBeenCalledWith('Success', null, Object({ duration: 2000 }));
   });
 });
