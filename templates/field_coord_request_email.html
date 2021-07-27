@@ -1,7 +1,7 @@
 {% block html %}
     <div>
         A Coordinator Request has been submitted to the GeoPlatform Account Request Tool
-        (<a href="https://request.ercloud.org">request.ercloud.org</a>). The following
+        (<a href="https://r9data.response.epa.gov/request">r9data.response.epa.gov/request</a>). The following
         information was submitted:
         <ul>
             <li>First Name: {{first_name}}</li>
@@ -12,7 +12,7 @@
             <li>GeoPlatform User: {{agol_user}}</li>
             {% if emergency_response %}<li>Response / Project: {{emergency_response}}</li>{% endif %}
         </ul>
-     Please log in to the <a href="https://request.ercloud.org/api/admin/">GeoPlatform
+     Please log in to the <a href="https://r9data.response.epa.gov/request/api/admin/">GeoPlatform
         Account Request Tool Administration</a> to configure a new project or response and notify the
         coordinator when configuration is complete.
     </div>
