@@ -160,9 +160,9 @@ class AccountViewSet(ModelViewSet):
         if create_success and group_success:
             return Response()
         if not create_success:
-            return Response("Error creating and updating accounts")
+            return Response("Error creating and updating accounts", status=500)
         if not group_success:
-            return Response("Accounts created. Existing account NOT updated.")
+            return Response("Accounts created. Existing account NOT updated.", status=500)
 
         return Response(status=400)
 

@@ -242,7 +242,7 @@ class AGOL(models.Model):
                     account.save(update_fields=['agol_id'])
             return success
         else:
-            return False
+            return []
 
     def check_username(self, username):
         token = self.get_token()
