@@ -155,22 +155,28 @@ EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
 SENDGRID_API_KEY = local_settings.SENDGRID_API_KEY
 SENDGRID_SANDBOX_MODE_IN_DEBUG = local_settings.SENDGRID_SANDBOX_MODE_IN_DEBUG
 
-SLACK_WEBHOOK_URL = local_settings.SLACK_WEBHOOK_URL
-
 LOGGING = DEFAULT_LOGGING
 
-LOGGING['handlers']['slack_admins'] = {
+LOGGING['handlers']['slack'] = {
     'level': 'ERROR',
     'filters': ['require_debug_false'],
-    'class': 'AGOLAccountRequestor.slack_logger.SlackExceptionHandler',
+    'class': 'slack_logging.SlackExceptionHandler',
+    'webhook_url': local_settings.SLACK_WEBHOOK_URL
+}
+
+LOGGING['handlers']['file'] = {
+    'level': 'ERROR',
+    'filters': ['require_debug_false'],
+    'class': 'logging.FileHandler',
+    'filename': os.path.join(BASE_DIR, 'error.log')
 }
 
 LOGGING['loggers']['django'] = {
-    'handlers': ['console', 'slack_admins'],
+    'handlers': ['console', 'slack', 'file'],
     'level': 'INFO',
 }
 LOGGING['loggers']['R9DMT'] = {
-    'handlers': ['console', 'slack_admins'],
+    'handlers': ['console', 'slack', 'file'],
     'level': 'ERROR',
 }
 
