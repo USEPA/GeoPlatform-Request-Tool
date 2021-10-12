@@ -257,27 +257,3 @@ class TestAccounts(TestCase):
             self.assertTrue(result)
 
 
-class TestAGOLGroups(TestCase):
-    fixtures = ['fixtures.json']
-
-    # get_queryset AGOLGroups tests
-    def test_get_agol_groups_by_all_param(self):
-        query_params = {'all': 'true'}
-        if 'all' in query_params:
-            if query_params.get('all', 'false') == 'true':
-                all_results = list(AGOLGroup.objects.all())
-                self.assertIsNotNone(all_results)
-
-    def test_get_agol_groups_by_is_auth_group_param(self):
-        query_params = {'is_auth_group': True}
-        if 'is_auth_group' in query_params:
-            is_auth_group = query_params['is_auth_group']
-            is_auth_group_results = list(AGOLGroup.objects.filter(is_auth_group=is_auth_group))
-            self.assertIsNotNone(is_auth_group_results)
-
-    def test_get_agol_groups_by_sponsor(self):
-        sponsor = User.objects.get(pk=1)
-        sponsors = User.objects.filter(agol_info__delegates=sponsor)
-        sponsor_results = AGOLGroup.objects.filter(Q(response__users=sponsor) | Q(response__users__in=sponsors))
-        self.assertTrue(len(sponsor_results) > 0)
-
