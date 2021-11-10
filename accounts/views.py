@@ -209,15 +209,16 @@ class AccountViewSet(ModelViewSet):
             pending_notifications = AccountRequests.objects.filter(sponsor_notified=False,
                                                                    approved__isnull=True,
                                                                    created__isnull=True)\
-                .values('response__users__email')\
-                .annotate(total_pending=Count('response__users__email'))\
+                .values('response__users')\
+                .annotate(total_pending=Count('response__users'))\
                 .filter(total_pending__gt=0)
 
             for i, notification in enumerate(pending_notifications):
-                delegate_emails = User.objects.filter(delegate_for__user__email=notification['response__users__email']) \
+                delegate_emails = User.objects.filter(delegate_for__user=notification['response__users']) \
                     .values_list('email', flat=True)
-                pending_notifications[i]['sponsor'] = pending_notifications[i].pop('response__users__email')
+                pending_notifications[i]['sponsor'] = User.objects.get(pk=notification['response__users']).email
                 pending_notifications[i]['delegates'] = list(filter(None, delegate_emails))
+                pending_notifications[i].pop('response__users')
 
             return Response(pending_notifications)
 

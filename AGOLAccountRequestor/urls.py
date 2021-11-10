@@ -16,6 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
+from django.conf import settings
 
 from accounts import views as account_views
 from .views import current_user
@@ -35,13 +36,13 @@ admin.site.index_title = "Tool Administration"
 
 
 urlpatterns = [
-    path('api/admin/', admin.site.urls),
+    path(f'{settings.URL_PREFIX}api/admin/', admin.site.urls),
     # path('api/oauth2/', include('rest_framework_social_oauth2.urls')),
-    path('api/v1/', include(router.urls)),
-    path('api/v1/email_field_coordinator_request/', email_field_coordinator_request),
+    path(f'{settings.URL_PREFIX}api/v1/', include(router.urls)),
+    path(f'{settings.URL_PREFIX}api/v1/email_field_coordinator_request/', email_field_coordinator_request),
     # path('api/rest-auth/', include('rest_auth.urls')),
-    path('api/auth/', include('rest_framework.urls', namespace='rest_framework')),
-    path('api/oauth2/', include('social_django.urls', namespace='social_django')),
-    path('api/current_user/', current_user),
+    path(f'{settings.URL_PREFIX}api/auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path(f'{settings.URL_PREFIX}api/oauth2/', include('social_django.urls', namespace='social_django')),
+    path(f'{settings.URL_PREFIX}api/current_user/', current_user),
 
 ]
