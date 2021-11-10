@@ -161,7 +161,8 @@ LOGGING['handlers']['slack'] = {
     'level': 'ERROR',
     'filters': ['require_debug_false'],
     'class': 'slack_logging.SlackExceptionHandler',
-    'webhook_url': local_settings.SLACK_WEBHOOK_URL
+    'bot_token': getattr(local_settings.SLACK_LOGGING, 'SLACK_BOT_TOKEN', ''),
+    'channel_id': getattr(local_settings.SLACK_LOGGING, 'SLACK_CHANNEL', '')
 }
 
 LOGGING['handlers']['file'] = {

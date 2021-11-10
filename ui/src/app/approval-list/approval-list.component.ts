@@ -9,6 +9,7 @@ import {forkJoin, iif, Observable, of} from 'rxjs';
 import {EditAccountPropsDialogComponent} from '../dialogs/edit-account-props-dialog/edit-account-props-dialog.component';
 import {ConfirmApprovalDialogComponent} from '../dialogs/confirm-approval-dialog/confirm-approval-dialog.component';
 import {LoginService} from '../auth/login.service';
+import {ChooseCreationMethodComponent} from '../dialogs/choose-creation-method/choose-creation-method.component';
 
 export interface AccountProps {
   first_name: string;
@@ -213,6 +214,10 @@ export class ApprovalListComponent implements OnInit {
       }),
       switchMap(() => this.accounts.getItems()),
       tap(() => this.isApprovalReady = this.getApprovalStatus())).subscribe();
+  }
+
+  openApproveOptions() {
+    const dialogRef = this.dialog.open(ChooseCreationMethodComponent);
   }
 
   confirmApproval() {

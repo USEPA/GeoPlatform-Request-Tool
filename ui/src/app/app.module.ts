@@ -50,6 +50,7 @@ import {FilterInputComponent} from './filter-input/filter-input.component';
 import { HomeComponent } from './home/home.component';
 import { FieldCoordErRequestFormComponent } from './field-coord-er-request-form/field-coord-er-request-form.component';
 import {AuthModule} from './auth/auth.module';
+import { ChooseCreationMethodComponent } from './dialogs/choose-creation-method/choose-creation-method.component';
 
 
 @NgModule({
@@ -63,7 +64,8 @@ import {AuthModule} from './auth/auth.module';
     FilterInputComponent,
     HomeComponent,
     FieldCoordListComponent,
-    FieldCoordErRequestFormComponent
+    FieldCoordErRequestFormComponent,
+    ChooseCreationMethodComponent
   ],
   imports: [
     BrowserModule,
