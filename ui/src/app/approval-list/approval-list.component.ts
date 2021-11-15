@@ -224,12 +224,14 @@ export class ApprovalListComponent implements OnInit {
         if (choice === 'password') {
           return this.openSetPasswordDialog();
         } else if (choice === 'invitation') {
-          return this.confirmSendInvitation();
+          return this.confirmSendInvitation().pipe(map(x => {
+            return {confirmed: x, password: null};
+          }));
         }
-        return of(false);
+        return of({confirmed: false});
       }),
-      filter(x => x),
-      switchMap(r => iif(() => r.hasOwnProperty('password'),
+      filter(x => x.confirmed),
+      switchMap(r => iif(() => r.password,
         this.createAccounts(r.password),
         this.createAccounts())
       )
@@ -238,8 +240,10 @@ export class ApprovalListComponent implements OnInit {
 
   confirmSendInvitation(): Observable<boolean> {
     return this.dialog.open(GenericConfirmDialogComponent, {
+      width: '400px',
       data: {
-        message: 'Confirmation will send email invitation(s) to the selected account(s).'
+        message: 'This will send auto-generated emails to the approved accounts. Each user must click the link in their email to finish setting up their account. ' +
+          'Please confirm you want to send emails now.'
       }
     }).afterClosed();
   }
@@ -261,7 +265,7 @@ export class ApprovalListComponent implements OnInit {
     return dialogRef.afterClosed().pipe(
       filter(results => results.confirmed),
       // switchMap(results => this.createAccounts(results.password)),
-      catchError(() => of(this.snackBar.open('Error', null, {duration: 3000})))
+      // catchError(() => of(this.snackBar.open('Error', null, {duration: 3000})))
     );
   }
 
