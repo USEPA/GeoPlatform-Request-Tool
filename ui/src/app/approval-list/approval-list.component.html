@@ -210,9 +210,7 @@
         </ng-container>
 
         <mat-header-row *cdkHeaderRowDef="displayedColumns" class="header-row"></mat-header-row>
-        <mat-row *cdkRowDef="let row; columns: displayedColumns;" class="row">
-
-        </mat-row>
+        <mat-row *cdkRowDef="let row; columns: displayedColumns;" class="row"></mat-row>
       </mat-table>
       <mat-paginator [length]="accounts.count" [pageSize]="25"
         [pageSizeOptions]="[10, 25, 50, 100]"

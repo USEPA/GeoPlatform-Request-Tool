@@ -19,12 +19,12 @@
     <mat-form-field style="width: 100%; padding-top: 10px;">
       <input matInput required placeholder="Confirm Password" formControlName="passwordConfirm" type="password">
     </mat-form-field>
-      <mat-error *ngIf="!passwordForm.valid">
+      <mat-error *ngIf="!passwordForm.valid" class="mat-body-2">
         {{ passwordForm.hasError('passwordMatch') ? 'Passwords do not match' : '' }}
       </mat-error>
   </form>
 </div>
-<div mat-dialog-actions style="display: flex; justify-content: space-between; flex-direction: row;">
+<div mat-dialog-actions>
   <button mat-raised-button color="accent" (click)="dismiss()">Cancel</button>
   <button mat-raised-button
           color="warn" (click)="confirm()" [disabled]="!passwordForm.valid" *ngIf="data.password_needed">Approve

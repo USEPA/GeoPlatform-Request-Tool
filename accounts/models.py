@@ -226,12 +226,14 @@ class AGOL(models.Model):
                 template = get_template('invitation_email_body.html')
                 data["message"] = template.render({"account_request": account_request})
 
+            # pre-encode to ensure nested data isn't lost
             data = urlencode(data)
             response = requests.post(url, data=data, headers={'Content-type': 'application/x-www-form-urlencoded'})
 
             response_json = response.json()
 
-            if 'success' in response_json and response_json['success']:
+            if 'success' in response_json and response_json['success'] \
+                    and account_request.username not in response_json['notInvited']:
                 # success = []
                 # for account in AccountRequests.objects.filter(pk__in=[x.pk for x in account_requests])\
                 #     .exclude(username__in=response_json['notInvited']):

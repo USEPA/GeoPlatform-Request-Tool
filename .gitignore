@@ -68,4 +68,6 @@ AGOLAccountRequestor/local_settings.py
 __pycache__/
 *.py[cod]
 *$py.class
+
 venv
+

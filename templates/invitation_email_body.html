@@ -1,6 +1,6 @@
-<html><body><p>{{account_request.sponsor.get_full_name}} has invited you to join an ArcGIS Online Organization, EPA GeoPlatform Online, as part of {{ account_request.response.name }}</p>
-<p>Please click this link to finish setting up your account and establish your password: <a href="https://www.arcgis.com/home/newuser.html?invitation=@@invitation.id@@">https://www.arcgis.com/home/newuser.html?invitation=@@invitation.id@@</a></p>
-<p>Note that your account has already been created for you with the username, <strong>@@touser.username@@</strong>.  </p>
+<html><body><p>{{account_request.sponsor.get_full_name}} has invited you to join an ArcGIS Online Organization,
+    EPA GeoPlatform Online, as part of {{ account_request.response.name }}</p>
+
 <p>Please adhere to the following rules when selecting a password. The password must:
     <ul>
         <li>Not match username.</li>
@@ -9,8 +9,4 @@
         <li>Contain at least 1 number(s) (0-9).</li>
     </ul>
 </p>
-<p>If you have difficulty signing in, please contact {{account_request.sponsor.get_full_name}} ({{account_request.sponsor.email}}). Be sure to include a description of the problem, the error message, and a screenshot.</p>
-<p>For your reference, you can access the home page of the organization here: <br>https://EPA.maps.arcgis.com/home/</p>
-<p>This link will expire in two weeks.</p>
-<p style="color:gray;">This is an automated email. Please do not reply.</p>
 </body></html>

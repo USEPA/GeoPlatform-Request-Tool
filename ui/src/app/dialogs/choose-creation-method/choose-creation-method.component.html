@@ -1,11 +1,9 @@
-<h1 mat-dialog-title>Please choose
-
+<!--<h1 mat-dialog-title style="text-align: center">Please choose</h1>-->
 <div mat-dialog-content>
 
-  <button mat-raised-button color="primary">Send Invitation</button>
-  <button mat-raised-button color="primary">Set Password Manually</button>
+  <button mat-raised-button color="primary" (click)="dialogRef.close('invitation')">Send Invitation(s)</button>
+  <button mat-raised-button color="primary" (click)="dialogRef.close('password')">Set Password Manually</button>
+  <button mat-raised-button color="accent" (click)="dialogRef.close()" cdkFocusInitial>Cancel</button>
 
 </div>
-<div mat-dialog-actions style="display: flex; justify-content: space-between; flex-direction: row;">
-  <button mat-raised-button color="accent" (click)="dialogRef.close()">Cancel</button>
-</div>
+
