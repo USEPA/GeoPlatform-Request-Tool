@@ -1,5 +1,5 @@
 <h1 mat-dialog-title>Please confirm
-  <span class="mat-body-strong" *ngIf="data.password_needed">and provide initial password for these accounts.</span></h1>
+  <span *ngIf="data.password_needed">and provide initial password for these accounts.</span></h1>
 <div mat-dialog-content>
   <p class="mat-body-1" *ngIf="data.password_needed">
     Password Requirements<br/>

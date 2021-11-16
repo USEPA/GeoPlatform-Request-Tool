@@ -132,6 +132,8 @@ class TestAccounts(TestCase):
         exists = AccountRequests.objects.filter(agol_id='ffffffff-ffff-ffff-ffff-ffffffffffff').exists()
         self.assertTrue(exists)
 
+
+
     # todo: fix to test groups from add_to_group
     @patch('accounts.models.requests.post')
     def test_add_to_group(self, mock_post):
@@ -152,5 +154,4 @@ class TestAccounts(TestCase):
         mock_post.return_value.status_code = 400
         success = self.agol.add_to_group([request.agol_id], ['agroup'])
         self.assertFalse(success)
-
 
