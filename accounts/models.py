@@ -8,6 +8,7 @@ from urllib.parse import urlencode
 import json
 from django.utils.timezone import now
 from django.core.exceptions import ValidationError
+from django.template.loader import get_template
 
 
 class AccountRequests(models.Model):
@@ -190,59 +191,62 @@ class AGOL(models.Model):
                 "agol": self
             })
 
-    def generate_invitations(self, account_requests, initial_password):
-        invitations = list()
-
-        for account_request in account_requests:
-            invitations.append({
-                "email": account_request.email,
-                "firstname": account_request.first_name,
-                "lastname": account_request.last_name,
-                "username": account_request.username,
-                "password": initial_password,
-                "role": account_request.role.id,
-                "userLicenseType": account_request.user_type,
-                "fullname": f"{account_request.first_name} {account_request.last_name}",
-                "userType": "creatorUT",
-                "userCreditAssignment": 2000
-            })
-        return invitations
-
-    def create_users_accounts(self, account_requests, initial_password):
-        token = self.get_token()
-
-        url = f'{self.portal_url}/sharing/rest/portals/self/invite/'
-
-        invitations = self.generate_invitations(account_requests, initial_password)
-
-        # goofy way of encoding data since requests library does not seem to appreciate the nested structure.
-        data = {
-            "invitationList": json.dumps({"invitations": invitations}),
-            "f": "json",
-            "token": token
+    def generate_invitation(self, account_request, initial_password=None):
+        invitation = {
+            "email": account_request.email,
+            "firstname": account_request.first_name,
+            "lastname": account_request.last_name,
+            "username": account_request.username,
+            "role": account_request.role.id,
+            "userLicenseType": account_request.user_type,
+            "fullname": f"{account_request.first_name} {account_request.last_name}",
+            "userType": "creatorUT",
+            "userCreditAssignment": 2000
         }
+        if initial_password:
+            invitation["password"] = initial_password
 
-        data = urlencode(data)
-        response = requests.post(url, data=data, headers={'Content-type': 'application/x-www-form-urlencoded'})
+        return invitation
 
-        response_json = response.json()
+    def create_users_accounts(self, account_requests: [AccountRequests], initial_password=None):
+        token = self.get_token()
+        success = []
+        url = f'{self.portal_url}/sharing/rest/portals/self/invite/'
+        for account_request in account_requests:
+            invitation = self.generate_invitation(account_request, initial_password)
 
-        if 'success' in response_json and response_json['success']:
-            success = []
-            for account in AccountRequests.objects.filter(pk__in=[x.pk for x in account_requests])\
-                .exclude(username__in=response_json['notInvited']):
-                success.append(account.pk)
-                user_url = f'{self.portal_url}/sharing/rest/community/users/{account.username}'
+            # goofy way of encoding data since requests library does not seem to appreciate the nested structure.
+            data = {
+                "invitationList": json.dumps({"invitations": [invitation]}),
+                "f": "json",
+                "token": token
+            }
+
+            if initial_password is None:
+                template = get_template('invitation_email_body.html')
+                data["message"] = template.render({"account_request": account_request})
+
+            # pre-encode to ensure nested data isn't lost
+            data = urlencode(data)
+            response = requests.post(url, data=data, headers={'Content-type': 'application/x-www-form-urlencoded'})
+
+            response_json = response.json()
+
+            if 'success' in response_json and response_json['success'] \
+                    and account_request.username not in response_json['notInvited']:
+                # success = []
+                # for account in AccountRequests.objects.filter(pk__in=[x.pk for x in account_requests])\
+                #     .exclude(username__in=response_json['notInvited']):
+                success.append(account_request.pk)
+                user_url = f'{self.portal_url}/sharing/rest/community/users/{account_request.username}'
                 user_response = requests.get(user_url, params={'token': token, 'f': 'json'})
                 user_response_json = user_response.json()
                 if 'error' in user_response_json:
                     return False, None, None
                 else:
-                    account.agol_id = user_response_json['id']
-                    account.save(update_fields=['agol_id'])
-            return success
-        else:
-            return False
+                    account_request.agol_id = user_response_json['id']
+                    account_request.save(update_fields=['agol_id'])
+        return success
 
     def check_username(self, username):
         token = self.get_token()

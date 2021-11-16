@@ -6,11 +6,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.filters import BaseFilterBackend
 
-from django.shortcuts import get_list_or_404
-from django.contrib.auth.models import User
-from django.utils.timezone import now
+from django.shortcuts import get_list_or_404, get_object_or_404
 from django_filters.rest_framework import FilterSet, BooleanFilter, DateFilter, NumberFilter
 from django.db.models import Q, Count
+from django.template.response import TemplateResponse
 
 from .models import *
 
@@ -138,7 +137,7 @@ class AccountViewSet(ModelViewSet):
         create_accounts = [x for x in account_requests if x.agol_id is None]
         create_success = len(create_accounts) == 0
         if len(create_accounts) > 0:
-            success += agol.create_users_accounts(account_requests, request.data['password'])
+            success += agol.create_users_accounts(account_requests, request.data.get('password', None))
             if len(success) == len(create_accounts):
                 create_success = True
 
@@ -233,6 +232,11 @@ class AccountViewSet(ModelViewSet):
         if self.request.query_params.get('include_sponsor_details', False):
             return AccountWithSponsorSerializer
         return AccountSerializer
+
+    @action(['GET'], detail=True)
+    def preview_invitation_email(self, request, pk=None):
+        account_request = get_object_or_404(AccountRequests, pk=pk)
+        return TemplateResponse(request, 'invitation_email_body.html', {"account_request": account_request})
 
 
 class AGOLGroupViewSet(ReadOnlyModelViewSet):
