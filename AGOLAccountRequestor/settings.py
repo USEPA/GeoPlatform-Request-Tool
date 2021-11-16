@@ -136,6 +136,7 @@ AUTHENTICATION_BACKENDS = (
 OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL = 'oauth2_provider.AccessToken'
 OAUTH2_PROVIDER_APPLICATION_MODEL = 'oauth2_provider.Application'
 OAUTH2_PROVIDER_REFRESH_TOKEN_MODEL = 'oauth2_provider.RefreshToken'
+OAUTH2_PROVIDER_ID_TOKEN_MODEL = "oauth2_provider.IDToken"
 
 SOCIAL_AUTH_AGOL_DOMAIN = local_settings.SOCIAL_AUTH_AGOL_DOMAIN
 SOCIAL_AUTH_AGOL_KEY = local_settings.SOCIAL_AUTH_AGOL_KEY
@@ -161,7 +162,8 @@ LOGGING['handlers']['slack'] = {
     'level': 'ERROR',
     'filters': ['require_debug_false'],
     'class': 'slack_logging.SlackExceptionHandler',
-    'webhook_url': local_settings.SLACK_WEBHOOK_URL
+    'bot_token': getattr(local_settings.SLACK_LOGGING, 'SLACK_BOT_TOKEN', ''),
+    'channel_id': getattr(local_settings.SLACK_LOGGING, 'SLACK_CHANNEL', '')
 }
 
 LOGGING['handlers']['file'] = {
@@ -186,3 +188,4 @@ USE_X_FORWARDED_HOST = getattr(local_settings, 'USE_X_FORWARDED_HOST', False)
 URL_PREFIX = getattr(local_settings, 'URL_PREFIX', '')
 LOGIN_REDIRECT_URL = f'/{URL_PREFIX}api/admin/'
 LOGIN_URL = f'/{URL_PREFIX}api/admin/'
+

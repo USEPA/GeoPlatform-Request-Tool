@@ -30,6 +30,10 @@
             "scripts": []
           },
           "configurations": {
+            "development": {
+              "sourceMap": true,
+              "optimization": false
+            },
             "production": {
               "fileReplacements": [
                 {
@@ -62,6 +66,9 @@
             "browserTarget": "ui:build"
           },
           "configurations": {
+            "development": {
+              "browserTarget": "ui:build:development"
+            },
             "production": {
               "browserTarget": "ui:build:production"
             }
