@@ -9,10 +9,15 @@ import {forkJoin, iif, Observable, of, throwError} from 'rxjs';
 import {LoginService} from '../auth/login.service';
 import {BaseService} from '../services/base.service';
 import {LoadingService} from '../services/loading.service';
-import {CONFIG_SETTINGS} from '../config_settings';
+import {catchError, filter, map, share, switchMap, tap} from 'rxjs/operators';
+import {MatDialog} from '@angular/material/dialog';
+import {MatSnackBar} from '@angular/material/snack-bar';
+import {forkJoin, iif, Observable, of} from 'rxjs';
 import {EditAccountPropsDialogComponent} from '../dialogs/edit-account-props-dialog/edit-account-props-dialog.component';
 import {ConfirmApprovalDialogComponent} from '../dialogs/confirm-approval-dialog/confirm-approval-dialog.component';
-
+import {LoginService} from '../auth/login.service';
+import {ChooseCreationMethodComponent} from '../dialogs/choose-creation-method/choose-creation-method.component';
+import {GenericConfirmDialogComponent} from '../dialogs/generic-confirm-dialog/generic-confirm-dialog.component';
 
 export interface AccountProps {
   first_name: string;
@@ -232,7 +237,38 @@ export class ApprovalListComponent implements OnInit {
       tap(() => this.isApprovalReady = this.getApprovalStatus())).subscribe();
   }
 
-  confirmApproval() {
+  openApproveOptions() {
+    this.dialog.open(ChooseCreationMethodComponent).afterClosed().pipe(
+      filter(x => x),
+      switchMap(choice => {
+        if (choice === 'password') {
+          return this.openSetPasswordDialog();
+        } else if (choice === 'invitation') {
+          return this.confirmSendInvitation().pipe(map(x => {
+            return {confirmed: x, password: null};
+          }));
+        }
+        return of({confirmed: false});
+      }),
+      filter(x => x.confirmed),
+      switchMap(r => iif(() => r.password,
+        this.createAccounts(r.password),
+        this.createAccounts())
+      )
+    ).subscribe();
+  }
+
+  confirmSendInvitation(): Observable<boolean> {
+    return this.dialog.open(GenericConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        message: 'This will send auto-generated emails to the approved accounts. Each user must click the link in their email to finish setting up their account. ' +
+          'Please confirm you want to send emails now.'
+      }
+    }).afterClosed();
+  }
+
+  openSetPasswordDialog(): Observable<any> {
     let password_needed = false;
     for (const account of this.accounts.data) {
       if (this.selectedAccountIds.indexOf(account.id) > -1 && account.username_valid) {
@@ -246,20 +282,11 @@ export class ApprovalListComponent implements OnInit {
         password_needed: password_needed
       }
     });
-    dialogRef.afterClosed().pipe(switchMap(results => {
-        return iif(() => results.confirmed, this.http.post('/v1/account/approvals/approve/',
-          {accounts: this.selectedAccountIds, password: results.password}).pipe(
-          switchMap(response => iif(() => response !== undefined, this.accounts.getItems().pipe(tap(() => {
-
-            this.snackBar.open('Success', null, {duration: 2000});
-            // clear selected accounts after approval issue #33
-            this.clearAllSelected();
-          }))))
-          )
-        );
-      }),
-      catchError(() => of(this.snackBar.open('Error', null, {duration: 3000})))
-    ).subscribe();
+    return dialogRef.afterClosed().pipe(
+      filter(results => results.confirmed),
+      // switchMap(results => this.createAccounts(results.password)),
+      // catchError(() => of(this.snackBar.open('Error', null, {duration: 3000})))
+    );
   }
 
   confirmDeleteAccountRequest(event, selectedRequest) {
@@ -300,6 +327,21 @@ export class ApprovalListComponent implements OnInit {
     this.accountsListProps[account.id].needsEditing = needsEditing;
   }
 
+  createAccounts(password?) {
+    return this.http.post('/v1/account/approvals/approve/', {accounts: this.selectedAccountIds, password})
+      .pipe(
+        tap(r => {
+          if (typeof r === 'string') {
+            this.snackBar.open(r, null, {duration: 2000});
+          } else {
+            this.snackBar.open('Success', null, {duration: 2000});
+          }
+          // clear selected accounts after approval issue #33
+          this.clearAllSelected();
+        }),
+        switchMap(() => this.accounts.getItems())
+      );
+  }
   handleErrorResponse(err: HttpErrorResponse, customErrorMessages?: string[]) {
     if (err && err.error && err.error.detail) {
       this.snackBar.open(err.error.detail, null, {

@@ -22,6 +22,9 @@ import { EditAccountPropsDialogComponent } from './dialogs/edit-account-props-di
 import { RequestFieldCoordDialogComponent } from './dialogs/request-field-coord-dialog/request-field-coord-dialog.component';
 import {FilterInputComponent} from './filter-input/filter-input.component';
 import { FieldCoordErRequestFormComponent } from './field-coord-er-request-form/field-coord-er-request-form.component';
+import {AuthModule} from './auth/auth.module';
+import { ChooseCreationMethodComponent } from './dialogs/choose-creation-method/choose-creation-method.component';
+import { GenericConfirmDialogComponent } from './dialogs/generic-confirm-dialog/generic-confirm-dialog.component';
 import {TagInputComponent} from './components/tag-input/tag-input.component';
 import {LoadingService} from '@services/loading.service';
 
@@ -39,7 +42,9 @@ import {LoadingService} from '@services/loading.service';
     FilterInputComponent,
     TagInputComponent,
     FieldCoordListComponent,
-    FieldCoordErRequestFormComponent
+    FieldCoordErRequestFormComponent,
+    ChooseCreationMethodComponent,
+    GenericConfirmDialogComponent
   ],
   imports: [
     BrowserModule,

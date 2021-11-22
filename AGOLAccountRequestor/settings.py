@@ -118,7 +118,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = '/requests/static/'
 #STATIC_ROOT = 'static'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
@@ -136,16 +136,14 @@ AUTHENTICATION_BACKENDS = (
 OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL = 'oauth2_provider.AccessToken'
 OAUTH2_PROVIDER_APPLICATION_MODEL = 'oauth2_provider.Application'
 OAUTH2_PROVIDER_REFRESH_TOKEN_MODEL = 'oauth2_provider.RefreshToken'
+OAUTH2_PROVIDER_ID_TOKEN_MODEL = "oauth2_provider.IDToken"
 
 SOCIAL_AUTH_AGOL_DOMAIN = local_settings.SOCIAL_AUTH_AGOL_DOMAIN
 SOCIAL_AUTH_AGOL_KEY = local_settings.SOCIAL_AUTH_AGOL_KEY
 SOCIAL_AUTH_AGOL_SECRET = local_settings.SOCIAL_AUTH_AGOL_SECRET
-SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS = getattr(local_settings, 'SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS', [])
-
+SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
 SOCIAL_AUTH_PIPELINE = local_settings.SOCIAL_AUTH_PIPELINE
 
-LOGIN_REDIRECT_URL = '/api/admin/'
-LOGIN_URL = '/api/admin/'
 
 REST_FRAMEWORK = local_settings.REST_FRAMEWORK
 
@@ -158,24 +156,36 @@ EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
 SENDGRID_API_KEY = local_settings.SENDGRID_API_KEY
 SENDGRID_SANDBOX_MODE_IN_DEBUG = local_settings.SENDGRID_SANDBOX_MODE_IN_DEBUG
 
-SLACK_WEBHOOK_URL = local_settings.SLACK_WEBHOOK_URL
-
 LOGGING = DEFAULT_LOGGING
 
-LOGGING['handlers']['slack_admins'] = {
+LOGGING['handlers']['slack'] = {
     'level': 'ERROR',
     'filters': ['require_debug_false'],
-    'class': 'AGOLAccountRequestor.slack_logger.SlackExceptionHandler',
+    'class': 'slack_logging.SlackExceptionHandler',
+    'bot_token': getattr(local_settings.SLACK_LOGGING, 'SLACK_BOT_TOKEN', ''),
+    'channel_id': getattr(local_settings.SLACK_LOGGING, 'SLACK_CHANNEL', '')
+}
+
+LOGGING['handlers']['file'] = {
+    'level': 'ERROR',
+    'filters': ['require_debug_false'],
+    'class': 'logging.FileHandler',
+    'filename': os.path.join(BASE_DIR, 'error.log')
 }
 
 LOGGING['loggers']['django'] = {
-    'handlers': ['console', 'slack_admins'],
+    'handlers': ['console', 'slack', 'file'],
     'level': 'INFO',
 }
 LOGGING['loggers']['R9DMT'] = {
-    'handlers': ['console', 'slack_admins'],
+    'handlers': ['console', 'slack', 'file'],
     'level': 'ERROR',
 }
 
 GPO_REQUEST_EMAIL_ACCOUNT = local_settings.GPO_REQUEST_EMAIL_ACCOUNT
 RECIPIENT_EMAILS = local_settings.RECIPIENT_EMAILS
+USE_X_FORWARDED_HOST = getattr(local_settings, 'USE_X_FORWARDED_HOST', False)
+URL_PREFIX = getattr(local_settings, 'URL_PREFIX', '')
+LOGIN_REDIRECT_URL = f'/{URL_PREFIX}api/admin/'
+LOGIN_URL = f'/{URL_PREFIX}api/admin/'
+

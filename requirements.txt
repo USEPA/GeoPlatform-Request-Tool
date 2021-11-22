@@ -1,11 +1,12 @@
 django>=2.2.7,<=2.2.99
 djangorestframework>=3.10.3,<=3.10.99
-django-mssql-backend>=2.2.0,<2.3.0
+mssql-django
 django-filter>=2.2.0,<2.2.99
 requests>=2.22.0,<2.99
 wfastcgi==3.0.0
 tqdm==4.27.0
-django-rest-auth>=0.9.3,<1.0.0
-git+https://github.com/tbock/django-rest-framework-social-oauth2.git@master#egg=django-rest-framework-social-oauth2
 djangorestframework-recaptcha>=0.2.0,<0.3.0
 django-sendgrid-v5>=0.8.0,<1.0.0
+git+https://github.com/Innovate-Inc/django-slack-logging.git#egg=django-slack-logging
+social-auth-app-django
+django-rest-framework-social-oauth2==1.1.0

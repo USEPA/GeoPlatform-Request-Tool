@@ -5,11 +5,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.filters import BaseFilterBackend
 
-from django.shortcuts import get_list_or_404
-from django.contrib.auth.models import User
-from django.utils.timezone import now
+from django.shortcuts import get_list_or_404, get_object_or_404
 from django_filters.rest_framework import FilterSet, BooleanFilter, DateFilter, NumberFilter
 from django.db.models import Q, Count
+from django.template.response import TemplateResponse
 
 from .models import *
 from .serializers import *
@@ -25,12 +24,11 @@ def format_username(data):
     return username.replace(' ', '')
 
 
-class AccountRequestViewSet(ModelViewSet):
-    queryset = AccountRequests.objects.all()
+class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
+    queryset = AccountRequests.objects.none()
     serializer_class = AccountRequestSerializer
     permission_classes = (AllowAny,)
     authentication_classes = ()
-    filter_fields = ['email']
 
     def perform_create(self, serializer):
         agol = AGOL.objects.first()
@@ -158,15 +156,16 @@ class AccountViewSet(ModelViewSet):
             pending_notifications = AccountRequests.objects.filter(sponsor_notified=False,
                                                                    approved__isnull=True,
                                                                    created__isnull=True)\
-                .values('response__users__email')\
-                .annotate(total_pending=Count('response__users__email'))\
+                .values('response__users')\
+                .annotate(total_pending=Count('response__users'))\
                 .filter(total_pending__gt=0)
 
             for i, notification in enumerate(pending_notifications):
-                delegate_emails = User.objects.filter(delegate_for__user__email=notification['response__users__email']) \
+                delegate_emails = User.objects.filter(delegate_for__user=notification['response__users']) \
                     .values_list('email', flat=True)
-                pending_notifications[i]['sponsor'] = pending_notifications[i].pop('response__users__email')
+                pending_notifications[i]['sponsor'] = User.objects.get(pk=notification['response__users']).email
                 pending_notifications[i]['delegates'] = list(filter(None, delegate_emails))
+                pending_notifications[i].pop('response__users')
 
             return Response(pending_notifications)
 
@@ -180,6 +179,11 @@ class AccountViewSet(ModelViewSet):
         if self.request.query_params.get('include_sponsor_details', False):
             return AccountWithSponsorSerializer
         return AccountSerializer
+
+    @action(['GET'], detail=True)
+    def preview_invitation_email(self, request, pk=None):
+        account_request = get_object_or_404(AccountRequests, pk=pk)
+        return TemplateResponse(request, 'invitation_email_body.html', {"account_request": account_request})
 
 
 class AGOLGroupViewSet(ReadOnlyModelViewSet):

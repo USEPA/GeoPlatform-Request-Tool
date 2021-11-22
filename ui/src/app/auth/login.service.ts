@@ -5,6 +5,7 @@ import {BehaviorSubject, Observable} from 'rxjs';
 import {Router, ActivatedRouteSnapshot, CanActivateChild, RouterStateSnapshot, CanActivate} from '@angular/router';
 import {environment} from '../../environments/environment';
 import {UserConfigService} from './user-config.service';
+import {Location} from '@angular/common';
 // import {error} from 'util';
 
 // interface TokenResponse {
@@ -35,7 +36,8 @@ export class LoginService implements CanActivateChild, CanActivate {
   // permissions: string[];
   // is_superuser: boolean;
 
-  constructor(private http: HttpClient, private router: Router, private configService: UserConfigService) {
+  constructor(private http: HttpClient, private router: Router, private configService: UserConfigService,
+              private location: Location) {
     // this.loginTypeEvent.subscribe((loginType) => {
     //   if (loginType) {
     //     localStorage.setItem('loginType', loginType);
@@ -67,7 +69,7 @@ export class LoginService implements CanActivateChild, CanActivate {
               }));
           }
         ),
-        catchError(() => this.router.navigate(['login'], {queryParams: {next: state.url}}))
+        catchError(() => this.router.navigate(['login'], {queryParams: {next: this.location.prepareExternalUrl(state.url)}}))
       ).subscribe();
 
     });

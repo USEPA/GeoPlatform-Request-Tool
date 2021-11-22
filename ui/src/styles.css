@@ -112,3 +112,6 @@ mat-list-item.filter-btn div {
   color: black !important;
 }
 
+div.mat-dialog-actions {
+  justify-content: flex-end;
+}
