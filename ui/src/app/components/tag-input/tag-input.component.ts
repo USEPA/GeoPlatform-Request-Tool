@@ -1,5 +1,4 @@
 import {Component, ElementRef, Input, OnInit, ViewChild} from '@angular/core';
-import {MAT_DIALOG_DATA, MatAutocompleteSelectedEvent, MatChipInputEvent, MatDialogRef} from '@angular/material';
 import {FormControl, FormGroup} from '@angular/forms';
 import {HttpClient} from '@angular/common/http';
 import {COMMA, ENTER} from '@angular/cdk/keycodes';
@@ -9,6 +8,8 @@ import {isArray} from 'rxjs/internal-compatibility';
 
 import {BaseService, Response} from '@services/base.service';
 import {LoadingService} from '@services/loading.service';
+import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
+import {MatChipInputEvent} from '@angular/material/chips';
 
 export interface TagItem {
   id: number;

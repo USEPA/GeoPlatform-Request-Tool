@@ -9,7 +9,8 @@ export const environment = {
   local_service_endpoint: 'http://localhost:8000/api',
   local_test_service_endpoint: 'http://localhost:9876/api',
   api_url: 'http://localhost:8000/api',
-  recaptcha_siteKey: '6LeXQboUAAAAAANBXP4FTZ3Pp9MOazFhXaF5CzQN'
+  recaptcha_siteKey: '6LeXQboUAAAAAANBXP4FTZ3Pp9MOazFhXaF5CzQN',
+  snackbar_duration: 6000
 };
 
 /*

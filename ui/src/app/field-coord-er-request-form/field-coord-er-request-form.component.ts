@@ -7,7 +7,7 @@ import {map} from 'rxjs/operators';
 
 import {Response} from '@services/base.service';
 import {FieldCoordinator} from '../field-coord-list/field-coord-list.component';
-import {CONFIG_SETTINGS} from '../config_settings';
+import {environment} from '@environments/environment';
 
 
 @Component({
@@ -44,11 +44,11 @@ export class FieldCoordErRequestFormComponent implements OnInit {
     const result = await this.http.post('/v1/email_field_coordinator_request/', this.fieldTeamCoordErForm.value).toPromise();
     if (result === true) {
       this.matSnackBar.open('Email sent', null, {
-        duration: CONFIG_SETTINGS.snackbar_duration
+        duration: environment.snackbar_duration
       });
     } else {
       this.matSnackBar.open('Email failed. Try again later.', null, {
-        duration: CONFIG_SETTINGS.snackbar_duration
+        duration: environment.snackbar_duration
       });
     }
     this.submitting.next(false);

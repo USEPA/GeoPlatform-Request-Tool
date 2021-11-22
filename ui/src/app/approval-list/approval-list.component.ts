@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {HttpClient, HttpErrorResponse} from '@angular/common/http';
-import {catchError, debounceTime, share, skip, startWith, switchMap, tap} from 'rxjs/operators';
+import {catchError, debounceTime, share, skip, startWith, switchMap, tap, filter, map} from 'rxjs/operators';
 import {MatDialog} from '@angular/material/dialog';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {FormControl} from '@angular/forms';
@@ -9,15 +9,12 @@ import {forkJoin, iif, Observable, of, throwError} from 'rxjs';
 import {LoginService} from '../auth/login.service';
 import {BaseService} from '../services/base.service';
 import {LoadingService} from '../services/loading.service';
-import {catchError, filter, map, share, switchMap, tap} from 'rxjs/operators';
-import {MatDialog} from '@angular/material/dialog';
-import {MatSnackBar} from '@angular/material/snack-bar';
-import {forkJoin, iif, Observable, of} from 'rxjs';
+
 import {EditAccountPropsDialogComponent} from '../dialogs/edit-account-props-dialog/edit-account-props-dialog.component';
 import {ConfirmApprovalDialogComponent} from '../dialogs/confirm-approval-dialog/confirm-approval-dialog.component';
-import {LoginService} from '../auth/login.service';
 import {ChooseCreationMethodComponent} from '../dialogs/choose-creation-method/choose-creation-method.component';
 import {GenericConfirmDialogComponent} from '../dialogs/generic-confirm-dialog/generic-confirm-dialog.component';
+import {environment} from '@environments/environment';
 
 export interface AccountProps {
   first_name: string;
@@ -60,7 +57,7 @@ export class ApprovalListComponent implements OnInit {
 
   constructor(public http: HttpClient, loadingService: LoadingService, public snackBar: MatSnackBar = null,
               public dialog: MatDialog = null, public loginService: LoginService = null) {
-    this.accounts = new BaseService('v1/account/approvals/', http, loadingService);
+    this.accounts = new BaseService('v1/account/approvals', http, loadingService);
   }
 
   async ngOnInit() {
@@ -292,24 +289,21 @@ export class ApprovalListComponent implements OnInit {
   confirmDeleteAccountRequest(event, selectedRequest) {
     event.stopPropagation();
 
-    const dialogRef = this.dialog.open(ConfirmApprovalDialogComponent, {
-      width: '600px',
+    const dialogRef = this.dialog.open(GenericConfirmDialogComponent, {
+      width: '400px',
       data: {
-        action: 'delete',
-        selected_request: selectedRequest
+        message: `Confirmation will permanently delete ${selectedRequest.first_name}
+         ${selectedRequest.last_name}'s (${selectedRequest.organization}) request.`
       }
     });
-    dialogRef.afterClosed().pipe(switchMap(results => {
-        return iif(() => results.confirmed,
-          this.http.delete(`/v1/account/request/${selectedRequest.id}`).pipe(
-          switchMap(response => iif(() => response !== undefined,
-            this.accounts.getItems().pipe(tap((accountRequests) => {
-            this.snackBar.open('Deleted', null, {duration: 2000});
-            this.setAccountsListProps(accountRequests);
-            this.clearAllSelected();
-          }))))
-          )
-        );
+    dialogRef.afterClosed().pipe(
+      filter(confirmed => confirmed),
+      switchMap(() => this.accounts.delete(selectedRequest.id)),
+      switchMap(() => this.accounts.getItems()),
+      tap((accountRequests) => {
+        this.snackBar.open('Deleted', null, {duration: 2000});
+        this.setAccountsListProps(accountRequests);
+        this.clearAllSelected();
       }),
       catchError((err) => {
         of(this.handleErrorResponse(err));
@@ -342,26 +336,27 @@ export class ApprovalListComponent implements OnInit {
         switchMap(() => this.accounts.getItems())
       );
   }
+
   handleErrorResponse(err: HttpErrorResponse, customErrorMessages?: string[]) {
     if (err && err.error && err.error.detail) {
       this.snackBar.open(err.error.detail, null, {
-        duration: CONFIG_SETTINGS.snackbar_duration, panelClass: ['snackbar-error']
+        duration: environment.snackbar_duration, panelClass: ['snackbar-error']
       });
     } else if (err && err.error && typeof err.error === 'string') {
       this.snackBar.open(err.error, null, {
-        duration: CONFIG_SETTINGS.snackbar_duration, panelClass: ['snackbar-error']
+        duration: environment.snackbar_duration, panelClass: ['snackbar-error']
       });
     } else if (err && err.error && err.error instanceof Array) {
       this.snackBar.open(`Error: ${JSON.stringify(err.error[0])}`, null, {
-        duration: CONFIG_SETTINGS.snackbar_duration, panelClass: ['snackbar-error']
+        duration: environment.snackbar_duration, panelClass: ['snackbar-error']
       });
     } else if (customErrorMessages.length > 0) {
       this.snackBar.open(customErrorMessages.join(', '), null, {
-        duration: CONFIG_SETTINGS.snackbar_duration, panelClass: ['snackbar-error']
+        duration: environment.snackbar_duration, panelClass: ['snackbar-error']
       });
     } else {
       this.snackBar.open('Error occurred.', null, {
-        duration: CONFIG_SETTINGS.snackbar_duration, panelClass: ['snackbar-error']
+        duration: environment.snackbar_duration, panelClass: ['snackbar-error']
       });
     }
   }

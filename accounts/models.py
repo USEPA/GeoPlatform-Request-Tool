@@ -360,6 +360,17 @@ class ResponseProject(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def disable_users_link(self):
+        # define link to relevant user accounts
+        agol = AGOL.objects.first()
+        url = f'{agol.portal_url}/home/organization.html?'
+        query_params = {'showFilters': 'false', 'view': 'table', 'sortOrder': 'asc', 'sortField': 'fullname'}
+        # get account request AGOL IDs to define in link
+        agol_ids = list(str(acct.agol_id).replace('-', '') for acct in self.accountrequests_set.filter(agol_id__isnull=False))
+        agol_ids_param = '&searchTerm=' + '%20OR%20'.join(agol_ids)
+        return f'{url}{urlencode(query_params)}{agol_ids_param}#members'
+
     class Meta:
         verbose_name_plural = 'Responses/Projects'
         verbose_name = 'Response/Project'

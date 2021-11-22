@@ -9,11 +9,12 @@ from django.shortcuts import get_list_or_404, get_object_or_404
 from django_filters.rest_framework import FilterSet, BooleanFilter, DateFilter, NumberFilter
 from django.db.models import Q, Count
 from django.template.response import TemplateResponse
+from django.http.response import HttpResponse
 
 from .models import *
 from .serializers import *
 from .permissions import IsSponsor
-from .func import create_accounts, add_accounts_to_groups, update_requests_groups
+from .func import create_accounts, add_accounts_to_groups, update_requests_groups, email_response_project_disabled
 
 from core.mixins import ContentTypeListMixin
 
@@ -262,5 +263,6 @@ class SponsorsViewSet(ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     search_fields = ['last_name', 'first_name', 'email']
     filter_fields = ['response', 'agol_info__delegates']
+
 
 
