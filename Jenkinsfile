@@ -7,13 +7,13 @@ node {
     dir('D:\\R9Web\\GeoPlatform-Request-Tool-Staging') {
         checkout scm
         stage('update backend dependencies') {
-            bat "..\\venv\\Scripts\\activate && pip install -r requirements.txt"
+            bat ".\\venv\\Scripts\\activate && pip install -r requirements.txt"
         }
         stage('run backend test') {
-            bat "..\\venv\\Scripts\\activate && python manage.py test --noinput"
+            bat ".\\venv\\Scripts\\activate && python manage.py test --noinput"
         }
         stage('run migrations') {
-            bat "..\\venv\\scripts\\activate && python manage.py migrate"
+            bat ".\\venv\\scripts\\activate && python manage.py migrate"
         }
     }
     dir('.\\ui') {
