@@ -15,7 +15,7 @@ from .models import *
 from .serializers import *
 from .permissions import IsSponsor
 from .func import create_accounts, add_accounts_to_groups, update_requests_groups
-
+from natsort import natsorted
 
 
 def format_username(data):
@@ -194,37 +194,38 @@ class AGOLGroupViewSet(ReadOnlyModelViewSet):
     serializer_class = AGOLGroupSerializer
     ordering = ['title']
     pagination_class = None
-    filter_fields = ['response']
+    filter_fields = ['response', 'is_auth_group']
+    search_fields = ['title']
 
     # only show groups for which the user the user has access per agol group fields assignable groups
     def get_queryset(self):
-        if self.request.query_params:
-            if 'all' in self.request.query_params and self.request.query_params['all'] == 'true':
-                return AGOLGroup.objects.all()
-            elif 'search' in self.request.query_params:
-                search_text = self.request.query_params['search']
-                return AGOLGroup.objects.filter(title__contains=search_text)
-            elif 'is_auth_group' in self.request.query_params:
-                is_auth_group = False
-                if self.request.query_params.get('is_auth_group').lower() == 'true':
-                    is_auth_group = True
-                elif self.request.query_params.get('is_auth_group').lower() == 'false':
-                    is_auth_group = False
-                return AGOLGroup.objects.filter(is_auth_group=is_auth_group)
+        # if self.request.query_params:
+        #     if 'all' in self.request.query_params and self.request.query_params['all'] == 'true':
+        #         return AGOLGroup.objects.all()
+            # elif 'search' in self.request.query_params:
+            #     search_text = self.request.query_params['search']
+            #     return AGOLGroup.objects.filter(title__contains=search_text)
+            # elif 'is_auth_group' in self.request.query_params:
+            #     is_auth_group = False
+            #     if self.request.query_params.get('is_auth_group').lower() == 'true':
+            #         is_auth_group = True
+            #     elif self.request.query_params.get('is_auth_group').lower() == 'false':
+            #         is_auth_group = False
+            #     return AGOLGroup.objects.filter(is_auth_group=is_auth_group)
 
         sponsors = User.objects.filter(agol_info__delegates=self.request.user)
         return AGOLGroup.objects.filter(Q(response__users=self.request.user) | Q(response__users__in=sponsors))
 
     @action(['GET'], detail=False)
     def all(self, request):
-        groups = AGOLGroup.objects.all()
+        groups = self.filter_queryset(AGOLGroup.objects.all())
         groups_list = list()
         for group in groups:
             groups_list.append({
-                'value': group.pk,
+                'id': group.pk,
                 'title': group.title.lstrip('​')
             })
-        sorted_group_list = sorted(groups_list, key=lambda x: x['title'])
+        sorted_group_list = natsorted(groups_list, key=lambda x: x['title'])
         return Response(sorted_group_list)
 
 

@@ -37,7 +37,7 @@ export class FieldCoordListComponent implements OnInit {
 
   constructor(public http: HttpClient, loadingService: LoadingService, public snackBar: MatSnackBar,
               public dialog: MatDialog, public loginService: LoginService) {
-    this.sponsors = new BaseService('v1/sponsors/', http, loadingService);
+    this.sponsors = new BaseService('v1/sponsors', http, loadingService);
   }
 
   ngOnInit() {

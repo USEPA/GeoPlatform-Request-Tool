@@ -23,14 +23,6 @@
       <input matInput required [(ngModel)]="data.email" type="email" formControlName="email" placeholder="Email">
       <mat-error *ngIf="requestFieldCoordForm.controls.email.invalid">Not a valid email</mat-error>
     </mat-form-field>
-    <!--authoritative group-->
-    <mat-form-field>
-      <mat-select formControlName="authoritative_group" placeholder="Primary Auth Group" aria-label="Primary Auth Group">
-        <mat-option *ngFor="let authGroupChoice of authGroupChoices | async" [value]="authGroupChoice.id">
-          {{authGroupChoice.title}}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
     <mat-form-field>
       <input matInput required type="text" formControlName="agol_user" placeholder="GeoPlatform User Account">
     </mat-form-field>

@@ -18,14 +18,12 @@ import {AgolGroup} from '../edit-account-props-dialog/edit-account-props-dialog.
   styleUrls: ['./request-field-coord-dialog.component.css']
 })
 export class RequestFieldCoordDialogComponent implements OnInit {
-  authGroupChoices: ReplaySubject<AgolGroup[]> = new ReplaySubject<AgolGroup[]>();
   requestFieldCoordForm: FormGroup = new FormGroup({
     first_name: new FormControl(null, [Validators.required]),
     last_name: new FormControl(null, [Validators.required]),
     phone_number: new FormControl(null, [Validators.required,
       Validators.pattern('[2-9]\\d{9}')]),
     email: new FormControl(null, [Validators.required, Validators.email]),
-    authoritative_group: new FormControl(null, [Validators.required]),
     agol_user: new FormControl(null, [Validators.required]),
     emergency_response: new FormControl(null)
   });
@@ -35,13 +33,7 @@ export class RequestFieldCoordDialogComponent implements OnInit {
               @Inject(MAT_DIALOG_DATA) public data: FieldCoordinator) {
   }
 
-  async ngOnInit() {
-    this.http.get<AgolGroup[]>('/v1/agol/groups',
-      {params: new HttpParams().set('is_auth_group', String(true))}).pipe(
-      tap((res) => {
-        this.authGroupChoices.next(res);
-      })
-    ).subscribe();
+  ngOnInit() {
   }
 
   submit() {

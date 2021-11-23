@@ -3,11 +3,12 @@ import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {HttpClient} from '@angular/common/http';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {map} from 'rxjs/operators';
+import {map, tap} from 'rxjs/operators';
 
 import {Response} from '@services/base.service';
 import {FieldCoordinator} from '../field-coord-list/field-coord-list.component';
 import {environment} from '@environments/environment';
+import {AgolGroup} from '../dialogs/edit-account-props-dialog/edit-account-props-dialog.component';
 
 
 @Component({
@@ -18,6 +19,7 @@ import {environment} from '@environments/environment';
 export class FieldCoordErRequestFormComponent implements OnInit {
   isLoading: Boolean;
   field_coordinators: Observable<FieldCoordinator[]>;
+  auth_groups: Observable<AgolGroup[]>;
   tags = [];
   submitting: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(null);
   fieldTeamCoordErForm: FormGroup = new FormGroup({
@@ -26,7 +28,8 @@ export class FieldCoordErRequestFormComponent implements OnInit {
     geoplatform_groups: new FormControl(null, Validators.required),
     requester: new FormControl(null, Validators.required),
     requester_phone_number: new FormControl(null,
-      [Validators.required, Validators.pattern('[2-9]\\d{9}')])
+      [Validators.required, Validators.pattern('[2-9]\\d{9}')]),
+    authoritative_group: new FormControl(null, Validators.required)
   });
 
   constructor(public http: HttpClient, public matSnackBar: MatSnackBar) {
@@ -37,6 +40,9 @@ export class FieldCoordErRequestFormComponent implements OnInit {
     this.field_coordinators = this.http.get<Response>('/v1/sponsors/').pipe(
       map(response => response.results)
     );
+
+    this.auth_groups = this.http.get<AgolGroup[]>('/v1/agol/groups/all/',
+      {params: {is_auth_group: true}});
   }
 
   async submit() {

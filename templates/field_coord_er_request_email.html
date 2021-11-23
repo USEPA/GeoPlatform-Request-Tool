@@ -14,9 +14,10 @@
             <li>GeoPlatform Groups:
             <ul>
                 {% for value in geoplatform_groups %}
-                    <li>{{value}}</li>
+                    <li>{{value.title}}</li>
                 {% endfor %}
             </ul></li>
+            <li>Authoritative Group: {{authoritative_group}}</li>
             <li>Coordinator / Requester Name: {{requester}}</li>
             <li>Coordinator / Requester Phone: {{requester_phone_number}}</li>
         </ul>

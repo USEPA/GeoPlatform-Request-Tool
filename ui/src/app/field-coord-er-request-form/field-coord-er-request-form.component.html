@@ -24,6 +24,14 @@
     <app-tag-input label="GeoPlatform Groups" [formControl]="fieldTeamCoordErForm.controls.geoplatform_groups"
                    [tags]="this.tags" hint="Select all applicable groups.">
     </app-tag-input>
+        <!--authoritative group-->
+    <mat-form-field>
+      <mat-select formControlName="authoritative_group" placeholder="Primary Auth Group" aria-label="Primary Auth Group">
+        <mat-option *ngFor="let authGroupChoice of auth_groups | async" [value]="authGroupChoice.title">
+          {{authGroupChoice.title}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
     <!--Field Coordinator / Requester's name-->
     <mat-form-field>
       <input matInput required type="text" formControlName="requester" placeholder="Coordinator / Requester Name">
