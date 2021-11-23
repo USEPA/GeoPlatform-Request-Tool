@@ -5,18 +5,17 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.filters import BaseFilterBackend
 
-from django.shortcuts import get_list_or_404, get_object_or_404
+from django.shortcuts import get_list_or_404, get_object_or_404, Http404
 from django_filters.rest_framework import FilterSet, BooleanFilter, DateFilter, NumberFilter
 from django.db.models import Q, Count
 from django.template.response import TemplateResponse
-from django.http.response import HttpResponse
+from django.utils.timezone import now
 
 from .models import *
 from .serializers import *
 from .permissions import IsSponsor
 from .func import create_accounts, add_accounts_to_groups, update_requests_groups, email_response_project_disabled
 
-from core.mixins import ContentTypeListMixin
 
 
 def format_username(data):
@@ -81,14 +80,17 @@ class AccountViewSet(ModelViewSet):
     def perform_update(self, serializer):
         agol = AGOL.objects.first()
         username_valid, agol_id, existing_groups = agol.check_username(self.request.data['username'])
-        account_request = serializer.save(username_valid=username_valid, agol_id=agol_id)
+        is_existing_account = True if agol_id is not None else False
+        account_request = serializer.save(username_valid=username_valid, agol_id=agol_id,
+                                          is_existing_account=is_existing_account)
         update_requests_groups(account_request, existing_groups, self.request.data['groups'])
 
     # create account (or queue up creation?)
     @action(['POST'], detail=False)
     def approve(self, request):
-        account_requests_list = get_list_or_404(AccountRequests, pk__in=request.data['accounts'])
         account_requests = AccountRequests.objects.filter(pk__in=request.data['accounts'])
+        if not account_requests:
+            return Http404
 
         # verify user has permission on each request submitted.
         for x in account_requests:
@@ -100,15 +102,15 @@ class AccountViewSet(ModelViewSet):
         # add accounts to groups
         group_success = add_accounts_to_groups(account_requests)
 
-        success = [x.pk for x in account_requests_list if x.pk in create_success and x.pk in group_success]
+        success = [x.pk for x in account_requests if x.pk in create_success and x.pk in group_success]
         AccountRequests.objects.filter(pk__in=success).update(created=now())
 
         # todo: this whole things needs more testing
-        if len(create_success) == len(account_requests_list) and len(group_success) == len(account_requests_list):
+        if len(create_success) == len(account_requests) and len(group_success) == len(account_requests):
             return Response()
-        if len(create_success) != len(account_requests_list):
+        if len(create_success) != len(account_requests):
             return Response("Error creating and updating accounts")
-        if len(group_success) != len(account_requests_list):
+        if len(group_success) != len(account_requests):
             return Response("Accounts created. Existing account NOT updated.")
 
         return Response(status=400)

@@ -99,7 +99,9 @@ class RequestAdmin(admin.ModelAdmin):
     list_filter = ['response', 'submitted', 'approved', 'created']
     fields = ['first_name', 'last_name', 'email', 'possible_existing_account', 'organization', 'username',
               'username_valid', 'user_type', 'role', 'auth_group', 'sponsor', 'sponsor_notified', 'reason',
-              'approved', 'created', 'response']
+              'approved', 'created', 'response', 'is_existing_account']
+    readonly_fields = ['possible_existing_account', 'username_valid', 'sponsor_notified', 'approved', 'created',
+                       'is_existing_account']
     inlines = [GroupAdminInline]
 
 
