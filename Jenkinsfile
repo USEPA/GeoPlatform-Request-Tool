@@ -5,7 +5,7 @@ milestone(buildNumber)
 
 node {
     dir('D:\\R9Web\\GeoPlatform-Request-Tool-Staging') {
-        scm checkout
+        checkout scm
         stage('update backend dependencies') {
             bat "..\\venv\\Scripts\\activate && pip install -r requirements.txt"
         }
