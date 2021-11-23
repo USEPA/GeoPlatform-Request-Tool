@@ -14,7 +14,7 @@ from django.utils.timezone import now
 from .models import *
 from .serializers import *
 from .permissions import IsSponsor
-from .func import create_accounts, add_accounts_to_groups, update_requests_groups, email_response_project_disabled
+from .func import create_accounts, add_accounts_to_groups, update_requests_groups
 
 
 

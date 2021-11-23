@@ -2,11 +2,17 @@ from rest_framework.serializers import ModelSerializer, CharField, PrimaryKeyRel
 from .models import *
 from rest_framework.decorators import api_view
 from rest_framework_recaptcha.fields import ReCaptchaField
+from .func import has_outstanding_request
 
 
 class AccountRequestSerializer(ModelSerializer):
     recaptcha = ReCaptchaField()
     response = PrimaryKeyRelatedField(required=True, queryset=ResponseProject.objects.all())
+
+    def validate(self, attrs):
+        # check for outstanding requests and reject if so
+        if has_outstanding_request(attrs):
+            raise ValidationError({'details': 'Outstanding request found.'})
 
     class Meta:
         model = AccountRequests

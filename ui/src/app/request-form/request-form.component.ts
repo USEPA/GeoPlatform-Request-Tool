@@ -37,22 +37,8 @@ export class RequestFormComponent implements OnInit {
   }
 
   async submit() {
+    this.matSnackBar.dismiss();
     this.submitting.next(true);
-    // check if an open account request has already been submitted for this email
-    const enteredEmail = this.requestForm.controls.email.value;
-    const params = new HttpParams().set('email', enteredEmail);
-    const result: [] = await this.http.get<any>(`${environment.local_service_endpoint}/v1/account/request/`, {params: params}).toPromise()
-      .then((responses) => {
-        return responses.results;
-    });
-    if (result && result.length > 0) {
-      this.matSnackBar.open(`Account Request already submitted for ${enteredEmail}`, 'Dismiss', {
-        panelClass: ['snackbar-error'],
-        verticalPosition: 'top'
-      });
-      return false;
-    }
-
     this.http.post(`${environment.local_service_endpoint}/v1/account/request/`, this.requestForm.value).pipe(
       tap(response => {
         this.matSnackBar.open('Request has been successfully submitted', 'Dismiss', {
@@ -62,11 +48,14 @@ export class RequestFormComponent implements OnInit {
         this.requestForm.reset();
       }),
       finalize(() => this.submitting.next(false)),
-      catchError(() => of(this.matSnackBar.open('Error', null, {
-        verticalPosition: 'top',
-        duration: 8000,
-        panelClass: ['snackbar-error']
-      })))
+      catchError(e => {
+        const message = e.error.details ? e.error.details.join(', ') : 'Error';
+        return of(this.matSnackBar.open(message, 'Dismiss', {
+          verticalPosition: 'top',
+          // duration: 8000,
+          panelClass: ['snackbar-error']
+        }));
+      })
     ).subscribe();
   }
 

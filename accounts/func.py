@@ -92,3 +92,10 @@ def email_response_project_disabled(response_project, send=True):
 
     except Exception as e:
         logger.error("Email Error: There was an error emailing the disabled Response Project's assigned sponsors and their delegates.")
+
+
+def has_outstanding_request(request_data):
+    print(request_data)
+    return AccountRequests.objects.filter(email=request_data['email'],
+                                          response=request_data['response'],
+                                          approved__isnull=True).exists()
