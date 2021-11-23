@@ -60,7 +60,7 @@ export class ApprovalListComponent implements OnInit {
     this.accounts = new BaseService('v1/account/approvals', http, loadingService);
   }
 
-  async ngOnInit() {
+  ngOnInit() {
     // this was used to give superusers full list when logging in... but they didn't like it
     // this.loginService.is_superuser ? null : this.accounts.filter = {approved_and_created: false};
 

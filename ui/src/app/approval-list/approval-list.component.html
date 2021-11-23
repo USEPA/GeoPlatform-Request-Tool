@@ -28,13 +28,14 @@
       <mat-form-field style="width:250px; padding-left: 25px; padding-top: 15px;">
         <input [formControl]="searchInput" matInput type="text" placeholder="Search"/>
         <button style="position:absolute; top:-5px; right:0px;" type="button" mat-icon-button
-          (click)="accounts.clearSearch()"
-          *ngIf="accounts.filter.search">
+                (click)="accounts.clearSearch()"
+                *ngIf="accounts.filter.search">
           <mat-icon>close</mat-icon>
         </button>
       </mat-form-field>
       <!--Action Buttons-->
-      <div style="display: flex; flex-direction: row; align-items: center; justify-content: space-evenly; padding-right: 25px;">
+      <div
+        style="display: flex; flex-direction: row; align-items: center; justify-content: space-evenly; padding-right: 25px;">
         <div>
           <button *ngIf="selectedAccountIds.length > 0" type="button" mat-raised-button color="warn"
                   (click)="editAccountDialog()" style="margin-right: 20px;">
@@ -113,18 +114,18 @@
           <mat-cell *cdkCellDef="let row" class="cell">{{ row.organization }}</mat-cell>
         </ng-container>
         <!-- Role -->
-<!--        <ng-container cdkColumnDef="role">-->
-<!--          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">-->
-<!--            Role-->
-<!--          </mat-header-cell>-->
-<!--          <mat-cell *cdkCellDef="let row" class="cell">-->
-<!--            <mat-select [(ngModel)]="row.role" (selectionChange)="row.changed = true">-->
-<!--              <mat-option *ngFor="let role of roles | async" [value]="role.value">-->
-<!--                {{ role.display }}-->
-<!--              </mat-option>-->
-<!--            </mat-select>-->
-<!--          </mat-cell>-->
-<!--        </ng-container>-->
+        <!--        <ng-container cdkColumnDef="role">-->
+        <!--          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">-->
+        <!--            Role-->
+        <!--          </mat-header-cell>-->
+        <!--          <mat-cell *cdkCellDef="let row" class="cell">-->
+        <!--            <mat-select [(ngModel)]="row.role" (selectionChange)="row.changed = true">-->
+        <!--              <mat-option *ngFor="let role of roles | async" [value]="role.value">-->
+        <!--                {{ role.display }}-->
+        <!--              </mat-option>-->
+        <!--            </mat-select>-->
+        <!--          </mat-cell>-->
+        <!--        </ng-container>-->
         <!-- Groups -->
         <ng-container cdkColumnDef="groups">
           <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
@@ -134,7 +135,8 @@
             <mat-icon *ngIf="row.groups.length > 0" style="color: green;">check</mat-icon>
             <mat-icon *ngIf="row.groups.length == 0" color="warn"
                       tooltipClass="'mat-tooltip'"
-                      matTooltip="No group has been selected.">warning</mat-icon>
+                      matTooltip="No group has been selected.">warning
+            </mat-icon>
           </mat-cell>
         </ng-container>
         <!-- sponsor -->
@@ -146,7 +148,8 @@
             <mat-icon *ngIf="row.sponsor" style="color: green;">check</mat-icon>
             <mat-icon *ngIf="!row.sponsor" color="warn"
                       tooltipClass="'mat-tooltip'"
-                      matTooltip="No sponsor has been selected.">warning</mat-icon>
+                      matTooltip="No sponsor has been selected.">warning
+            </mat-icon>
           </mat-cell>
         </ng-container>
         <!-- response -->
@@ -158,7 +161,8 @@
             <mat-icon *ngIf="row.response" style="color: green;">check</mat-icon>
             <mat-icon *ngIf="!row.response" color="warn"
                       tooltipClass="'mat-tooltip'"
-                      matTooltip="No response has been selected.">warning</mat-icon>
+                      matTooltip="No response has been selected.">warning
+            </mat-icon>
           </mat-cell>
         </ng-container>
         <!-- Reason -->
@@ -170,7 +174,8 @@
             <mat-icon *ngIf="row.reason" style="color: green;">check</mat-icon>
             <mat-icon *ngIf="!row.reason" color="warn"
                       tooltipClass="'mat-tooltip'"
-                      matTooltip="No reason has been provided.">warning</mat-icon>
+                      matTooltip="No reason has been provided.">warning
+            </mat-icon>
           </mat-cell>
         </ng-container>
         <!-- User Types -->
@@ -211,8 +216,9 @@
           <mat-header-cell *cdkHeaderCellDef class="header-cell">
             Delete
           </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell" [matTooltip]="!row.approved ? 'Delete unapproved request' : ''">
-            <button *ngIf="!row.approved" mat-icon-button (click)="confirmDeleteAccountRequest($event, row)">
+          <mat-cell *cdkCellDef="let row" class="cell">
+            <button *ngIf="!row.approved" mat-icon-button (click)="confirmDeleteAccountRequest($event, row)"
+                    [matTooltip]="!row.approved ? 'Delete unapproved request' : ''">
               <mat-icon style="color: red;">delete_forever</mat-icon>
             </button>
           </mat-cell>
@@ -222,9 +228,9 @@
         <mat-row *cdkRowDef="let row; columns: displayedColumns;" class="row"></mat-row>
       </mat-table>
       <mat-paginator [length]="accounts.count" [pageSize]="25"
-        [pageSizeOptions]="[10, 25, 50, 100]"
-        (page)="accounts.getPage($event)"
-        [pageIndex]="accounts.filter.page-1"></mat-paginator>
+                     [pageSizeOptions]="[10, 25, 50, 100]"
+                     (page)="accounts.getPage($event)"
+                     [pageIndex]="accounts.filter.page-1"></mat-paginator>
 
     </div>
   </div>

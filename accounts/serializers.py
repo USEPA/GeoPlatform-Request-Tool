@@ -14,6 +14,8 @@ class AccountRequestSerializer(ModelSerializer):
         if has_outstanding_request(attrs):
             raise ValidationError({'details': 'Outstanding request found.'})
 
+        return super().validate(attrs)
+
     class Meta:
         model = AccountRequests
         fields = ['first_name', 'last_name', 'email', 'organization', 'response', 'reason', 'recaptcha']

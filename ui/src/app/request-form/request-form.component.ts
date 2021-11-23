@@ -36,7 +36,7 @@ export class RequestFormComponent implements OnInit {
     this.responses = this.http.get<Response[]>(`${environment.local_service_endpoint}/v1/responses/`, {params: params});
   }
 
-  async submit() {
+  submit() {
     this.matSnackBar.dismiss();
     this.submitting.next(true);
     this.http.post(`${environment.local_service_endpoint}/v1/account/request/`, this.requestForm.value).pipe(

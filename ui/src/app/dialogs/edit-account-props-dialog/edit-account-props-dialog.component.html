@@ -21,7 +21,7 @@
     </mat-form-field>
         <!--sponsor-->
     <mat-form-field>
-      <mat-select required [(ngModel)]="data.sponsor" formControlName="sponsor" placeholder="Team Coordinator">
+      <mat-select required [(ngModel)]="data.sponsor" formControlName="sponsor" placeholder="Team Coordinator / Sponsor">
         <mat-option *ngFor="let sponsor of sponsors | async" [value]="sponsor.id">
           {{ sponsor.first_name }} {{ sponsor.last_name }}
         </mat-option>
