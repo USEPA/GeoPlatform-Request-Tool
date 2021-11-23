@@ -102,6 +102,7 @@ def mock_add_to_group(response, *args, **kwargs):
 
         def json(self):
             return response
+
     return MockResponse()
 
 
@@ -154,11 +155,11 @@ class TestAccounts(TestCase):
     def test_create_account(self, mock_post, mock_get):
         requests = AccountRequests.objects.all()
         result = self.agol.create_users_accounts(requests, 'password')
-        self.assertEqual(len(result), len(requests))
+        self.assertEqual(len(result), len(requests) - 1)
 
         # only test with non existing accounts
         requests = AccountRequests.objects.filter(agol_id=None)
-        result = agol.create_users_accounts(requests, 'password')
+        result = self.agol.create_users_accounts(requests, 'password')
         expected_output = [x.pk for x in requests]
         result.sort()
         self.assertEqual(result, expected_output)
@@ -217,38 +218,14 @@ class TestAccounts(TestCase):
         result = agol.add_to_group('username', 'group')
         self.assertTrue(result)
 
-
-
-
-    # todo: fix to test groups from add_to_group
-    @patch('accounts.models.requests.post')
-    def test_add_to_group(self, mock_post):
-        mock_post.return_value = MagicMock()
-        mock_post.return_value.json.return_value = {}
-        mock_post.return_value.status_code = 200
-
-        request = AccountRequests.objects.first()
-        request.agol_id = 'someid'
-        success = self.agol.add_to_group([request.agol_id], ['agroup'])
-        self.assertTrue(success)
-        mock_post.assert_called_with(
-            "https://epa.maps.arcgis.com/sharing/rest/community/groups/agroup/addUsers",
-            data={'users': 'someid', 'f': 'json', 'token': 'token'}
-        )
-
-        # verify non-200 code returns false
-        mock_post.return_value.status_code = 400
-        success = self.agol.add_to_group([request.agol_id], ['agroup'])
-        self.assertFalse(success)
-
     def test_invitations(self):
         agol = AGOL.objects.get(pk=1)
         agol.get_token = MagicMock(return_value='token')
         requests = AccountRequests.objects.filter(agol_id=None)
-        invitations = agol.generate_invitations(requests, 'password')
-        self.assertTrue(requests[0].email in invitations[0]["email"])
-        self.assertTrue(requests[0].first_name in invitations[0]["firstname"])
-        self.assertTrue(requests[0].last_name in invitations[0]["lastname"])
+        invitation = agol.generate_invitation(requests[0], 'password')
+        self.assertTrue(requests[0].email in invitation["email"])
+        self.assertTrue(requests[0].first_name in invitation["firstname"])
+        self.assertTrue(requests[0].last_name in invitation["lastname"])
 
     def test_user_has_account_request_permission(self):
         request = self.factory.get('/account/approvals')

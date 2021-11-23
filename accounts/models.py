@@ -219,7 +219,7 @@ class AGOL(models.Model):
         token = self.get_token()
         success = []
         url = f'{self.portal_url}/sharing/rest/portals/self/invite/'
-        for account_request in account_requests:
+        for account_request in [x for x in account_requests if x.agol_id is None]:
             invitation = self.generate_invitation(account_request, initial_password)
 
             # goofy way of encoding data since requests library does not seem to appreciate the nested structure.
