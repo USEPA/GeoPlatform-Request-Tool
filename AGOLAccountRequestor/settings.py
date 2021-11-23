@@ -118,7 +118,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
-STATIC_URL = getattr(local_settings, 'STATIC_URL', '/requests/static/')
+STATIC_URL = getattr(local_settings, 'STATIC_URL', '/request/static/')
 
 #STATIC_ROOT = 'static'
 STATICFILES_DIRS = (

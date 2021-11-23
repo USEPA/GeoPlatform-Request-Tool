@@ -20,8 +20,7 @@
             "tsConfig": "src/tsconfig.app.json",
             "assets": [
               "src/favicon.ico",
-              "src/assets",
-                "src/web.config"
+              "src/assets"
             ],
             "styles": [
               "src/styles.css",
@@ -39,6 +38,13 @@
                 {
                   "replace": "src/environments/environment.ts",
                   "with": "src/environments/environment.prod.ts"
+                }
+              ],
+              "assets": [
+                {
+                  "input": "src/prod/",
+                  "output": "/",
+                  "glob": "web.config"
                 }
               ],
               "optimization": true,
@@ -63,6 +69,13 @@
                 {
                   "replace": "src/environments/environment.ts",
                   "with": "src/environments/environment.staging.ts"
+                }
+              ],
+              "assets": [
+                {
+                  "input": "src/staging",
+                  "output": "/",
+                  "glob": "web.config"
                 }
               ],
               "optimization": true,
