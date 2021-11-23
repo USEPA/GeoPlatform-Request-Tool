@@ -21,7 +21,7 @@ node {
             bat "npm i"
         }
         stage("build frontend") {
-            bat "npm run build"
+            bat "npm run build:staging"
         }
     }
     stage("Approval") {
