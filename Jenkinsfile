@@ -16,17 +16,19 @@ node {
         stage('run migrations') {
             bat ".\\venv\\scripts\\activate && python manage.py migrate"
         }
-    }
-    dir('.\\ui') {
-        stage('update frontend dependencies') {
-            bat "npm i"
+
+        dir('.\\ui') {
+            stage('update frontend dependencies') {
+                bat "npm i"
+            }
+            stage("build frontend") {
+                bat "npm run build:staging"
+            }
         }
-        stage("build frontend") {
-            bat "npm run build:staging"
-        }
-    }
+   }
     stage("Approval") {
         input(message: "Approved for merge?")
         // todo: revert migrations on abort
     }
+
 }
