@@ -121,17 +121,12 @@ class AGOLRoleAdmin(admin.ModelAdmin):
         return False
 
 
-class ResponseProjectAdminForm(ModelForm):
-    def __init__(self, *args, **kwargs):
-        super(ResponseProjectAdminForm, self).__init__(*args, **kwargs)
-        self.fields['is_disabled'].help_text = 'Setting this will send an email notification to ' \
-                                               'assigned sponsors and their delegates.'
-
-
 class AccountRequestsInline(admin.TabularInline):
     model = AccountRequests
-    readonly_fields = fields = ['first_name', 'last_name', 'email', 'organization', 'username', 'approved', 'created']
+    readonly_fields = fields = ['first_name', 'last_name', 'email', 'organization', 'username', 'approved', 'created',
+                                'is_existing_account']
     extra = 0
+    show_change_link = True
 
     def has_delete_permission(self, request, obj=None):
         # unable to control delete permissions per account request so disable all in this view
@@ -146,12 +141,11 @@ class ResponseProjectAdmin(admin.ModelAdmin):
     fields = ['name', 'assignable_groups', 'role', 'authoritative_group', 'users', 'is_disabled', 'disable_users_link']
     readonly_fields = ['disable_users_link']
     autocomplete_fields = ['users', 'assignable_groups']
-    form = ResponseProjectAdminForm
     inlines = [AccountRequestsInline]
     list_filter = ['is_disabled']
 
     def save_model(self, request, obj, form, change):
-        if change and obj.is_disabled and AccountRequests.objects.filter(response=obj, agol_id__isnull=False).exists():
+        if change and not obj._is_disabled and obj.is_disabled:
             email_response_project_disabled(obj)
         super(ResponseProjectAdmin, self).save_model(request, obj, form, change)
 
@@ -175,3 +169,12 @@ class ResponseProjectAdmin(admin.ModelAdmin):
             BODY: <br/>{message}
         ''')
 
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = super().get_readonly_fields(request, obj)
+        if obj is None:
+            readonly_fields += ['is_disabled']
+        elif not obj.can_be_disabled():
+            readonly_fields += ['is_disabled']
+            field = [f for f in obj._meta.fields if f.name == 'is_disabled'][0]
+            field.help_text = 'Can not disable response/project while there are pending account requests.'
+        return readonly_fields

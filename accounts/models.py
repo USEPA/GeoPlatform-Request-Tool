@@ -44,7 +44,8 @@ class AccountRequests(models.Model):
     approved = models.DateTimeField(null=True, blank=True)
     created = models.DateTimeField(null=True, blank=True)
     agol_id = models.UUIDField(blank=True, null=True)
-    response = models.ForeignKey('ResponseProject', on_delete=models.PROTECT, blank=True, null=True)
+    response = models.ForeignKey('ResponseProject', on_delete=models.PROTECT, blank=True, null=True,
+                                 related_name='requests')
 
     def save(self, *args, **kwargs):
         # this resets role and auth_group if the response changes
@@ -59,6 +60,7 @@ class AccountRequests(models.Model):
         permissions = [
             ('view_all_accountrequests', 'Can view ALL Account Requests regardless of Sponsor')
         ]
+
 
 # class AGOLGroupThrough(models.Model):
 #     NEW_OR_EXISTING_CHOICES = (('new', 'New'),
@@ -128,7 +130,6 @@ class AGOL(models.Model):
                              params={'f': 'json', 'token': self.get_token()})
             return r.json()['id']
 
-
     def get_list(self, url, results_key='results'):
         try:
 
@@ -141,7 +142,8 @@ class AGOL(models.Model):
             while total_records != len(all_records) and total_records > len(all_records):
                 r = requests.get(f'{self.portal_url}/sharing/rest/{url}',
                                  params={'token': self.get_token(), 'f': 'json', 'q': q,
-                                         'num': '100', 'start': next_record, 'sortField': 'created', 'sortOrder': 'asc'})
+                                         'num': '100', 'start': next_record, 'sortField': 'created',
+                                         'sortOrder': 'asc'})
                 response_json = r.json(strict=False)
 
                 if update_total:
@@ -269,7 +271,7 @@ class AGOL(models.Model):
 
         response = r.json()
         if 'error' in response:
-             return False, None, []
+            return False, None, []
 
         if 'usernames' in response:
             # if it suggested matches requested...great this is normal for new accounts
@@ -345,6 +347,11 @@ class AGOLUserFields(models.Model):
 
 
 class ResponseProject(models.Model):
+    def __init__(self, *args, **kwargs):
+        super(ResponseProject, self).__init__(*args, **kwargs)
+        # capture is_disabled value at init before any changes are made
+        self._is_disabled = self.is_disabled
+
     users = models.ManyToManyField(User, related_name='response', verbose_name='Sponsors',
                                    limit_choices_to={'agol_info__sponsor': True})
     name = models.CharField('Name', max_length=500)
@@ -355,7 +362,8 @@ class ResponseProject(models.Model):
     authoritative_group = models.ForeignKey('AGOLGroup', on_delete=models.PROTECT,
                                             verbose_name='Geoplatform Authoritative Group',
                                             limit_choices_to={'is_auth_group': True})
-    is_disabled = models.BooleanField(default=False)
+    is_disabled = models.BooleanField(default=False, help_text='Setting this will send an email notification to ' \
+                                                               'assigned sponsors and their delegates.')
 
     def __str__(self):
         return self.name
@@ -367,9 +375,14 @@ class ResponseProject(models.Model):
         url = f'{agol.portal_url}/home/organization.html?'
         query_params = {'showFilters': 'false', 'view': 'table', 'sortOrder': 'asc', 'sortField': 'fullname'}
         # get account request AGOL IDs to define in link
-        agol_ids = list(str(acct.agol_id).replace('-', '') for acct in self.accountrequests_set.filter(agol_id__isnull=False))
+        agol_ids = list(
+            str(acct.agol_id).replace('-', '') for acct in self.requests.filter(agol_id__isnull=False,
+                                                                                is_existing_account=False))
         agol_ids_param = '&searchTerm=' + '%20OR%20'.join(agol_ids)
         return f'{url}{urlencode(query_params)}{agol_ids_param}#members'
+
+    def can_be_disabled(self):
+        return not self.requests.filter(approved__isnull=True).exists()
 
     class Meta:
         verbose_name_plural = 'Responses/Projects'
