@@ -148,6 +148,7 @@ class ResponseProjectAdmin(admin.ModelAdmin):
     autocomplete_fields = ['users', 'assignable_groups']
     form = ResponseProjectAdminForm
     inlines = [AccountRequestsInline]
+    list_filter = ['is_disabled']
 
     def save_model(self, request, obj, form, change):
         if change and obj.is_disabled and AccountRequests.objects.filter(response=obj, agol_id__isnull=False).exists():
