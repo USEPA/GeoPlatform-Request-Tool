@@ -5,6 +5,7 @@ import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, finalize, map, share, tap} from 'rxjs/operators';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {environment} from '../../environments/environment';
+import {ActivatedRoute} from '@angular/router';
 
 interface Response {
   id: number;
@@ -28,12 +29,25 @@ export class RequestFormComponent implements OnInit {
     recaptcha: new FormControl(null, Validators.required)
   });
 
-  constructor(public http: HttpClient, public matSnackBar: MatSnackBar) {
+  constructor(public http: HttpClient, public matSnackBar: MatSnackBar, private activatedRoute: ActivatedRoute) {
   }
 
   ngOnInit() {
-    const params = new HttpParams().set('is_disabled', String(false));
-    this.responses = this.http.get<Response[]>(`${environment.local_service_endpoint}/v1/responses/`, {params: params});
+    const queryParams = this.activatedRoute.snapshot.queryParamMap;
+    const params = {
+      is_disabled: false,
+      id_in: queryParams.has('response') ? queryParams.get('response') : ''
+    };
+    this.responses = this.http.get<Response[]>(
+      `${environment.local_service_endpoint}/v1/responses/`,
+      {params}
+    ).pipe(
+      tap(r => {
+        if (r.length === 1) {
+          this.requestForm.patchValue({response: r[0].id});
+        }
+      })
+    );
   }
 
   submit() {

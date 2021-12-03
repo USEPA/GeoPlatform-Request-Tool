@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.filters import BaseFilterBackend
 
 from django.shortcuts import get_list_or_404, get_object_or_404, Http404
-from django_filters.rest_framework import FilterSet, BooleanFilter, DateFilter, NumberFilter
+from django_filters.rest_framework import FilterSet, BooleanFilter, DateFilter, NumberFilter, BaseCSVFilter
 from django.db.models import Q, Count
 from django.template.response import TemplateResponse
 from django.utils.timezone import now
@@ -236,6 +236,7 @@ class AGOLGroupViewSet(ReadOnlyModelViewSet):
 
 class ResponseProjectFilterSet(FilterSet):
     for_approver = BooleanFilter(method='for_approver_func')
+    id_in = BaseCSVFilter(field_name='pk', lookup_expr='in')
 
     def for_approver_func(self, queryset, name, value):
         if not value:
