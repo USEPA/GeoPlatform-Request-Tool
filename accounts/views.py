@@ -10,6 +10,7 @@ from django_filters.rest_framework import FilterSet, BooleanFilter, DateFilter, 
 from django.db.models import Q, Count
 from django.template.response import TemplateResponse
 from django.utils.timezone import now
+from django.core.exceptions import ObjectDoesNotExist
 
 from .models import *
 from .serializers import *
@@ -36,10 +37,14 @@ class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
         username_valid, agol_id, groups = agol.check_username(username)
         possible_accounts = agol.find_accounts_by_email(self.request.data['email'])
         is_existing_account = True if agol_id is not None else False
+        # try to capture reason here but proceed if we can't
+        try:
+            reason = ResponseProject.objects.get(id=self.request.data['response']).default_reason
+        except ObjectDoesNotExist:
+            reason = None
         account_request = serializer.save(username_valid=username_valid, agol_id=agol_id, username=username,
-                                          possible_existing_account=possible_accounts,
-                                          is_existing_account=is_existing_account)
-
+                                          is_existing_account=is_existing_account,
+                                          possible_existing_account=possible_accounts, reason=reason)
         update_requests_groups(account_request, groups)
 
 

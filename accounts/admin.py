@@ -138,7 +138,8 @@ class ResponseProjectAdmin(admin.ModelAdmin):
     list_display = ['name']
     search_fields = ['name']
     ordering = ['name']
-    fields = ['name', 'assignable_groups', 'role', 'authoritative_group', 'users', 'is_disabled', 'disable_users_link']
+    fields = ['name', 'assignable_groups', 'role', 'authoritative_group', 'users', 'default_reason', 'is_disabled',
+              'disable_users_link']
     readonly_fields = ['disable_users_link']
     autocomplete_fields = ['users', 'assignable_groups']
     inlines = [AccountRequestsInline]

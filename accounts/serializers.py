@@ -18,7 +18,7 @@ class AccountRequestSerializer(ModelSerializer):
 
     class Meta:
         model = AccountRequests
-        fields = ['first_name', 'last_name', 'email', 'organization', 'response', 'reason', 'recaptcha']
+        fields = ['first_name', 'last_name', 'email', 'organization', 'response', 'recaptcha']
 
 
 class SponsorSerializer(ModelSerializer):
@@ -39,6 +39,7 @@ class SponsorWithUsernameSerializer(SponsorSerializer):
 
 class AccountSerializer(ModelSerializer):
     response = PrimaryKeyRelatedField(required=True, queryset=ResponseProject.objects.all())
+    reason = CharField(required=True, allow_null=False, allow_blank=False)
 
     class Meta:
         model = AccountRequests

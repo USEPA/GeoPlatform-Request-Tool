@@ -9,20 +9,21 @@ import json
 from django.core.exceptions import ValidationError
 from django.template.loader import get_template
 
+REASON_CHOICES = (('Emergency Response', 'Emergency Response'),
+                  ('Other Federal Agency', 'Other Federal Agency'),
+                  ('State Agency', 'State Agency'),
+                  ('University', 'University'),
+                  ('Long Term GIS Support', 'Long Term GIS Support'),
+                  ('Non Government Organization', 'Non Government Organization'),
+                  ('Tribal Government', 'Tribal Government'),
+                  ('Citizen Advisor', 'Citizen Advisor'),
+                  ('Other', 'Other'))
+
 
 class AccountRequests(models.Model):
     USER_TYPE_CHOICES = (('creatorUT', 'Creator'),)
     ROLE_CHOICES = (('jmc1ObdWfBTH6NAN', 'EPA Publisher'),
                     ('71yacZLdeuDirQ6K', 'EPA Viewer'))
-    REASON_CHOICES = (('Emergency Response', 'Emergency Response'),
-                      ('Other Federal Agency', 'Other Federal Agency'),
-                      ('State Agency', 'State Agency'),
-                      ('University', 'University'),
-                      ('Long Term GIS Support', 'Long Term GIS Support'),
-                      ('Non Government Organization', 'Non Government Organization'),
-                      ('Tribal Government', 'Tribal Government'),
-                      ('Citizen Advisor', 'Citizen Advisor'),
-                      ('Other', 'Other'))
 
     first_name = models.CharField(max_length=200)
     last_name = models.CharField(max_length=200)
@@ -38,7 +39,7 @@ class AccountRequests(models.Model):
     auth_group = models.ForeignKey('AGOLGroup', on_delete=models.DO_NOTHING, blank=True, null=True)
     sponsor = models.ForeignKey(User, on_delete=models.PROTECT, blank=True, null=True)
     sponsor_notified = models.BooleanField(default=False)
-    reason = models.CharField(max_length=200, choices=REASON_CHOICES, default='Emergency Response')
+    reason = models.CharField(max_length=200, choices=REASON_CHOICES, blank=True, null=True)
     recaptcha = models.TextField()
     submitted = models.DateTimeField(auto_now_add=True)
     approved = models.DateTimeField(null=True, blank=True)
@@ -364,6 +365,8 @@ class ResponseProject(models.Model):
                                             limit_choices_to={'is_auth_group': True})
     is_disabled = models.BooleanField(default=False, help_text='Setting this will send an email notification to ' \
                                                                'assigned sponsors and their delegates.')
+    default_reason = models.CharField(max_length=200, choices=REASON_CHOICES, verbose_name='Default Reason / Affiliation')
+
 
     def __str__(self):
         return self.name
