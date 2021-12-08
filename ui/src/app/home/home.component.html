@@ -16,7 +16,7 @@
   <app-request-form></app-request-form>
   <div style="display: flex; justify-content: center" *ngIf="isResponseInURL | async">
     <p>
-      Can't find the Response / Project you are looking for? <a href="/">Click here for full list</a>
+      Can't find the Response / Project you are looking for? <a routerLink="" [queryParams]="{}">Click here for full list</a>
     </p>
   </div>
 </div>
