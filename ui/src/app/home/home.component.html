@@ -1,5 +1,4 @@
 <div style="max-width: 800px;">
-  <!--  <section id="homepage-info">-->
   <div style="display: flex; flex-direction: column;  align-items: center; margin-bottom: 25px;" *ngIf="!(isResponseInURL | async)">
     <p>
       The GeoPlatform Account Request Tool provisions EPA GeoPlatform (GPO) user accounts during emergency response
@@ -14,10 +13,7 @@
       Configure New Response / Project
     </button>
   </div>
-  <!--  </section>-->
-  <!--  <section id="homepage-options">-->
   <app-request-form></app-request-form>
-  <!--  </section>-->
   <div style="display: flex; justify-content: center" *ngIf="isResponseInURL | async">
     <p>
       Can't find the Response / Project you are looking for? <a href="/">Click here for full list</a>
