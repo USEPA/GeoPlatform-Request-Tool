@@ -68,7 +68,7 @@ class ResponseProjectSerializer(ModelSerializer):
 class FullResponseProjectSerializer(ModelSerializer):
     class Meta:
         model = ResponseProject
-        fields = ['users', 'name', 'assignable_groups', 'authoritative_group', 'default_reason', 'role', 'requester']
+        fields = ['id', 'users', 'name', 'assignable_groups', 'authoritative_group', 'default_reason', 'role', 'requester']
 
 
 class AGOLRoleSerializer(ModelSerializer):
