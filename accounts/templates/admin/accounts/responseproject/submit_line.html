@@ -1,0 +1,17 @@
+{% extends 'admin/submit_line.html' %}
+{% load i18n admin_urls %}
+
+{% block submit-row %}
+
+
+    {% if original and not original.approved %}
+       <input style="background-color: orangered;" type="submit" name="approve" value="{% trans "Save and Approve" %}">
+    {% endif %}
+
+    {% if original and original.approved and not original.disabled and original.can_be_disabled %}
+       <input style="background-color: orangered;" type="submit" name="disable" value="{% trans "Save and Disable" %}">
+    {% endif %}
+
+    {{ block.super }}
+
+{% endblock %}

@@ -1,6 +1,7 @@
 from social_core.backends.oauth import BaseOAuth2
 from django.contrib.auth.models import User
 from social_core.exceptions import AuthException
+from accounts.models import AGOLUserFields
 
 
 class AGOLOAuth2(BaseOAuth2):
@@ -61,15 +62,6 @@ class AGOLOAuth2(BaseOAuth2):
 
 
 def associate_by_username(backend, details, user=None, *args, **kwargs):
-    """
-    Associate current auth with a user with the same email address in the DB.
-
-    This pipeline entry is not 100% secure unless you know that the providers
-    enabled enforce email verification on their side, otherwise a user can
-    attempt to take over another user account by using the same (not validated)
-    email address on some provider.  This pipeline entry is disabled by
-    default.
-    """
     if user:
         return None
 
@@ -89,3 +81,25 @@ def associate_by_username(backend, details, user=None, *args, **kwargs):
         else:
             return {'user': users[0],
                     'is_new': False}
+
+
+def create_accounts_for_preapproved_domains(backend, details, user=None, *args, **kwargs):
+    if user:
+        return None
+
+    email_domain = details.get('email').split('@')[1]
+    if email_domain in backend.setting('PREAPPROVED_DOMAINS'):
+        user = User.objects.create_user(
+            username=details.get('username'),
+            email=details.get('email'),
+            first_name=details.get('first_name'),
+            last_name=details.get('last_name'),
+        )
+        AGOLUserFields.objects.create(user=user,
+                                      agol_username=user.username)
+        # any authenticated user needs to be able to create
+        user.user_permissions.add('accountss.add_responseprojects')
+        return {
+            'user': user,
+            'is_new': True
+        }

@@ -1,8 +1,7 @@
-from rest_framework import permissions
-from rest_framework.permissions import DjangoModelPermissions
+from AGOLAccountRequestor.permissions import CustomDjangoModelPermissions
 
 
-class IsSponsor(DjangoModelPermissions):
+class IsSponsor(CustomDjangoModelPermissions):
     """
     Object-level permission to only allow owners of an object to edit it.
     """

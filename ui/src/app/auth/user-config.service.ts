@@ -11,6 +11,9 @@ export interface UserConfig {
   is_superuser: boolean;
   is_staff: boolean;
   is_sponsor: boolean;
+  is_delegate: boolean;
+  delegate_for: number[];
+  phone_number: string;
 }
 
 @Injectable({
@@ -18,11 +21,10 @@ export interface UserConfig {
 })
 export class UserConfigService {
   config: ReplaySubject<UserConfig> = new ReplaySubject<UserConfig>();
-  base_map_id: ReplaySubject<string> = new ReplaySubject<string>();
   private current_config: UserConfig;
   constructor(public http: HttpClient) {
     this.config.pipe(share()).subscribe(config => this.current_config = config);
-    this.loadConfig();
+    this.loadConfig().subscribe();
   }
 
   loadConfig(): Observable<any> {

@@ -23,14 +23,17 @@ def current_user(request):
     for groups in request.user.groups.all():
         for permission in groups.permissions.all():
             permissions.append(permission.codename)
-
+    delegate_for = request.user.delegate_for.values_list('id', flat=True)
     current_user = {
         'id': request.user.id,
         'name': '{} {}'.format(request.user.first_name, request.user.last_name) if request.user.first_name else request.user.username,
         'permissions': set(permissions),
         'is_superuser': request.user.is_superuser,
         'is_staff': request.user.is_staff,
-        'is_sponsor': request.user.agol_info.sponsor
+        'is_sponsor': request.user.agol_info.sponsor,
+        'is_delegate': True if len(delegate_for) > 0 else False,
+        'delegate_for': delegate_for,
+        'phone_number': request.user.agol_info.phone_number
     }
     return Response(current_user)
 

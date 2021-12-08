@@ -1,13 +1,23 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+from django.template.loader import get_template
+from django.template.loader import render_to_string
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.models import ContentType
+from django.conf import settings
+
 import sys
 import requests
+from django.db.models import UniqueConstraint
 from social_django.utils import load_strategy
 import time
 from django.contrib.auth.models import User, Group
 from urllib.parse import urlencode
 import json
-from django.core.exceptions import ValidationError
-from django.template.loader import get_template
+
+import logging
+
+logger = logging.getLogger('AGOLAccountRequestor')
 
 REASON_CHOICES = (('Emergency Response', 'Emergency Response'),
                   ('Other Federal Agency', 'Other Federal Agency'),
@@ -22,8 +32,8 @@ REASON_CHOICES = (('Emergency Response', 'Emergency Response'),
 
 class AccountRequests(models.Model):
     USER_TYPE_CHOICES = (('creatorUT', 'Creator'),)
-    ROLE_CHOICES = (('jmc1ObdWfBTH6NAN', 'EPA Publisher'),
-                    ('71yacZLdeuDirQ6K', 'EPA Viewer'))
+    # ROLE_CHOICES = (('jmc1ObdWfBTH6NAN', 'EPA Publisher'),
+    #                 ('71yacZLdeuDirQ6K', 'EPA Viewer'))
 
     first_name = models.CharField(max_length=200)
     last_name = models.CharField(max_length=200)
@@ -38,7 +48,7 @@ class AccountRequests(models.Model):
     groups = models.ManyToManyField('AGOLGroup', blank=True, related_name='account_requests', through='GroupMembership')
     auth_group = models.ForeignKey('AGOLGroup', on_delete=models.DO_NOTHING, blank=True, null=True)
     sponsor = models.ForeignKey(User, on_delete=models.PROTECT, blank=True, null=True)
-    sponsor_notified = models.BooleanField(default=False)
+    # sponsor_notified = models.BooleanField(default=False)
     reason = models.CharField(max_length=200, choices=REASON_CHOICES, blank=True, null=True)
     recaptcha = models.TextField()
     submitted = models.DateTimeField(auto_now_add=True)
@@ -47,13 +57,30 @@ class AccountRequests(models.Model):
     agol_id = models.UUIDField(blank=True, null=True)
     response = models.ForeignKey('ResponseProject', on_delete=models.PROTECT, blank=True, null=True,
                                  related_name='requests')
+    notifications = GenericRelation('Notification')
+
+    @property
+    def sponsor_notified(self):
+        return self.notifications.count() > 0
+
+    def create_new_notification(self):
+        n = Notification.objects.create(
+            subject='New GeoPlatform Account Request',
+            content=render_to_string("new_account_request_email.html", {"HOST_ADDRESS": settings.HOST_ADDRESS}),
+            content_object=self
+        )
+        n.to.set(self.response.get_email_recipients())
 
     def save(self, *args, **kwargs):
         # this resets role and auth_group if the response changes
         if self.response:
             self.role = self.response.role
             self.auth_group = self.response.authoritative_group
+
+        send_notification = self.pk is None
         super().save(*args, **kwargs)
+        if send_notification:
+            self.create_new_notification()
 
     class Meta:
         verbose_name_plural = 'Account Requests'
@@ -94,9 +121,16 @@ class AGOLRole(models.Model):
     description = models.TextField()
     is_available = models.BooleanField(default=False)
     agol = models.ForeignKey('AGOL', on_delete=models.CASCADE, related_name='roles')
+    system_default = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
+
+    def clean(self):
+        if self.system_default:
+            if (self.pk and AGOLRole.objects.filter(system_default=True).exclude(pk=self.pk).exists()) or \
+                    AGOLRole.objects.filter(system_default=True).exists():
+                raise ValidationError({'system_default': 'You cannot have more than one system default.'})
 
 
 class AGOL(models.Model):
@@ -341,6 +375,13 @@ class AGOLUserFields(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='agol_info')
     delegates = models.ManyToManyField(User, related_name='delegate_for', blank=True)
 
+    def get_email_recipients(self):
+        to = set()
+        to.add(self.user)
+        for delegate in self.delegates.all():
+            to.add(delegate)
+        return to
+
     def clean(self):
         super().clean()
         if self.sponsor and not self.user.email:
@@ -351,25 +392,34 @@ class ResponseProject(models.Model):
     def __init__(self, *args, **kwargs):
         super(ResponseProject, self).__init__(*args, **kwargs)
         # capture is_disabled value at init before any changes are made
-        self._is_disabled = self.is_disabled
+        self._disabled = self.disabled
 
     users = models.ManyToManyField(User, related_name='response', verbose_name='Sponsors',
-                                   limit_choices_to={'agol_info__sponsor': True})
+                                   limit_choices_to={'agol_info__sponsor': True}, blank=True)
     name = models.CharField('Name', max_length=500)
     assignable_groups = models.ManyToManyField('AGOLGroup', related_name='response',
                                                verbose_name='GeoPlatform Assignable Groups')
     role = models.ForeignKey('AGOLRole', on_delete=models.PROTECT, verbose_name='GeoPlatform Role',
-                             limit_choices_to={'is_available': True})
+                             limit_choices_to={'is_available': True}, null=True, blank=True,
+                             help_text='System default will be used if left blank.')
     authoritative_group = models.ForeignKey('AGOLGroup', on_delete=models.PROTECT,
                                             verbose_name='Geoplatform Authoritative Group',
                                             limit_choices_to={'is_auth_group': True})
-    is_disabled = models.BooleanField(default=False, help_text='Setting this will send an email notification to ' \
-                                                               'assigned sponsors and their delegates.')
-    default_reason = models.CharField(max_length=200, choices=REASON_CHOICES, verbose_name='Default Reason / Affiliation')
-
+    disabled = models.DateTimeField(null=True, blank=True)
+    disabled_by = models.ForeignKey(User, models.PROTECT, 'disabled_responses', null=True, blank=True)
+    default_reason = models.CharField(max_length=200, choices=REASON_CHOICES,
+                                      verbose_name='Default Reason / Affiliation')
+    approved = models.DateTimeField(null=True, blank=True)
+    approved_by = models.ForeignKey(User, models.PROTECT, 'approved_responses', null=True, blank=True)
+    requester = models.ForeignKey(User, models.PROTECT, 'requested_responses')
+    notifications = GenericRelation('Notification')
 
     def __str__(self):
         return self.name
+
+    @property
+    def sponsors(self):
+        return ','.join([f'{u.first_name} {u.last_name}' for u in self.users.all()])
 
     @property
     def disable_users_link(self):
@@ -387,6 +437,77 @@ class ResponseProject(models.Model):
     def can_be_disabled(self):
         return not self.requests.filter(approved__isnull=True).exists()
 
+    def save(self, *args, **kwargs):
+        if self.role is None:
+            self.role = AGOLRole.objects.get(system_default=True)
+        send_notification = self.pk is None
+        super().save(*args, **kwargs)
+        if send_notification:
+            self.create_new_notification()
+
+    def create_new_notification(self):
+        REQUEST_URL = f"{settings.HOST_ADDRESS}/api/admin/accounts/responseproject/{self.pk}"
+        n = Notification.objects.create(
+            subject='New Response/Project Request for Review in GeoPlatform Account Request Tool',
+            content=render_to_string("new_response_request_email.html", {"REQUEST_URL": REQUEST_URL}),
+            content_object=self
+        )
+        n.to.set(User.objects.filter(groups__name="Coordinator Admin"))
+
+    def get_email_recipients(self):
+        recipients = set()
+        for sponsor in self.users.all():
+            recipients.update(sponsor.agol_info.get_email_recipients())
+        return recipients
+
+    def generate_approval_email(self):
+        try:
+            # from_email_account = settings.GPO_REQUEST_EMAIL_ACCOUNT
+
+            recipients = self.get_email_recipients()
+            request_url = f"{settings.HOST_ADDRESS}?id_in={self.pk}"
+            approval_url = f"{settings.HOST_ADDRESS}/accounts/list"
+            email_subject = f"GeoPlatform Account Response/Project {self.name} has been approved"
+            msg = render_to_string('response_approval_email.html', {
+                "response_project": self,
+                "request_url": request_url,
+                "approval_url": approval_url
+            })
+            return recipients, email_subject, msg
+
+        except Exception as e:
+            logger.error(
+                "Email Error: There was an error emailing the disabled Response Project's assigned sponsors and their delegates.", e)
+
+    def generate_disable_email(self):
+        try:
+            # from_email_account = settings.GPO_REQUEST_EMAIL_ACCOUNT
+            recipients = self.get_email_recipients()
+            email_subject = f"GeoPlatform Account Response/Project {self.name} has been disabled"
+            msg = render_to_string('response_disable_email.html', {"response_project": self})
+            return recipients, email_subject, msg
+
+        except Exception as e:
+            logger.error(
+                "Email Error: There was an error emailing the disabled Response Project's assigned sponsors and their delegates.")
+
     class Meta:
         verbose_name_plural = 'Responses/Projects'
         verbose_name = 'Response/Project'
+
+
+class Notification(models.Model):
+    to = models.ManyToManyField(User)
+    subject = models.TextField()
+    content = models.TextField()
+    sent = models.DateTimeField(null=True, blank=True)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    def __str__(self):
+        return self.subject
+
+    @property
+    def to_emails(self):
+        return set([x.email.lower() for x in self.to.all()])

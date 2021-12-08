@@ -25,6 +25,11 @@ export interface Response {
   content_type?: number;
 }
 
+export interface Choice {
+  value: string;
+  display_name: string;
+}
+
 export class BaseService {
   currentPage: number;
   count: number;

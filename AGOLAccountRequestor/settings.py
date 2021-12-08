@@ -62,7 +62,7 @@ ROOT_URLCONF = 'AGOLAccountRequestor.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [os.path.join(BASE_DIR, 'templates'), os.path.join(BASE_DIR, 'accounts', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -144,7 +144,7 @@ SOCIAL_AUTH_AGOL_KEY = local_settings.SOCIAL_AUTH_AGOL_KEY
 SOCIAL_AUTH_AGOL_SECRET = local_settings.SOCIAL_AUTH_AGOL_SECRET
 SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
 SOCIAL_AUTH_PIPELINE = local_settings.SOCIAL_AUTH_PIPELINE
-
+SOCIAL_AUTH_AGOL_PREAPPROVED_DOMAINS = local_settings.SOCIAL_AUTH_AGOL_PREAPPROVED_DOMAINS
 
 REST_FRAMEWORK = local_settings.REST_FRAMEWORK
 
@@ -190,3 +190,5 @@ URL_PREFIX = getattr(local_settings, 'URL_PREFIX', '')
 LOGIN_REDIRECT_URL = f'/{URL_PREFIX}api/admin/'
 LOGIN_URL = f'/{URL_PREFIX}api/admin/'
 
+INTERNAL_IPS = getattr(local_settings, 'INTERNAL_IPS', [])
+HOST_ADDRESS = getattr(local_settings, 'HOST_ADDRESS', '')

@@ -1,0 +1,31 @@
+{% extends "admin/delete_confirmation.html" %}
+{% load i18n admin_urls static %}
+
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }}
+    approve-confirmation{% endblock %}
+
+{% block breadcrumbs %}
+    <div class="breadcrumbs">
+        <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+        &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+        &rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+        &rsaquo; <a
+            href="{% url opts|admin_urlname:'change' object.pk|admin_urlquote %}">{{ object|truncatewords:"18" }}</a>
+        &rsaquo; {{ type }}
+    </div>
+{% endblock %}
+
+{% block content %}
+    <p>Are you sure you want to {{ type | lower }} the {{ object_name }}
+        {% blocktrans with escaped_object=object %}<b>{{ escaped_object }}</b> response / project? The following email will be sent to the sponsors and their
+        delegates.{% endblocktrans %}</p>
+    <div style="padding: 20px;">
+        <h4>TO: {{ to }}</h4>
+        <h4>SUBJECT: {{ subject }}</h4>
+        <p>{{ email_content|safe }}</p>
+    </div>
+    <form method="POST">{%  csrf_token %}
+    <input type="submit" style="background-color: orangered;" value="{% trans "Yes, I'm sure" %}">
+    <a href="../change/" class="button cancel-link">{% trans "No, take me back" %}</a>
+    </form>
+{% endblock %}

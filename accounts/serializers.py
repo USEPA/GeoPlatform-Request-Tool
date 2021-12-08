@@ -1,4 +1,4 @@
-from rest_framework.serializers import ModelSerializer, CharField, PrimaryKeyRelatedField
+from rest_framework.serializers import ModelSerializer, CharField, PrimaryKeyRelatedField, ChoiceField, JSONField
 from .models import *
 from rest_framework.decorators import api_view
 from rest_framework_recaptcha.fields import ReCaptchaField
@@ -39,7 +39,7 @@ class SponsorWithUsernameSerializer(SponsorSerializer):
 
 class AccountSerializer(ModelSerializer):
     response = PrimaryKeyRelatedField(required=True, queryset=ResponseProject.objects.all())
-    reason = CharField(required=True, allow_null=False, allow_blank=False)
+    reason = ChoiceField(required=True, allow_null=False, allow_blank=False, choices=REASON_CHOICES)
 
     class Meta:
         model = AccountRequests
@@ -65,3 +65,21 @@ class ResponseProjectSerializer(ModelSerializer):
         fields = ['id', 'name']
 
 
+class FullResponseProjectSerializer(ModelSerializer):
+    class Meta:
+        model = ResponseProject
+        fields = ['users', 'name', 'assignable_groups', 'authoritative_group', 'default_reason', 'role', 'requester']
+
+
+class AGOLRoleSerializer(ModelSerializer):
+    class Meta:
+        model = AGOLRole
+        fields = '__all__'
+
+
+class PendingNotificationSerializer(ModelSerializer):
+    to_emails = JSONField()
+
+    class Meta:
+        model = Notification
+        fields = ['id', 'subject', 'content', 'to_emails']

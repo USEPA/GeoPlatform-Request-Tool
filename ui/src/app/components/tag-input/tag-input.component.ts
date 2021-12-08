@@ -31,7 +31,7 @@ export class TagInputComponent implements OnInit {
   filteredTags: Observable<TagItem[]>;
   tagsService: BaseService;
   allTags: Observable<Response>;
-    // for tag autocomplete... all may not be needed
+  // for tag autocomplete... all may not be needed
   separatorKeysCodes: number[] = [ENTER, COMMA];
   visible = true;
   selectable = true;
@@ -80,7 +80,7 @@ export class TagInputComponent implements OnInit {
       input.value = '';
     }
 
-    this.formControl.setValue(this.tags);
+    this.updateFormControl();
     this.tagsCtrl.setValue(null);
   }
 
@@ -90,7 +90,7 @@ export class TagInputComponent implements OnInit {
     if (index >= 0) {
       this.tags.splice(index, 1);
     }
-    this.formControl.setValue(this.tags);
+    this.updateFormControl();
   }
 
   selected(event: MatAutocompleteSelectedEvent): void {
@@ -98,7 +98,11 @@ export class TagInputComponent implements OnInit {
       this.tags.push({id: event.option.value.id, title: event.option.value.title});
     }
     this.tagInput.nativeElement.value = '';
-    this.formControl.setValue(this.tags);
+    this.updateFormControl();
     this.tagsCtrl.setValue(null);
+  }
+
+  private updateFormControl(): void {
+    this.formControl.setValue(this.tags.map(x => x.id));
   }
 }

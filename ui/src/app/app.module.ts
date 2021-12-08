@@ -24,8 +24,10 @@ import {FilterInputComponent} from './filter-input/filter-input.component';
 import { FieldCoordErRequestFormComponent } from './field-coord-er-request-form/field-coord-er-request-form.component';
 import { ChooseCreationMethodComponent } from './dialogs/choose-creation-method/choose-creation-method.component';
 import { GenericConfirmDialogComponent } from './dialogs/generic-confirm-dialog/generic-confirm-dialog.component';
-import {TagInputComponent} from './components/tag-input/tag-input.component';
+import {TagInputComponent} from '@components/tag-input/tag-input.component';
 import {LoadingService} from '@services/loading.service';
+import { ResponseProjectRequestDialogComponent } from './dialogs/response-project-request-dialog/response-project-request-dialog.component';
+import {CommonModule} from '@angular/common';
 
 
 
@@ -43,15 +45,16 @@ import {LoadingService} from '@services/loading.service';
     FieldCoordListComponent,
     FieldCoordErRequestFormComponent,
     ChooseCreationMethodComponent,
-    GenericConfirmDialogComponent
+    GenericConfirmDialogComponent,
+    ResponseProjectRequestDialogComponent
   ],
   imports: [
+    CommonModule,
     BrowserModule,
     AppRoutingModule,
     CdkTableModule,
     HttpClientModule,
     BrowserAnimationsModule,
-    NoopAnimationsModule,
     // RestangularModule.forRoot([LoginService], RestangularConfigFactory),
     FormsModule,
     ReactiveFormsModule,

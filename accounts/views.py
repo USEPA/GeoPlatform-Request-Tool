@@ -1,6 +1,6 @@
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.mixins import CreateModelMixin
-from rest_framework.permissions import AllowAny, BasePermission, IsAuthenticated
+from rest_framework.permissions import AllowAny, BasePermission, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.filters import BaseFilterBackend
@@ -59,7 +59,7 @@ class AccountFilterSet(FilterSet):
 
     class Meta:
         model = AccountRequests
-        fields = ['approved_and_created', 'approved', 'sponsor_notified']
+        fields = ['approved_and_created', 'approved']
 
 
 class SponsorFilterBackend(BaseFilterBackend):
@@ -80,7 +80,7 @@ class AccountViewSet(ModelViewSet):
     search_fields = ['first_name', 'last_name', 'username', 'organization']
     filterset_class = AccountFilterSet
     filter_backends = ModelViewSet.filter_backends + [SponsorFilterBackend]
-    permission_classes = (IsSponsor,)
+    permission_classes = [IsSponsor]
 
     def perform_update(self, serializer):
         agol = AGOL.objects.first()
@@ -157,31 +157,31 @@ class AccountViewSet(ModelViewSet):
     #         })
     #     return Response(sponsors_list)
 
-    @action(['GET', 'PUT'], detail=False)
-    def pending_notifications(self, request):
-        # if get send pending notifications with emails
-        if request.method == 'GET':
-            pending_notifications = AccountRequests.objects.filter(sponsor_notified=False,
-                                                                   approved__isnull=True,
-                                                                   created__isnull=True)\
-                .values('response__users')\
-                .annotate(total_pending=Count('response__users'))\
-                .filter(total_pending__gt=0)
-
-            for i, notification in enumerate(pending_notifications):
-                delegate_emails = User.objects.filter(delegate_for__user=notification['response__users']) \
-                    .values_list('email', flat=True)
-                pending_notifications[i]['sponsor'] = User.objects.get(pk=notification['response__users']).email
-                pending_notifications[i]['delegates'] = list(filter(None, delegate_emails))
-                pending_notifications[i].pop('response__users')
-
-            return Response(pending_notifications)
-
-        # post expects array of sponsor emails that have been notified successfully
-        if request.method == 'PUT':
-            AccountRequests.objects.filter(response__users__email__in=request.data.get('notified_sponsors', []))\
-                .update(sponsor_notified=True)
-            return Response()
+    # @action(['GET', 'PUT'], detail=False)
+    # def pending_notifications(self, request):
+    #     # if get send pending notifications with emails
+    #     if request.method == 'GET':
+    #         pending_notifications = AccountRequests.objects.filter(sponsor_notified=False,
+    #                                                                approved__isnull=True,
+    #                                                                created__isnull=True)\
+    #             .values('response__users')\
+    #             .annotate(total_pending=Count('response__users'))\
+    #             .filter(total_pending__gt=0)
+    #
+    #         for i, notification in enumerate(pending_notifications):
+    #             delegate_emails = User.objects.filter(delegate_for__user=notification['response__users']) \
+    #                 .values_list('email', flat=True)
+    #             pending_notifications[i]['sponsor'] = User.objects.get(pk=notification['response__users']).email
+    #             pending_notifications[i]['delegates'] = list(filter(None, delegate_emails))
+    #             pending_notifications[i].pop('response__users')
+    #
+    #         return Response(pending_notifications)
+    #
+    #     # post expects array of sponsor emails that have been notified successfully
+    #     if request.method == 'PUT':
+    #         AccountRequests.objects.filter(response__users__email__in=request.data.get('notified_sponsors', []))\
+    #             .update(sponsor_notified=True)
+    #         return Response()
 
     def get_serializer_class(self):
         if self.request.query_params.get('include_sponsor_details', False):
@@ -221,6 +221,11 @@ class AGOLGroupViewSet(ReadOnlyModelViewSet):
         sponsors = User.objects.filter(agol_info__delegates=self.request.user)
         return AGOLGroup.objects.filter(Q(response__users=self.request.user) | Q(response__users__in=sponsors))
 
+    def get_permissions(self):
+        if self.action == 'all':
+            return [AllowAny()]
+        return super(AGOLGroupViewSet, self).get_permissions()
+
     @action(['GET'], detail=False)
     def all(self, request):
         groups = self.filter_queryset(AGOLGroup.objects.all())
@@ -245,33 +250,50 @@ class ResponseProjectFilterSet(FilterSet):
         sponsors = User.objects.filter(agol_info__delegates=self.request.user)
         return queryset.filter(Q(users=self.request.user) | Q(users__in=sponsors))
 
+    class Meta:
+        model = ResponseProject
+        fields = ['disabled']
 
-class ResponseProjectViewSet(ReadOnlyModelViewSet):
-    queryset = ResponseProject.objects.all()
+
+class ResponseProjectViewSet(ModelViewSet):
+    queryset = ResponseProject.objects.filter(approved__isnull=False)
     serializer_class = ResponseProjectSerializer
     ordering = ['name']
-    permission_classes = [AllowAny]
     pagination_class = None
+    permission_classes = [IsAuthenticatedOrReadOnly]
     filterset_class = ResponseProjectFilterSet
 
-    def filter_queryset(self, queryset):
-        if 'is_disabled' in self.request.query_params:
-            is_disabled = False
-            if self.request.query_params.get('is_disabled').lower() == 'true':
-                is_disabled = True
-            elif self.request.query_params.get('is_disabled').lower() == 'false':
-                is_disabled = False
-            queryset = queryset.filter(is_disabled=is_disabled)
-        return super(ResponseProjectViewSet, self).filter_queryset(queryset)
+
+    def get_serializer_class(self):
+        if not self.request.user.is_anonymous:
+            return FullResponseProjectSerializer
+        return ResponseProjectSerializer
 
 
 class SponsorsViewSet(ReadOnlyModelViewSet):
     queryset = User.objects.filter(agol_info__sponsor=True)
     serializer_class = SponsorSerializer
     ordering = ['last_name']
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     search_fields = ['last_name', 'first_name', 'email']
     filter_fields = ['response', 'agol_info__delegates']
 
 
+class AGOLRoleViewSet(ReadOnlyModelViewSet):
+    queryset = AGOLRole.objects.all()
+    serializer_class = AGOLRoleSerializer
+    ordering = ['system_default', 'name']
+    search_fields = ['name', 'description']
+    filter_fields = ['system_default', 'is_available']
 
+
+class PendingNotificationViewSet(ReadOnlyModelViewSet):
+    queryset = Notification.objects.filter(sent__isnull=True)
+    serializer_class = PendingNotificationSerializer
+
+    @action(['PUT'], detail=True)
+    def mark_sent(self, request, pk=None):
+        notification = get_object_or_404(Notification, pk=pk)
+        notification.sent = now()
+        notification.save()
+        return Response('')
