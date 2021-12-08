@@ -43,7 +43,7 @@ class AccountSerializer(ModelSerializer):
 
     class Meta:
         model = AccountRequests
-        exclude = ['recaptcha', 'user_type', 'sponsor_notified']
+        exclude = ['recaptcha', 'user_type']
 
 
 class AccountWithSponsorSerializer(AccountSerializer):
