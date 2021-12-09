@@ -32,7 +32,6 @@ node {
             // todo: revert migrations on abort
         }
 
-    }
       slackSend(channel:"#r9-service-alerts", message: "Account Request Tool Staging Build COMPLETE")
   } catch(Exception e) {
       slackSend(channel:"#r9-service-alerts", message: "Account Request Tool Branch Staging Build FAILED")
