@@ -35,7 +35,7 @@ node {
 
 
   } catch(Exception e) {
-      slackSend(channel:"#r9-service-alerts", message: "Account Request Tool Branch Staging Build FAILED or SUPERSEDED")
+      slackSend(channel:"#r9-service-alerts", message: "Account Request Tool Staging Build FAILED or SUPERSEDED")
       slackSend(channel:"#r9-service-alerts", message: e)
     }
 }
