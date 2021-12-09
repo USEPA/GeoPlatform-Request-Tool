@@ -362,4 +362,9 @@ export class ApprovalListComponent implements OnInit {
       });
     }
   }
+
+  getPage(e) {
+    this.accounts.getPage(e);
+    this.clearAllSelected();
+  }
 }
