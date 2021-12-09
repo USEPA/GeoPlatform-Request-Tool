@@ -22,11 +22,9 @@ class AccountRequestSerializer(ModelSerializer):
 
 
 class SponsorSerializer(ModelSerializer):
-    phone_number = CharField(source='agol_info.phone_number')
-
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'email', 'phone_number']
+        fields = ['id', 'first_name', 'last_name', 'email']
 
 
 # do NOT user with Sponsor viewset b/c that is unsecured and this exposes username

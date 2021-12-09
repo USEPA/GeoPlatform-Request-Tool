@@ -98,7 +98,8 @@ def create_accounts_for_preapproved_domains(backend, details, user=None, *args, 
         AGOLUserFields.objects.create(user=user,
                                       agol_username=user.username)
         # any authenticated user needs to be able to create
-        user.user_permissions.add('accountss.add_responseprojects')
+        user.groups.add(backend.setting('UNKNOWN_REQUESTER_GROUP_ID'))
+
         return {
             'user': user,
             'is_new': True

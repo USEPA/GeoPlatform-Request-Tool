@@ -33,7 +33,6 @@ def current_user(request):
         'is_sponsor': request.user.agol_info.sponsor,
         'is_delegate': True if len(delegate_for) > 0 else False,
         'delegate_for': delegate_for,
-        'phone_number': request.user.agol_info.phone_number
     }
     return Response(current_user)
 

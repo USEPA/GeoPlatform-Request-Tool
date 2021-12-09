@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable, ReplaySubject} from 'rxjs';
-import {share, tap} from 'rxjs/operators';
+import {map, share, tap} from 'rxjs/operators';
 import {environment} from '../../environments/environment';
 
 export interface UserConfig {
@@ -22,19 +22,22 @@ export interface UserConfig {
 export class UserConfigService {
   config: ReplaySubject<UserConfig> = new ReplaySubject<UserConfig>();
   private current_config: UserConfig;
+  public authenticated = false;
   constructor(public http: HttpClient) {
     this.config.pipe(share()).subscribe(config => this.current_config = config);
     this.loadConfig().subscribe();
   }
 
   loadConfig(): Observable<any> {
-    return this.http.get(`/current_user/`).pipe(
+    return this.http.get<any>(`/current_user/`).pipe(
+      tap(() => this.authenticated = true),
       tap(config => this.config.next(config))
     );
   }
 
   clearConfig() {
     this.config.next();
+    this.authenticated = false;
   }
 
   // checkGroups(groups: string[]) {

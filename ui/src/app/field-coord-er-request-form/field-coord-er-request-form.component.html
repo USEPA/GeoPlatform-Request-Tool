@@ -63,14 +63,6 @@
     </mat-select>
   </mat-form-field>
 
-  <!--Field Coordinator / Requester's phone-->
-  <mat-form-field>
-    <mat-hint>Enter a 10-digit phone number without dashes or spaces.</mat-hint>
-    <input matInput required formControlName="requester_phone_number" placeholder="Coordinator / Requester Phone"
-           maxlength="10">
-    <mat-error *ngIf="fieldTeamCoordErForm.controls['requester_phone_number'].errors">Not a valid phone number
-    </mat-error>
-  </mat-form-field>
 </form>
 <br>
 <button mat-raised-button color="primary" [disabled]="!fieldTeamCoordErForm.valid" (click)="submit()">

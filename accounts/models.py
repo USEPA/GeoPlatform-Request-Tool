@@ -371,7 +371,6 @@ class AGOLUserFields(models.Model):
     agol_username = models.CharField(max_length=200, null=True, blank=True)
     sponsor = models.BooleanField(default=False)
 
-    phone_number = models.CharField(max_length=20, null=True, blank=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='agol_info')
     delegates = models.ManyToManyField(User, related_name='delegate_for', blank=True)
 
@@ -452,7 +451,7 @@ class ResponseProject(models.Model):
             content=render_to_string("new_response_request_email.html", {"REQUEST_URL": REQUEST_URL}),
             content_object=self
         )
-        n.to.set(User.objects.filter(groups__name="Coordinator Admin"))
+        n.to.set(User.objects.filter(groups__pk=settings.COORDINATOR_ADMIN_GROUP_ID))
 
     def get_email_recipients(self):
         recipients = set()

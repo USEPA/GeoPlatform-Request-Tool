@@ -31,8 +31,6 @@ export class FieldCoordErRequestFormComponent implements OnInit {
     users: new FormControl(null),
     assignable_groups: new FormControl(null, Validators.required),
     requester: new FormControl(null, Validators.required),
-    requester_phone_number: new FormControl(null,
-      [Validators.required, Validators.pattern('[2-9]\\d{9}')]),
     authoritative_group: new FormControl(null, Validators.required),
     default_reason: new FormControl(null, Validators.required),
     role: new FormControl(null, Validators.required)
