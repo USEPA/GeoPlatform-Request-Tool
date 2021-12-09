@@ -21,8 +21,8 @@ export class LoginComponent implements OnInit {
   }
 
   login(loginType: string) {
-    // this.loginService.loginTypeSource.next(loginType);
-    this.loginService.sendToLogin(loginType, window.location.origin + this.route.snapshot.queryParams.next);
+    const base_url = window.location.href.split('/login')[0];
+    this.loginService.sendToLogin(loginType, base_url + this.route.snapshot.queryParams.next);
   }
 
   // can not use b/c it would break mapping
