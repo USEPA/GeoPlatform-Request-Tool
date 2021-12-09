@@ -28,11 +28,12 @@ node {
             }
        }
         stage("Approval") {
+            slackSend(channel:"#r9-service-alerts", message: "Account Request Tool Staging Build COMPLETE")
             input(message: "Approved for merge?")
             // todo: revert migrations on abort
         }
 
-      slackSend(channel:"#r9-service-alerts", message: "Account Request Tool Staging Build COMPLETE")
+
   } catch(Exception e) {
       slackSend(channel:"#r9-service-alerts", message: "Account Request Tool Branch Staging Build FAILED")
       slackSend(channel:"#r9-service-alerts", message: e)
