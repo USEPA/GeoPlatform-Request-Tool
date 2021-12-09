@@ -477,6 +477,7 @@ class ResponseProject(models.Model):
         except Exception as e:
             logger.error(
                 "Email Error: There was an error emailing the disabled Response Project's assigned sponsors and their delegates.", e)
+            raise e
 
     def generate_disable_email(self):
         try:
@@ -489,6 +490,7 @@ class ResponseProject(models.Model):
         except Exception as e:
             logger.error(
                 "Email Error: There was an error emailing the disabled Response Project's assigned sponsors and their delegates.")
+            raise e
 
     class Meta:
         verbose_name_plural = 'Responses/Projects'

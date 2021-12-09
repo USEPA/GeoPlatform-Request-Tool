@@ -53,6 +53,7 @@ export class ApprovalListComponent implements OnInit {
   isApprovalReady: boolean;
   roles: Observable<[]>;
   user_types: Observable<[]>;
+  responses: Observable<any[]>;
   searchInput = new FormControl(null);
 
   constructor(public http: HttpClient, loadingService: LoadingService, public snackBar: MatSnackBar = null,
@@ -73,6 +74,7 @@ export class ApprovalListComponent implements OnInit {
     ).subscribe();
     this.roles = this.http.get<[]>('/v1/account/approvals/roles').pipe(share());
     this.user_types = this.http.get<[]>('/v1/account/approvals/user_types').pipe(share());
+    this.responses = this.http.get<[]>('/v1/responses', {params: {for_approver: true}}).pipe(share());
 
     this.searchInput.valueChanges.pipe(
       startWith(this.searchInput.value),

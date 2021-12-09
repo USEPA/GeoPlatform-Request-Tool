@@ -11,6 +11,12 @@
                       (filterCleared)="accounts.clearFilter('approved_and_created')"
                       label="Approved & Created" type="boolean"></filter-input>
       </mat-list-item>
+      <mat-list-item>
+        <filter-input [(filtered)]="accounts.filter.response"
+                      (filterCleared)="accounts.clearFilter('response')"
+                      [choices]="responses | async" value_field="id" field_name="name"
+                      label="Response / Project" type="choices"></filter-input>
+      </mat-list-item>
       <mat-list-item class="filter-btn">
         <button type="button" (click)="accounts.runSearch()" mat-raised-button
                 color="primary">

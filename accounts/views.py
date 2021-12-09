@@ -59,7 +59,7 @@ class AccountFilterSet(FilterSet):
 
     class Meta:
         model = AccountRequests
-        fields = ['approved_and_created', 'approved']
+        fields = ['approved_and_created', 'approved', 'response']
 
 
 class SponsorFilterBackend(BaseFilterBackend):
