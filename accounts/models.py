@@ -464,7 +464,7 @@ class ResponseProject(models.Model):
             # from_email_account = settings.GPO_REQUEST_EMAIL_ACCOUNT
 
             recipients = self.get_email_recipients()
-            request_url = f"{settings.HOST_ADDRESS}?id_in={self.pk}"
+            request_url = f"{settings.HOST_ADDRESS}?response={self.pk}"
             approval_url = f"{settings.HOST_ADDRESS}/accounts/list"
             email_subject = f"GeoPlatform Account Response/Project {self.name} has been approved"
             msg = render_to_string('response_approval_email.html', {
