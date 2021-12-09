@@ -51,6 +51,7 @@ import {CommonModule} from '@angular/common';
   imports: [
     CommonModule,
     BrowserModule,
+    AuthModule,
     AppRoutingModule,
     CdkTableModule,
     HttpClientModule,
@@ -61,7 +62,6 @@ import {CommonModule} from '@angular/common';
     RecaptchaModule,
     CustomMaterialModule,
     RecaptchaFormsModule,
-    AuthModule,
     HttpClientXsrfModule.withOptions({ cookieName: 'csrftoken', headerName: 'X-CSRFToken' }),
   ],
   providers: [{

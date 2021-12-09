@@ -46,7 +46,7 @@ export class HomeComponent implements OnInit {
         tap(() => this.clearResponseQueryParam())
       ).subscribe();
     } else {
-      this.router.navigate(['login'], {queryParams: {next: '/?new_response=true'}});
+      this.router.navigate(['login'], {queryParams: {next: `${window.location.pathname}?new_response=true`}});
     }
   }
 

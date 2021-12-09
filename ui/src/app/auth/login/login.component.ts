@@ -17,12 +17,11 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.showNewUserMessage = this.route.snapshot.queryParams.next === '/?new_response=true';
+    this.showNewUserMessage = this.route.snapshot.queryParams.next.includes('new_response=true');
   }
 
   login(loginType: string) {
-    const base_url = window.location.href.split('/login')[0];
-    this.loginService.sendToLogin(loginType, base_url + this.route.snapshot.queryParams.next);
+    this.loginService.sendToLogin(loginType, window.location.origin + this.route.snapshot.queryParams.next);
   }
 
   // can not use b/c it would break mapping
