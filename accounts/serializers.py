@@ -69,6 +69,14 @@ class FullResponseProjectSerializer(ModelSerializer):
         fields = ['id', 'users', 'name', 'assignable_groups', 'authoritative_group', 'default_reason', 'role', 'requester']
 
 
+class AccountWithNestedDataSerializer(AccountSerializer):
+    sponsor = SponsorWithUsernameSerializer(many=False, read_only=True)
+    response = FullResponseProjectSerializer(many=False, read_only=True)
+
+    class Meta(AccountSerializer.Meta):
+        pass
+
+
 class AGOLRoleSerializer(ModelSerializer):
     class Meta:
         model = AGOLRole

@@ -186,6 +186,8 @@ class AccountViewSet(ModelViewSet):
     def get_serializer_class(self):
         if self.request.query_params.get('include_sponsor_details', False):
             return AccountWithSponsorSerializer
+        if self.request.query_params.get('include_all_details', False):
+            return AccountWithNestedDataSerializer
         return AccountSerializer
 
     @action(['GET'], detail=True)
