@@ -270,7 +270,9 @@ export class ApprovalListComponent implements OnInit {
   openSetPasswordDialog(): Observable<any> {
     let password_needed = false;
     for (const account of this.accounts.data) {
-      if (this.selectedAccountIds.indexOf(account.id) > -1 && account.username_valid) {
+      if (this.selectedAccountIds.indexOf(account.id) > -1 &&
+        (!account.is_existing_account ||
+        !account.existing_account_enabled)) {
         password_needed = true;
         break;
       }

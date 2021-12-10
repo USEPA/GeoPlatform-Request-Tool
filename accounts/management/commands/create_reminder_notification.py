@@ -14,11 +14,12 @@ class Command(BaseCommand):
             .filter(total_pending__gt=0)
 
         for pending in pending_accounts:
-            n = Notification.objects.create(
+            Notification.create_new_notification(
                 subject='Pending GeoPlatform Account Requests',
-                content=render_to_string("reminder_pending_account_request_email.html", {
+                context={
                     "HOST_ADDRESS": settings.HOST_ADDRESS,
                     "count": pending.total_pending
-                })
+                },
+                template="reminder_pending_account_request_email.html",
+                to=pending.get_email_recipients()
             )
-            n.to.set(pending.get_email_recipients())

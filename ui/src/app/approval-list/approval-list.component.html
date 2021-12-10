@@ -92,8 +92,12 @@
             Username
           </mat-header-cell>
           <mat-cell *cdkCellDef="let row" class="cell">
-            <mat-icon color="warn" *ngIf="!row.username_valid"
+            <mat-icon color="warn" *ngIf="!row.username_valid && row.existing_account_enabled"
                       matTooltip="Username already exists. Approval will modify existing groups.">
+              warning
+            </mat-icon>
+            <mat-icon style="color: red;" *ngIf="!row.username_valid && !row.existing_account_enabled"
+                      matTooltip="Username already exists but account is disabled. Approval will re-enable account and modify existing groups.">
               warning
             </mat-icon>
             {{ row.username }}

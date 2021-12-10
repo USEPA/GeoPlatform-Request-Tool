@@ -1,4 +1,5 @@
-from rest_framework.serializers import ModelSerializer, CharField, PrimaryKeyRelatedField, ChoiceField, JSONField
+from rest_framework.serializers import ModelSerializer, CharField, PrimaryKeyRelatedField, ChoiceField, \
+    JSONField, BooleanField
 from .models import *
 from rest_framework.decorators import api_view
 from rest_framework_recaptcha.fields import ReCaptchaField
@@ -38,6 +39,7 @@ class SponsorWithUsernameSerializer(SponsorSerializer):
 class AccountSerializer(ModelSerializer):
     response = PrimaryKeyRelatedField(required=True, queryset=ResponseProject.objects.all())
     reason = ChoiceField(required=True, allow_null=False, allow_blank=False, choices=REASON_CHOICES)
+    existing_account_enabled = BooleanField(read_only=True)
 
     class Meta:
         model = AccountRequests

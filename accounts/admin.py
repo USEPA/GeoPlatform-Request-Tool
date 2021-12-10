@@ -110,12 +110,12 @@ class RequestAdmin(admin.ModelAdmin):
     list_display = ['last_name', 'first_name', 'email', 'username']
     search_fields = list_display
     ordering = ['-submitted']
-    list_filter = ['response', 'submitted', 'approved', 'created']
-    fields = ['first_name', 'last_name', 'email', 'possible_existing_account', 'organization', 'username',
+    list_filter = ['response', 'submitted', 'approved_by', 'approved', 'created']
+    fields = ['first_name', 'last_name', 'email', 'possible_existing_account', 'existing_account_enabled', 'organization', 'username',
               'username_valid', 'user_type', 'role', 'auth_group', 'sponsor', 'sponsor_notified', 'reason',
-              'approved', 'created', 'response', 'is_existing_account']
+              'approved', 'approved_by', 'created', 'response', 'is_existing_account']
     readonly_fields = ['possible_existing_account', 'username_valid', 'sponsor_notified', 'approved', 'created',
-                       'is_existing_account']
+                       'is_existing_account', 'existing_account_enabled', 'approved_by']
     inlines = [GroupAdminInline, PendingNotificationInline]
 
 
@@ -208,21 +208,16 @@ class ResponseProjectAdmin(admin.ModelAdmin):
 
     def approve_view(self, request, object_id):
         object = self.get_object(request, object_id)
-        to, subject, message = object.generate_approval_email()
 
         if request.POST:
             object.approved = now()
             object.approved_by = request.user
             object.save()
-            notification = Notification.objects.create(
-                subject=subject,
-                content=message,
-                content_object=object
-            )
-            notification.to.set(to)
             return redirect('../change')
+
         opts = self.model._meta
         app_label = opts.app_label
+        to, subject, message = object.generate_approval_email()
 
         return TemplateResponse(request, 'admin/confirmation.html', {
             'title': 'Are you sure?',
@@ -230,7 +225,7 @@ class ResponseProjectAdmin(admin.ModelAdmin):
             "opts": opts,
             "app_label": app_label,
             "type": "Approve",
-            "to": ', '.join(set([x.email.lower() for x in to])),
+            "to": ', '.join(to),
             "subject": subject,
             "email_content": message,
             'site_header': 'EPA GeoPlatform Account Request Tool',
@@ -238,30 +233,25 @@ class ResponseProjectAdmin(admin.ModelAdmin):
         })
 
     def disable_view(self, request, object_id):
-        object = self.get_object(request, object_id)
-        to, subject, message = object.generate_disable_email()
+        obj = self.get_object(request, object_id)
 
         if request.POST:
-            object.disabled = now()
-            object.disabled_by = request.user
-            object.save()
-            n = Notification.objects.create(
-                subject=subject,
-                content=message,
-                content_object=object
-            )
-            n.to.set(to)
+            obj.disabled = now()
+            obj.disabled_by = request.user
+            obj.save()
             return redirect('../change/')
+
         opts = self.model._meta
         app_label = opts.app_label
+        to, subject, message = obj.generate_disable_email()
 
         return TemplateResponse(request, 'admin/confirmation.html', {
             'title': 'Are you sure?',
-            "object": object,
+            "object": obj,
             "opts": opts,
             "app_label": app_label,
             "type": "Disable",
-            "to": ', '.join(set([x.email.lower() for x in to])),
+            "to": ', '.join(to),
             "subject": subject,
             "email_content": message,
             'site_header': 'EPA GeoPlatform Account Request Tool',
@@ -284,4 +274,3 @@ class PendingNotificationAdmin(admin.ModelAdmin):
     list_display = ['to_emails', 'subject', 'sent']
     fields = ['to', 'subject', 'content', 'sent']
     readonly_fields = ['sent']
-    autocomplete_fields = ['to']
