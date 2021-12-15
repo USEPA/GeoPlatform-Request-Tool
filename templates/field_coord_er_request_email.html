@@ -14,14 +14,15 @@
             <li>GeoPlatform Groups:
             <ul>
                 {% for value in geoplatform_groups %}
-                    <li>{{value}}</li>
+                    <li>{{value.title}}</li>
                 {% endfor %}
             </ul></li>
+            <li>Authoritative Group: {{authoritative_group}}</li>
             <li>Coordinator / Requester Name: {{requester}}</li>
             <li>Coordinator / Requester Phone: {{requester_phone_number}}</li>
         </ul>
         Please log in to the <a href="https://r9data.response.epa.gov/request/api/admin/">GeoPlatform
         Account Request Tool Administration</a> to configure a new project or response and notify the coordinator when
-        configuration is complete..
+        configuration is complete.
     </div>
 {% endblock %}

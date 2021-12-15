@@ -12,15 +12,15 @@ import {map, catchError, tap} from 'rxjs/operators';
 export class LoginComponent implements OnInit {
   username: string;
   password: string;
-
+  showNewUserMessage = false;
   constructor(private loginService: LoginService, private route: ActivatedRoute, private router: Router) {
   }
 
   ngOnInit() {
+    this.showNewUserMessage = this.route.snapshot.queryParams.next.includes('new_response=true');
   }
 
   login(loginType: string) {
-    // this.loginService.loginTypeSource.next(loginType);
     this.loginService.sendToLogin(loginType, window.location.origin + this.route.snapshot.queryParams.next);
   }
 

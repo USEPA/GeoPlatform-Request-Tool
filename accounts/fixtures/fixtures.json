@@ -5,11 +5,29 @@
     "fields": {
       "password": "secret password",
       "last_login": "2020-05-06T21:22:04.324Z",
-      "is_superuser": true,
-      "username": "aname",
-      "first_name": "a",
-      "last_name": "name",
-      "email": "aname@epa.gov",
+      "is_superuser": false,
+      "username": "sponsor",
+      "first_name": "sponsor",
+      "last_name": "sponsor",
+      "email": "sponsor@epa.gov",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2020-03-15T22:11:57Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 2,
+    "fields": {
+      "password": "secret password",
+      "last_login": "2020-05-06T21:22:04.324Z",
+      "is_superuser": false,
+      "username": "delegate",
+      "first_name": "delegate",
+      "last_name": "delegate",
+      "email": "delegate@epa.gov",
       "is_staff": true,
       "is_active": true,
       "date_joined": "2020-03-15T22:11:57Z",
@@ -38,7 +56,37 @@
       "approved": null,
       "created": null,
       "agol_id": null,
-      "groups": ["000b6ee1-21bb-4739-a502-1e0f0241ff01"],
+      "groups": [
+        "000b6ee1-21bb-4739-a502-1e0f0241ff01"
+      ],
+      "auth_group": "00237b67-4c33-47a1-8e0f-b2bfcdb248e1",
+      "response": 1
+    }
+  },
+  {
+    "model": "accounts.accountrequests",
+    "pk": 2,
+    "fields": {
+      "first_name": "Joe",
+      "last_name": "Smith",
+      "email": "Smith.Joe@epa.gov",
+      "possible_existing_account": "",
+      "organization": "Org",
+      "username": "Smith.Joe_EPAEXT",
+      "username_valid": true,
+      "user_type": "user_type",
+      "role": "specialid",
+      "sponsor": 1,
+      "sponsor_notified": false,
+      "reason": "Emergency Response",
+      "recaptcha": "supersecret",
+      "submitted": "2021-01-19T14:35:39.647Z",
+      "approved": "2021-01-19T14:35:39.647Z",
+      "created": "2021-01-19T14:35:39.647Z",
+      "agol_id": "69ac034ef09e4abca2fe67fda9cf6bda",
+      "groups": [
+        "000b6ee1-21bb-4739-a502-1e0f0241ff01"
+      ],
       "auth_group": "00237b67-4c33-47a1-8e0f-b2bfcdb248e1",
       "response": 1
     }
@@ -64,13 +112,26 @@
     }
   },
   {
+    "model": "accounts.agoluserfields",
+    "pk": 2,
+    "fields": {
+      "agol_username": "delegate",
+      "sponsor": false,
+      "phone_number": null,
+      "user": 2,
+      "delegates": []
+    }
+  },
+  {
     "model": "accounts.agolgroup",
     "pk": "000b6ee1-21bb-4739-a502-1e0f0241ff01",
     "fields": {
       "title": "Special Group",
       "agol": 1,
       "is_auth_group": false,
-      "requests": [1]
+      "requests": [
+        1
+      ]
     }
   },
   {
@@ -83,7 +144,7 @@
       "requests": []
     }
   },
-    {
+  {
     "model": "accounts.agolrole",
     "pk": "specialid",
     "fields": {
@@ -106,6 +167,38 @@
       "assignable_groups": [
         "000b6ee1-21bb-4739-a502-1e0f0241ff01"
       ]
+    }
+  },
+  {
+    "model": "accounts.responseproject",
+    "pk": 2,
+    "fields": {
+      "name": "no sponsors response",
+      "role": "specialid",
+      "authoritative_group": "00237b67-4c33-47a1-8e0f-b2bfcdb248e1",
+      "users": [
+      ],
+      "assignable_groups": [
+        "000b6ee1-21bb-4739-a502-1e0f0241ff01"
+      ]
+    }
+  },
+  {
+    "model": "accounts.groupmembership",
+    "pk": 1,
+    "fields": {
+      "group": "000b6ee1-21bb-4739-a502-1e0f0241ff01",
+      "request": 1,
+      "is_member": false
+    }
+  },
+  {
+    "model": "accounts.groupmembership",
+    "pk": 2,
+    "fields": {
+      "group": "000b6ee1-21bb-4739-a502-1e0f0241ff01",
+      "request": 2,
+      "is_member": true
     }
   }
 ]

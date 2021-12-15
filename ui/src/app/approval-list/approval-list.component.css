@@ -24,13 +24,15 @@
 .header-cell.cdk-column-sponsor,
 .header-cell.cdk-column-reason,
 .header-cell.cdk-column-description,
+.header-cell.cdk-column-delete,
 .cell.cdk-column-created,
 .cell.cdk-column-approved,
 .cell.cdk-column-groups,
 .cell.cdk-column-response,
 .cell.cdk-column-sponsor,
 .cell.cdk-column-reason,
-.cell.cdk-column-description {
+.cell.cdk-column-description,
+.cell.cdk-column-delete {
   max-width: 70px;
   /*text-align: center;*/
   justify-content: center;
@@ -43,4 +45,8 @@
 
 .cdk-column-email {
   min-width: 200px;
+}
+
+.table .mat-icon {
+  font-size: 22px;
 }

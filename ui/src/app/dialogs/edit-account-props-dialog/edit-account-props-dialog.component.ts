@@ -92,7 +92,9 @@ export class EditAccountPropsDialogComponent implements OnInit {
     if (response) {
       this.http.get<AgolGroup[]>('/v1/agol/groups',
         {params: new HttpParams().set('response', response.toString())}).pipe(
-        tap(r => this.groups.next(r))
+        tap((res) => {
+          this.groups.next(res);
+        })
       ).subscribe();
     }
   }

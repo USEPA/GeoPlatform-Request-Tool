@@ -1,16 +1,20 @@
 import {Component, OnInit} from '@angular/core';
-import {BaseService} from '../services/base.service';
-import {HttpClient} from '@angular/common/http';
-import {LoadingService} from '../services/loading.service';
-import {catchError, filter, map, share, switchMap, tap} from 'rxjs/operators';
+import {HttpClient, HttpErrorResponse} from '@angular/common/http';
+import {catchError, debounceTime, share, skip, startWith, switchMap, tap, filter, map} from 'rxjs/operators';
 import {MatDialog} from '@angular/material/dialog';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {forkJoin, iif, Observable, of} from 'rxjs';
+import {FormControl} from '@angular/forms';
+import {forkJoin, iif, Observable, of, throwError} from 'rxjs';
+
+import {LoginService} from '../auth/login.service';
+import {BaseService} from '../services/base.service';
+import {LoadingService} from '../services/loading.service';
+
 import {EditAccountPropsDialogComponent} from '../dialogs/edit-account-props-dialog/edit-account-props-dialog.component';
 import {ConfirmApprovalDialogComponent} from '../dialogs/confirm-approval-dialog/confirm-approval-dialog.component';
-import {LoginService} from '../auth/login.service';
 import {ChooseCreationMethodComponent} from '../dialogs/choose-creation-method/choose-creation-method.component';
 import {GenericConfirmDialogComponent} from '../dialogs/generic-confirm-dialog/generic-confirm-dialog.component';
+import {environment} from '@environments/environment';
 
 export interface AccountProps {
   first_name: string;
@@ -40,7 +44,7 @@ export interface Accounts {
 export class ApprovalListComponent implements OnInit {
   accounts: BaseService;
   displayedColumns = ['selected', 'first_name', 'last_name', 'email', 'username', 'organization', 'groups', 'response',
-    'sponsor', 'reason', 'approved', 'created'];
+    'sponsor', 'reason', 'approved', 'created', 'delete'];
   // took out "roll" and "user_type"
   selectedAccountIds = [];
   accountsListProps: Accounts = {};
@@ -49,13 +53,14 @@ export class ApprovalListComponent implements OnInit {
   isApprovalReady: boolean;
   roles: Observable<[]>;
   user_types: Observable<[]>;
+  searchInput = new FormControl(null);
 
-  constructor(public http: HttpClient, loadingService: LoadingService, public snackBar: MatSnackBar,
-              public dialog: MatDialog, public loginService: LoginService) {
-    this.accounts = new BaseService('v1/account/approvals/', http, loadingService);
+  constructor(public http: HttpClient, loadingService: LoadingService, public snackBar: MatSnackBar = null,
+              public dialog: MatDialog = null, public loginService: LoginService = null) {
+    this.accounts = new BaseService('v1/account/approvals', http, loadingService);
   }
 
-  async ngOnInit() {
+  ngOnInit() {
     // this was used to give superusers full list when logging in... but they didn't like it
     // this.loginService.is_superuser ? null : this.accounts.filter = {approved_and_created: false};
 
@@ -68,6 +73,18 @@ export class ApprovalListComponent implements OnInit {
     ).subscribe();
     this.roles = this.http.get<[]>('/v1/account/approvals/roles').pipe(share());
     this.user_types = this.http.get<[]>('/v1/account/approvals/user_types').pipe(share());
+
+    this.searchInput.valueChanges.pipe(
+      startWith(this.searchInput.value),
+      skip(1),
+      debounceTime(300),
+      tap(searchInput => this.search(searchInput))
+    ).subscribe();
+  }
+
+  search(search: any) {
+    this.accounts.filter.search = search;
+    return this.accounts.runSearch();
   }
 
   setAccountsListProps(init_accounts) {
@@ -269,6 +286,32 @@ export class ApprovalListComponent implements OnInit {
     );
   }
 
+  confirmDeleteAccountRequest(event, selectedRequest) {
+    event.stopPropagation();
+
+    const dialogRef = this.dialog.open(GenericConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        message: `Confirmation will permanently delete ${selectedRequest.first_name}
+         ${selectedRequest.last_name}'s (${selectedRequest.organization}) request.`
+      }
+    });
+    dialogRef.afterClosed().pipe(
+      filter(confirmed => confirmed),
+      switchMap(() => this.accounts.delete(selectedRequest.id)),
+      switchMap(() => this.accounts.getItems()),
+      tap((accountRequests) => {
+        this.snackBar.open('Deleted', null, {duration: 2000});
+        this.setAccountsListProps(accountRequests);
+        this.clearAllSelected();
+      }),
+      catchError((err) => {
+        of(this.handleErrorResponse(err));
+        return throwError(err);
+      })
+    ).subscribe();
+  }
+
   setNeedsEditing(account) {
     let needsEditing = false;
     // removed group as requirement for editing per issue #31
@@ -292,5 +335,29 @@ export class ApprovalListComponent implements OnInit {
         }),
         switchMap(() => this.accounts.getItems())
       );
+  }
+
+  handleErrorResponse(err: HttpErrorResponse, customErrorMessages?: string[]) {
+    if (err && err.error && err.error.detail) {
+      this.snackBar.open(err.error.detail, null, {
+        duration: environment.snackbar_duration, panelClass: ['snackbar-error']
+      });
+    } else if (err && err.error && typeof err.error === 'string') {
+      this.snackBar.open(err.error, null, {
+        duration: environment.snackbar_duration, panelClass: ['snackbar-error']
+      });
+    } else if (err && err.error && err.error instanceof Array) {
+      this.snackBar.open(`Error: ${JSON.stringify(err.error[0])}`, null, {
+        duration: environment.snackbar_duration, panelClass: ['snackbar-error']
+      });
+    } else if (customErrorMessages.length > 0) {
+      this.snackBar.open(customErrorMessages.join(', '), null, {
+        duration: environment.snackbar_duration, panelClass: ['snackbar-error']
+      });
+    } else {
+      this.snackBar.open('Error occurred.', null, {
+        duration: environment.snackbar_duration, panelClass: ['snackbar-error']
+      });
+    }
   }
 }
