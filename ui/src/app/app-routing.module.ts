@@ -20,6 +20,7 @@ const routes: Routes = [
     canActivate: [LoginService]
   },
   {path: 'requestaccount', component: RequestFormComponent},
+  {path: '**', redirectTo: ''}
 ];
 
 @NgModule({

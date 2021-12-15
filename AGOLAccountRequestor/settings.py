@@ -62,7 +62,7 @@ ROOT_URLCONF = 'AGOLAccountRequestor.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [os.path.join(BASE_DIR, 'templates'), os.path.join(BASE_DIR, 'accounts', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -118,7 +118,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
-STATIC_URL = '/requests/static/'
+STATIC_URL = getattr(local_settings, 'STATIC_URL', '/request/static/')
+
 #STATIC_ROOT = 'static'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
@@ -141,9 +142,11 @@ OAUTH2_PROVIDER_ID_TOKEN_MODEL = "oauth2_provider.IDToken"
 SOCIAL_AUTH_AGOL_DOMAIN = local_settings.SOCIAL_AUTH_AGOL_DOMAIN
 SOCIAL_AUTH_AGOL_KEY = local_settings.SOCIAL_AUTH_AGOL_KEY
 SOCIAL_AUTH_AGOL_SECRET = local_settings.SOCIAL_AUTH_AGOL_SECRET
-SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
+SOCIAL_AUTH_REDIRECT_IS_HTTPS = getattr(local_settings, 'SOCIAL_AUTH_REDIRECT_IS_HTTPS', True)
 SOCIAL_AUTH_PIPELINE = local_settings.SOCIAL_AUTH_PIPELINE
-
+SOCIAL_AUTH_AGOL_PREAPPROVED_DOMAINS = getattr(local_settings, 'SOCIAL_AUTH_AGOL_PREAPPROVED_DOMAINS', [])
+SOCIAL_AUTH_AGOL_UNKNOWN_REQUESTER_GROUP_ID = getattr(local_settings, 'SOCIAL_AUTH_AGOL_UNKNOWN_REQUESTER_GROUP_ID', 0)
+SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS = getattr(local_settings, 'SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS', [])
 
 REST_FRAMEWORK = local_settings.REST_FRAMEWORK
 
@@ -182,10 +185,15 @@ LOGGING['loggers']['R9DMT'] = {
     'level': 'ERROR',
 }
 
-GPO_REQUEST_EMAIL_ACCOUNT = local_settings.GPO_REQUEST_EMAIL_ACCOUNT
-RECIPIENT_EMAILS = local_settings.RECIPIENT_EMAILS
+
 USE_X_FORWARDED_HOST = getattr(local_settings, 'USE_X_FORWARDED_HOST', False)
 URL_PREFIX = getattr(local_settings, 'URL_PREFIX', '')
 LOGIN_REDIRECT_URL = f'/{URL_PREFIX}api/admin/'
 LOGIN_URL = f'/{URL_PREFIX}api/admin/'
 
+INTERNAL_IPS = getattr(local_settings, 'INTERNAL_IPS', [])
+HOST_ADDRESS = getattr(local_settings, 'HOST_ADDRESS', '')
+
+COORDINATOR_ADMIN_GROUP_ID = getattr(local_settings, 'COORDINATOR_ADMIN_GROUP_ID', 0)
+
+CSRF_COOKIE_NAME = 'requestcsrftoken'

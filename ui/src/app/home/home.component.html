@@ -1,57 +1,23 @@
-<div>
-  <section id="homepage-info">
-    <div>
-      <p>
-        The GeoPlatform Account Request Tool provisions EPA GeoPlatform (GPO) user accounts during emergency response events and projects.
-        Authorized users (Team Coordinators) can rapidly set up accounts for field data collection
-        events and provide access to specific GeoPlatform groups. Visit the <a href="./assets/GPOAcctRequestUserGuide.pdf" target="_blank">Help Documentation</a> for additional information.
+<div style="max-width: 800px;">
+  <div style="display: flex; flex-direction: column;  align-items: center; margin-bottom: 25px;" *ngIf="!(isResponseInURL | async)">
+    <p>
+      The GeoPlatform Account Request Tool provisions EPA GeoPlatform (GPO) user accounts during emergency response
+      events and projects.
+      Authorized users (Team Coordinators) can rapidly set up accounts for field data collection
+      events and provide access to specific GeoPlatform groups. Visit the <a href="./assets/GPOAcctRequestUserGuide.pdf"
+                                                                             target="_blank">Help Documentation</a> for
+      additional information.
       <br>
-      </p>
-      <p>
-        How to get started:<br>
-        1. Become a Team Coordinator (and assign Delegates)<br>
-        2. Configure a New Response or Project<br>
-        3. Request New GeoPlatform User Accounts
-      </p>
-    </div>
-  </section>
-  <section id="homepage-options">
-    <div>
-      <mat-card>
-        <mat-card-subtitle></mat-card-subtitle>
-        <mat-card-content>
-          <ul class="flex-row-container">
-            <li class="flex-item" (click)="navigateToUri('/field-coordinators')">
-              <mat-card>
-                <mat-card-subtitle></mat-card-subtitle>
-                <mat-card-content matTooltip="{{teamCoordinatorsToolTip}}" matTooltipClass="mat-tooltip-blue" matTooltipPosition="above">
-                  <mat-icon>people</mat-icon>
-                </mat-card-content>
-              </mat-card>
-              <h2>Team Coordinators</h2>
-            </li>
-            <li class="flex-item" (click)="navigateToUri('/field-coordinator-er-request')">
-              <mat-card>
-                <mat-card-subtitle></mat-card-subtitle>
-                <mat-card-content matTooltip="{{erRequestToolTip}}" matTooltipClass="mat-tooltip-blue" matTooltipPosition="above">
-                  <mat-icon>settings_applications</mat-icon>
-                </mat-card-content>
-              </mat-card>
-              <h2>Configure New <br>Response or Project</h2>
-            </li>
-            <li class="flex-item" (click)="navigateToUri('/requestaccount')">
-              <mat-card>
-                <mat-card-subtitle></mat-card-subtitle>
-                <mat-card-content matTooltip="{{geoPlatformRequestToolTip}}" matTooltipClass="mat-tooltip-blue" matTooltipPosition="above">
-                  <mat-icon>control_point</mat-icon>
-                </mat-card-content>
-              </mat-card>
-              <h2>Request GeoPlatform <br>User Account</h2>
-            </li>
-          </ul>
-        </mat-card-content>
-      </mat-card>
-    </div>
-  </section>
+    </p>
+    <button mat-raised-button color="primary" (click)="openResponseRequestDialog()">
+      Configure New Response / Project
+    </button>
+  </div>
+  <app-request-form></app-request-form>
+  <div style="display: flex; justify-content: center" *ngIf="isResponseInURL | async">
+    <p>
+      Can't find the Response / Project you are looking for? <a routerLink="" [queryParams]="{}">Click here for full list</a>
+    </p>
+  </div>
 </div>
 

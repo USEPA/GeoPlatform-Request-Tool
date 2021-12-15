@@ -1,9 +1,12 @@
 /* You can add global styles to this file, and also import other style files */
-body {
+html, body {
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  height: 100%;
+  width: 100%;
   margin: 0;
 }
 
-html, body, app-root, app-login {
+app-root {
   display: flex;
   min-height: 100vh;
   max-height: 100vh;
@@ -76,6 +79,7 @@ mat-form-field {
   flex: 1;
   flex-direction: column;
   display: flex !important;
+  overflow-y: auto;
 }
 
 /*.mat-select-value-text {*/
@@ -114,4 +118,12 @@ mat-list-item.filter-btn div {
 
 div.mat-dialog-actions {
   justify-content: flex-end;
+}
+
+mat-table {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
 }

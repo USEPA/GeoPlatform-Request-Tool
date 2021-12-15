@@ -15,7 +15,7 @@ declare var gtag;
 })
 export class AppComponent implements OnInit {
   admin_url: string;
-  config: UserConfig;
+  config: Observable<UserConfig>;
 
   constructor(public loginService: LoginService, public router: Router, public userConfig: UserConfigService) {
     const navEndEvent$ = router.events.pipe(
@@ -31,7 +31,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.admin_url = `${environment.api_url}/admin/`;
-    this.userConfig.config.subscribe(config => this.config = config);
+    this.config = this.userConfig.config;
   }
 
   logout() {

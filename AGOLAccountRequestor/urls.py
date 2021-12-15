@@ -21,6 +21,7 @@ from django.conf import settings
 from accounts import views as account_views
 from .views import current_user
 from .views import email_field_coordinator_request
+import debug_toolbar
 
 router = routers.DefaultRouter()
 
@@ -29,6 +30,8 @@ router.register('account/approvals', account_views.AccountViewSet)
 router.register('responses', account_views.ResponseProjectViewSet)
 router.register('sponsors', account_views.SponsorsViewSet)
 router.register('agol/groups', account_views.AGOLGroupViewSet)
+router.register('agol/roles', account_views.AGOLRoleViewSet)
+router.register('notifications', account_views.PendingNotificationViewSet)
 
 admin.site.site_header = "EPA GeoPlatform Account Request Tool"
 admin.site.site_title = "GeoPlatform Account Request Tool"
@@ -46,3 +49,6 @@ urlpatterns = [
     path(f'{settings.URL_PREFIX}api/current_user/', current_user),
 
 ]
+
+if settings.DEBUG:
+    urlpatterns += [path('__debug__/', include(debug_toolbar.urls)),]

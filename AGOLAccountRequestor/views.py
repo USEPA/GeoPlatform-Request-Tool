@@ -1,4 +1,5 @@
 import logging
+from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
@@ -22,14 +23,16 @@ def current_user(request):
     for groups in request.user.groups.all():
         for permission in groups.permissions.all():
             permissions.append(permission.codename)
-
+    delegate_for = request.user.delegate_for.values_list('id', flat=True)
     current_user = {
         'id': request.user.id,
         'name': '{} {}'.format(request.user.first_name, request.user.last_name) if request.user.first_name else request.user.username,
         'permissions': set(permissions),
         'is_superuser': request.user.is_superuser,
         'is_staff': request.user.is_staff,
-        'is_sponsor': request.user.agol_info.sponsor
+        'is_sponsor': request.user.agol_info.sponsor,
+        'is_delegate': True if len(delegate_for) > 0 else False,
+        'delegate_for': delegate_for,
     }
     return Response(current_user)
 
@@ -39,7 +42,8 @@ def current_user(request):
 def email_field_coordinator_request(request):
     try:
         gpo_request_email_account = settings.GPO_REQUEST_EMAIL_ACCOUNT
-        recipient_emails = settings.RECIPIENT_EMAILS
+        # send request emails to Coordinator Admin group
+        recipient_emails = list(User.objects.filter(groups__name='Coordinator Admin').values_list('email', flat=True))
         if 'result' in request.data:
             email_context = request.data['result']
         else:

@@ -1,17 +1,22 @@
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.mixins import CreateModelMixin
-from .serializers import *
-from rest_framework.permissions import AllowAny, BasePermission, IsAuthenticated, DjangoModelPermissions
+from rest_framework.permissions import AllowAny, BasePermission, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.filters import BaseFilterBackend
 
-from django.shortcuts import get_list_or_404, get_object_or_404
-from django_filters.rest_framework import FilterSet, BooleanFilter, DateFilter, NumberFilter
+from django.shortcuts import get_list_or_404, get_object_or_404, Http404
+from django_filters.rest_framework import FilterSet, BooleanFilter, DateFilter, NumberFilter, BaseCSVFilter
 from django.db.models import Q, Count
 from django.template.response import TemplateResponse
+from django.utils.timezone import now
+from django.core.exceptions import ObjectDoesNotExist
 
 from .models import *
+from .serializers import *
+from .permissions import IsSponsor
+from .func import create_accounts, add_accounts_to_groups, update_requests_groups
+from natsort import natsorted
 
 
 def format_username(data):
@@ -31,47 +36,16 @@ class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
         username = format_username(self.request.data)
         username_valid, agol_id, groups = agol.check_username(username)
         possible_accounts = agol.find_accounts_by_email(self.request.data['email'])
+        is_existing_account = True if agol_id is not None else False
+        # try to capture reason here but proceed if we can't
+        try:
+            reason = ResponseProject.objects.get(id=self.request.data['response']).default_reason
+        except ObjectDoesNotExist:
+            reason = None
         account_request = serializer.save(username_valid=username_valid, agol_id=agol_id, username=username,
-                                          possible_existing_account=possible_accounts)
-        if groups:
-            account_request.groups.set(groups)
-
-    # @action(['GET'], detail=False, )
-    # def field_coordinators(self, request):
-    #     sponsors = User.objects.filter(agol_info__sponsor=True)
-    #     sponsors_list = list()
-    #     for sponsor in sponsors:
-    #         sponsors_list.append({
-    #             'first_name': sponsor.first_name,
-    #             'last_name': sponsor.last_name,
-    #             'display': f'{sponsor.first_name} {sponsor.last_name}',
-    #             'email': sponsor.email,
-    #             'phone_number': sponsor.agol_info.phone_number,
-    #             'authoritative_group': sponsor.agol_info.authoritative_group,
-    #             'value': sponsor.pk
-    #         })
-    #     return Response({"results": sponsors_list})
-
-
-class IsSponsor(DjangoModelPermissions):
-    """
-    Object-level permission to only allow owners of an object to edit it.
-    """
-    def has_object_permission(self, request, view, obj):
-        # must be sponsor or superuser to edit
-
-        if request.user.is_superuser:
-            return True
-
-        sponsors = set([x.user.pk for x in request.user.delegate_for.all()])
-        # add current user into list of potential sponsors for the filter in case
-        # they are both a sponsor and a delegate
-        sponsors.add(request.user.pk)
-
-        if obj.response.users.filter(pk__in=sponsors).exists():
-            return True
-
-        return False
+                                          is_existing_account=is_existing_account,
+                                          possible_existing_account=possible_accounts, reason=reason)
+        update_requests_groups(account_request, groups)
 
 
 class AccountFilterSet(FilterSet):
@@ -85,7 +59,7 @@ class AccountFilterSet(FilterSet):
 
     class Meta:
         model = AccountRequests
-        fields = ['approved_and_created', 'approved', 'sponsor_notified']
+        fields = ['approved_and_created', 'approved']
 
 
 class SponsorFilterBackend(BaseFilterBackend):
@@ -106,61 +80,42 @@ class AccountViewSet(ModelViewSet):
     search_fields = ['first_name', 'last_name', 'username', 'organization']
     filterset_class = AccountFilterSet
     filter_backends = ModelViewSet.filter_backends + [SponsorFilterBackend]
-    permission_classes = (IsSponsor,)
+    permission_classes = [IsSponsor]
 
     def perform_update(self, serializer):
         agol = AGOL.objects.first()
-        username_valid, agol_id, groups = agol.check_username(self.request.data['username'])
-
-        # removed due to changes in how notification are handled and how relationships to sponsors work
-        # '''check if sponsor changing and mark sponsor_notified to true but if sponsor_notified is false it should stay false'''
-        # existing_record = AccountRequests.objects.get(pk=self.request.data['id'])
-        #
-        # sponsor_notified = existing_record.sponsor_notified
-        # if sponsor_notified:
-        #     sponsor_notified = existing_record.sponsor.pk == self.request.data['sponsor'] and existing_record.sponsor_notified
-
-        account_request = serializer.save(username_valid=username_valid, agol_id=agol_id)
-        new_groups = AGOLGroup.objects.filter(pk__in=list(set(groups + self.request.data['groups'])))
-        account_request.groups.set(new_groups)
+        username_valid, agol_id, existing_groups = agol.check_username(self.request.data['username'])
+        is_existing_account = True if agol_id is not None else False
+        account_request = serializer.save(username_valid=username_valid, agol_id=agol_id,
+                                          is_existing_account=is_existing_account)
+        update_requests_groups(account_request, existing_groups, self.request.data['groups'])
 
     # create account (or queue up creation?)
     @action(['POST'], detail=False)
     def approve(self, request):
-        account_requests = get_list_or_404(AccountRequests, pk__in=request.data['accounts'])
-        success = []
+        account_requests = AccountRequests.objects.filter(pk__in=request.data['accounts'])
+        if not account_requests:
+            return Http404
+
         # verify user has permission on each request submitted.
         for x in account_requests:
             self.check_object_permissions(request, x)
-        AccountRequests.objects.filter(pk__in=request.data['accounts']).update(approved=now())
-        agol = AGOL.objects.first()
-        create_accounts = [x for x in account_requests if x.agol_id is None]
-        create_success = len(create_accounts) == 0
-        if len(create_accounts) > 0:
-            success += agol.create_users_accounts(account_requests, request.data.get('password', None))
-            if len(success) == len(create_accounts):
-                create_success = True
 
-        else:
-            create_success = True
+        # create accounts that don't exist
+        create_success = create_accounts(account_requests, request.data.get('password', None))
 
-        # add users to groups for either existing or newly created
-        group_requests = [x for x in AccountRequests.objects.filter(pk__in=request.data['accounts'], agol_id__isnull=False)]
-        group_success = len(group_requests) == 0
-        for g in group_requests:
-            if g.groups.count() > 0:
-                group_success = agol.add_to_group([g.username], [str(x) for x in g.groups.values_list('id', flat=True)])
-                if group_success:
-                    success.append(g.pk)
-            else:
-                group_success = True
+        # add accounts to groups
+        group_success = add_accounts_to_groups(account_requests)
 
+        success = [x.pk for x in account_requests if x.pk in create_success and x.pk in group_success]
         AccountRequests.objects.filter(pk__in=success).update(created=now())
-        if create_success and group_success:
+
+        # todo: this whole things needs more testing
+        if len(create_success) == len(account_requests) and len(group_success) == len(account_requests):
             return Response()
-        if not create_success:
+        if len(create_success) != len(account_requests):
             return Response("Error creating and updating accounts")
-        if not group_success:
+        if len(group_success) != len(account_requests):
             return Response("Accounts created. Existing account NOT updated.")
 
         return Response(status=400)
@@ -202,31 +157,31 @@ class AccountViewSet(ModelViewSet):
     #         })
     #     return Response(sponsors_list)
 
-    @action(['GET', 'PUT'], detail=False)
-    def pending_notifications(self, request):
-        # if get send pending notifications with emails
-        if request.method == 'GET':
-            pending_notifications = AccountRequests.objects.filter(sponsor_notified=False,
-                                                                   approved__isnull=True,
-                                                                   created__isnull=True)\
-                .values('response__users')\
-                .annotate(total_pending=Count('response__users'))\
-                .filter(total_pending__gt=0)
-
-            for i, notification in enumerate(pending_notifications):
-                delegate_emails = User.objects.filter(delegate_for__user=notification['response__users']) \
-                    .values_list('email', flat=True)
-                pending_notifications[i]['sponsor'] = User.objects.get(pk=notification['response__users']).email
-                pending_notifications[i]['delegates'] = list(filter(None, delegate_emails))
-                pending_notifications[i].pop('response__users')
-
-            return Response(pending_notifications)
-
-        # post expects array of sponsor emails that have been notified successfully
-        if request.method == 'PUT':
-            AccountRequests.objects.filter(response__users__email__in=request.data.get('notified_sponsors', []))\
-                .update(sponsor_notified=True)
-            return Response()
+    # @action(['GET', 'PUT'], detail=False)
+    # def pending_notifications(self, request):
+    #     # if get send pending notifications with emails
+    #     if request.method == 'GET':
+    #         pending_notifications = AccountRequests.objects.filter(sponsor_notified=False,
+    #                                                                approved__isnull=True,
+    #                                                                created__isnull=True)\
+    #             .values('response__users')\
+    #             .annotate(total_pending=Count('response__users'))\
+    #             .filter(total_pending__gt=0)
+    #
+    #         for i, notification in enumerate(pending_notifications):
+    #             delegate_emails = User.objects.filter(delegate_for__user=notification['response__users']) \
+    #                 .values_list('email', flat=True)
+    #             pending_notifications[i]['sponsor'] = User.objects.get(pk=notification['response__users']).email
+    #             pending_notifications[i]['delegates'] = list(filter(None, delegate_emails))
+    #             pending_notifications[i].pop('response__users')
+    #
+    #         return Response(pending_notifications)
+    #
+    #     # post expects array of sponsor emails that have been notified successfully
+    #     if request.method == 'PUT':
+    #         AccountRequests.objects.filter(response__users__email__in=request.data.get('notified_sponsors', []))\
+    #             .update(sponsor_notified=True)
+    #         return Response()
 
     def get_serializer_class(self):
         if self.request.query_params.get('include_sponsor_details', False):
@@ -244,28 +199,49 @@ class AGOLGroupViewSet(ReadOnlyModelViewSet):
     serializer_class = AGOLGroupSerializer
     ordering = ['title']
     pagination_class = None
-    filter_fields = ['response']
+    filter_fields = ['response', 'is_auth_group']
+    search_fields = ['title']
 
     # only show groups for which the user the user has access per agol group fields assignable groups
     def get_queryset(self):
+        # if self.request.query_params:
+        #     if 'all' in self.request.query_params and self.request.query_params['all'] == 'true':
+        #         return AGOLGroup.objects.all()
+            # elif 'search' in self.request.query_params:
+            #     search_text = self.request.query_params['search']
+            #     return AGOLGroup.objects.filter(title__contains=search_text)
+            # elif 'is_auth_group' in self.request.query_params:
+            #     is_auth_group = False
+            #     if self.request.query_params.get('is_auth_group').lower() == 'true':
+            #         is_auth_group = True
+            #     elif self.request.query_params.get('is_auth_group').lower() == 'false':
+            #         is_auth_group = False
+            #     return AGOLGroup.objects.filter(is_auth_group=is_auth_group)
+
         sponsors = User.objects.filter(agol_info__delegates=self.request.user)
         return AGOLGroup.objects.filter(Q(response__users=self.request.user) | Q(response__users__in=sponsors))
 
+    def get_permissions(self):
+        if self.action == 'all':
+            return [AllowAny()]
+        return super(AGOLGroupViewSet, self).get_permissions()
+
     @action(['GET'], detail=False)
     def all(self, request):
-        groups = AGOLGroup.objects.all()
+        groups = self.filter_queryset(AGOLGroup.objects.all())
         groups_list = list()
         for group in groups:
             groups_list.append({
-                'value': group.pk,
+                'id': group.pk,
                 'title': group.title.lstrip('​')
             })
-        sorted_group_list = sorted(groups_list, key=lambda x: x['title'])
+        sorted_group_list = natsorted(groups_list, key=lambda x: x['title'])
         return Response(sorted_group_list)
 
 
 class ResponseProjectFilterSet(FilterSet):
     for_approver = BooleanFilter(method='for_approver_func')
+    id_in = BaseCSVFilter(field_name='pk', lookup_expr='in')
 
     def for_approver_func(self, queryset, name, value):
         if not value:
@@ -274,27 +250,50 @@ class ResponseProjectFilterSet(FilterSet):
         sponsors = User.objects.filter(agol_info__delegates=self.request.user)
         return queryset.filter(Q(users=self.request.user) | Q(users__in=sponsors))
 
+    class Meta:
+        model = ResponseProject
+        fields = ['disabled']
 
-class ResponseProjectViewSet(ReadOnlyModelViewSet):
-    queryset = ResponseProject.objects.all()
+
+class ResponseProjectViewSet(ModelViewSet):
+    queryset = ResponseProject.objects.filter(approved__isnull=False)
     serializer_class = ResponseProjectSerializer
     ordering = ['name']
-    permission_classes = [AllowAny]
     pagination_class = None
+    permission_classes = [IsAuthenticatedOrReadOnly]
     filterset_class = ResponseProjectFilterSet
 
-    # todo: disable response
-    # def filter_queryset(self, queryset):
-    #     if 'status' not in self.request.query_params:
-    #         queryset = queryset.exclude(status_in=['cancled', 'etc.'])
-    #     return super(ResponseProjectViewSet, self).filter_queryset(queryset)
+
+    def get_serializer_class(self):
+        if not self.request.user.is_anonymous:
+            return FullResponseProjectSerializer
+        return ResponseProjectSerializer
+
 
 class SponsorsViewSet(ReadOnlyModelViewSet):
     queryset = User.objects.filter(agol_info__sponsor=True)
     serializer_class = SponsorSerializer
     ordering = ['last_name']
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     search_fields = ['last_name', 'first_name', 'email']
     filter_fields = ['response', 'agol_info__delegates']
 
 
+class AGOLRoleViewSet(ReadOnlyModelViewSet):
+    queryset = AGOLRole.objects.all()
+    serializer_class = AGOLRoleSerializer
+    ordering = ['system_default', 'name']
+    search_fields = ['name', 'description']
+    filter_fields = ['system_default', 'is_available']
+
+
+class PendingNotificationViewSet(ReadOnlyModelViewSet):
+    queryset = Notification.objects.filter(sent__isnull=True)
+    serializer_class = PendingNotificationSerializer
+
+    @action(['PUT'], detail=True)
+    def mark_sent(self, request, pk=None):
+        notification = get_object_or_404(Notification, pk=pk)
+        notification.sent = now()
+        notification.save()
+        return Response('')

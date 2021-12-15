@@ -7,6 +7,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import {Observable} from 'rxjs';
 import {RequestFieldCoordDialogComponent} from '../dialogs/request-field-coord-dialog/request-field-coord-dialog.component';
 import {LoginService} from '../auth/login.service';
+import {FormControl} from "@angular/forms";
+import {debounceTime, skip, startWith, tap} from "rxjs/operators";
 
 export interface FieldCoordinator {
   value: number;
@@ -22,7 +24,7 @@ export interface FieldCoordinator {
 }
 
 @Component({
-  selector: 'field-coord-list',
+  selector: 'app-field-coord-list',
   templateUrl: './field-coord-list.component.html',
   styleUrls: ['./field-coord-list.component.css']
 })
@@ -31,15 +33,28 @@ export class FieldCoordListComponent implements OnInit {
   // sponsors: Observable<[]>;
   displayedColumns = ['first_name', 'last_name', 'email', 'phone_number'];
   field_coordinator: FieldCoordinator;
+  searchInput = new FormControl(null);
 
   constructor(public http: HttpClient, loadingService: LoadingService, public snackBar: MatSnackBar,
               public dialog: MatDialog, public loginService: LoginService) {
-    this.sponsors = new BaseService('v1/sponsors/', http, loadingService);
+    this.sponsors = new BaseService('v1/sponsors', http, loadingService);
   }
 
   ngOnInit() {
     // this.sponsors.filter = {approved_and_created: true};
     this.sponsors.getItems().subscribe();
+
+    this.searchInput.valueChanges.pipe(
+      startWith(this.searchInput.value),
+      skip(1),
+      debounceTime(300),
+      tap(searchInput => this.search(searchInput))
+    ).subscribe();
+  }
+
+  search(search: any) {
+    this.sponsors.filter.search = search;
+    return this.sponsors.runSearch();
   }
 
   openRequestFieldCoordDialog(): void {

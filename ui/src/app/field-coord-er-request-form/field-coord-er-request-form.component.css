@@ -1,4 +1,8 @@
-
+:host {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
 .flex-inner {
   display: flex;
   align-items: center;

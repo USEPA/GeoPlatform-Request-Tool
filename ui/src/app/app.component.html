@@ -1,19 +1,23 @@
 <header>
   <mat-toolbar class="header" color="primary" style="justify-content: space-between">
     <div style="display: flex; align-items: center; cursor: pointer;" routerLink="/">
-            <img src="./assets/EPA_logo.png" style="width: 60px;"/>
-            GeoPlatform Account Request Tool
-        </div>
+      <img src="./assets/EPA_logo.png" style="width: 60px;"/>
+      GeoPlatform Account Request Tool
+    </div>
     <div style="padding-right: 25px;">
-      <button mat-button routerLink="/accounts/list/" *ngIf="!config">Team Coordinator Login</button>
-      <button mat-button [matMenuTriggerFor]="menu" *ngIf="config">{{ config.name }}</button>
-      <mat-menu #menu="matMenu">
-        <button mat-menu-item routerLink="/accounts/list/">Approval List</button>
-        <a *ngIf="config && config.is_staff" style="text-decoration: none;" [href]="admin_url">
-          <button mat-menu-item>Administration</button>
+      <button mat-button routerLink="/accounts/list/" *ngIf="!(config | async)">Team Coordinator Login</button>
+      <span *ngIf="config | async as c">
+        <button mat-button [matMenuTriggerFor]="menu">{{ c.name }}</button>
+        <mat-menu #menu="matMenu">
+          <button *ngIf="c.permissions.includes('view_accountrequests')" mat-menu-item routerLink="/accounts/list/">
+            Approval List
+          </button>
+          <a *ngIf="c && c.is_staff" style="text-decoration: none;" [href]="admin_url">
+            <button mat-menu-item>Administration</button>
           </a>
-        <button mat-menu-item (click)="logout()">Logout</button>
-      </mat-menu>
+          <button mat-menu-item (click)="logout()">Logout</button>
+        </mat-menu>
+      </span>
       <a href="assets/GPOAcctRequestUserGuide.pdf" target="_blank"
          matTooltip="View Help Documentation" matTooltipClass="mat-tooltip-blue" matTooltipPosition="below">
         <mat-icon style="color:white; vertical-align:middle">help</mat-icon>
