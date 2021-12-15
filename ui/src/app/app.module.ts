@@ -59,7 +59,7 @@ import {LoadingService} from '@services/loading.service';
     CustomMaterialModule,
     RecaptchaFormsModule,
     AuthModule,
-    HttpClientXsrfModule.withOptions({ cookieName: 'csrftoken', headerName: 'X-CSRFToken' }),
+    HttpClientXsrfModule.withOptions({ cookieName: 'requestcsrftoken', headerName: 'X-CSRFToken' }),
   ],
   providers: [{
     provide: RECAPTCHA_SETTINGS,

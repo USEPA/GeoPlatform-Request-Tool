@@ -190,3 +190,4 @@ URL_PREFIX = getattr(local_settings, 'URL_PREFIX', '')
 LOGIN_REDIRECT_URL = f'/{URL_PREFIX}api/admin/'
 LOGIN_URL = f'/{URL_PREFIX}api/admin/'
 
+CSRF_COOKIE_NAME = 'requestcsrftoken'
