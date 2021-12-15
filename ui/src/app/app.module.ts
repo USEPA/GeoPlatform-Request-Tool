@@ -62,7 +62,7 @@ import {CommonModule} from '@angular/common';
     RecaptchaModule,
     CustomMaterialModule,
     RecaptchaFormsModule,
-    HttpClientXsrfModule.withOptions({ cookieName: 'csrftoken', headerName: 'X-CSRFToken' }),
+    HttpClientXsrfModule.withOptions({ cookieName: 'requestcsrftoken', headerName: 'X-CSRFToken' }),
   ],
   providers: [{
     provide: RECAPTCHA_SETTINGS,

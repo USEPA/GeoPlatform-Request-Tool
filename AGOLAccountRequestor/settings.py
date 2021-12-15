@@ -196,3 +196,4 @@ HOST_ADDRESS = getattr(local_settings, 'HOST_ADDRESS', '')
 
 COORDINATOR_ADMIN_GROUP_ID = getattr(local_settings, 'COORDINATOR_ADMIN_GROUP_ID', 0)
 
+CSRF_COOKIE_NAME = 'requestcsrftoken'
