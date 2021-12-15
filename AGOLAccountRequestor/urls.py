@@ -36,7 +36,7 @@ router.register('notifications', account_views.PendingNotificationViewSet)
 admin.site.site_header = "EPA GeoPlatform Account Request Tool"
 admin.site.site_title = "GeoPlatform Account Request Tool"
 admin.site.index_title = "Tool Administration"
-
+admin.site.site_url = f"/{settings.URL_PREFIX}"
 
 urlpatterns = [
     path(f'{settings.URL_PREFIX}api/admin/', admin.site.urls),

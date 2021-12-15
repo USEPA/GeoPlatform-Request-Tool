@@ -124,9 +124,9 @@ class AccountViewSet(ModelViewSet):
                 and len(enabled_success) == len(account_requests):
             return Response()
         if len(create_success) != len(account_requests):
-            return Response("Error creating and updating account(s).")
+            return Response("Error creating and updating account(s).", status=500)
         if len(group_success) != len(account_requests):
-            return Response("Account(s) created. Existing account NOT updated.")
+            return Response("Account(s) created. Existing account NOT updated.", status=500)
         if len(enabled_success) != len(account_requests):
             return Response("Account(s) created and updated. Disabled accounts NOT enabled.")
 
