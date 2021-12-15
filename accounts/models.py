@@ -244,17 +244,9 @@ class AGOL(models.Model):
                 if 'error' in user_response_json:
                     return False, None, None
                 else:
-<<<<<<< HEAD
-                    account.agol_id = user_response_json['id']
-                    account.save(update_fields=['agol_id'])
-            return success
-        else:
-            return []
-=======
                     account_request.agol_id = user_response_json['id']
                     account_request.save(update_fields=['agol_id'])
         return success
->>>>>>> f8a41314173574d3c7bd0941b0e2950498350229
 
     def check_username(self, username):
         token = self.get_token()
