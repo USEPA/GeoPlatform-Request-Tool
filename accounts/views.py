@@ -34,7 +34,7 @@ class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
     def perform_create(self, serializer):
         agol = AGOL.objects.first()
         username = format_username(self.request.data)
-        username_valid, agol_id, groups, existing_account_disabled = agol.check_username(username)
+        username_valid, agol_id, groups, existing_account_enabled = agol.check_username(username)
         possible_accounts = agol.find_accounts_by_email(self.request.data['email'])
         is_existing_account = True if agol_id is not None else False
         # try to capture reason here but proceed if we can't
@@ -44,7 +44,7 @@ class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
             reason = None
         account_request = serializer.save(username_valid=username_valid, agol_id=agol_id, username=username,
                                           is_existing_account=is_existing_account,
-                                          existing_account_disabled=existing_account_disabled,
+                                          existing_account_enabled=existing_account_enabled,
                                           possible_existing_account=possible_accounts, reason=reason)
         update_requests_groups(account_request, groups)
 
@@ -85,11 +85,11 @@ class AccountViewSet(ModelViewSet):
 
     def perform_update(self, serializer):
         agol = AGOL.objects.first()
-        username_valid, agol_id, existing_groups, existing_account_disabled = agol.check_username(self.request.data['username'])
+        username_valid, agol_id, existing_groups, existing_account_enabled = agol.check_username(self.request.data['username'])
         is_existing_account = True if agol_id is not None else False
         account_request = serializer.save(username_valid=username_valid, agol_id=agol_id,
                                           is_existing_account=is_existing_account,
-                                          existing_account_disabled=existing_account_disabled)
+                                          existing_account_enabled=existing_account_enabled)
         update_requests_groups(account_request, existing_groups, self.request.data['groups'])
 
     # create account (or queue up creation?)
