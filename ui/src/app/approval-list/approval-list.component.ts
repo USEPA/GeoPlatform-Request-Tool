@@ -86,7 +86,7 @@ export class ApprovalListComponent implements OnInit {
 
   search(search?: any) {
     this.clearAllSelected();
-    this.accounts.filter.search = search ? search : this.accounts.filter.search;
+    this.accounts.filter.search = search ? search : this.accounts.filter.search ? this.accounts.filter.search : '';
     return this.accounts.runSearch();
   }
 
