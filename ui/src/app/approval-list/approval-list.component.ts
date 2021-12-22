@@ -84,11 +84,21 @@ export class ApprovalListComponent implements OnInit {
     ).subscribe();
   }
 
-  search(search: any) {
-    this.accounts.filter.search = search;
+  search(search?: any) {
+    this.clearAllSelected();
+    this.accounts.filter.search = search ? search : this.accounts.filter.search;
     return this.accounts.runSearch();
   }
 
+  clearAllFilters() {
+    this.clearAllSelected();
+    this.accounts.clearAllFilters();
+  }
+  clearSearch() {
+    this.clearAllSelected();
+    this.searchInput.setValue('');
+    this.accounts.clearSearch();
+  }
   setAccountsListProps(init_accounts) {
     this.needsEditing = false;
     this.isApprovalReady = false;
