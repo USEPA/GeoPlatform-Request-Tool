@@ -1,6 +1,6 @@
 from django.template.response import TemplateResponse
 
-from .models import AccountRequests, AGOL, GroupMembership, AGOLGroup
+from .models import AccountRequests, AGOL, GroupMembership, AGOLGroup, Notification
 from django.utils.timezone import now
 from django.core.mail import send_mail
 from uuid import UUID
@@ -13,7 +13,6 @@ logger = logging.getLogger('AGOLAccountRequestor')
 
 
 def create_accounts(account_requests: [AccountRequests], password: str = None):
-    account_requests.update(approved=now())
     # return existing accounts ass successful since they already exist
     success = [x.pk for x in account_requests if x.agol_id is not None]
     agol = AGOL.objects.first()
@@ -66,9 +65,34 @@ def update_requests_groups(account_request: AccountRequests, existing_groups: [s
                                                      defaults={'is_member': True})
 
 
-
 def has_outstanding_request(request_data):
     print(request_data)
     return AccountRequests.objects.filter(email=request_data['email'],
                                           response=request_data['response'],
                                           approved__isnull=True).exists()
+
+
+def enable_accounts(account_requests, password):
+    success_total = [x.pk for x in account_requests if x.existing_account_enabled]
+    agol = AGOL.objects.first()
+    disabled_accounts = [x for x in account_requests if not x.existing_account_enabled]
+    if len(disabled_accounts) > 0:
+        for account in disabled_accounts:
+            success = agol.enable_user_account(account.username)
+            if success:
+                account.existing_account_enabled = True
+                account.save()
+                password_update_success = agol.update_user_account(account.username, {"password": password})
+                success_total += [account]
+
+                template = "enabled_account_email.html"
+                if password is not None and password_update_success:
+                    template = "enabled_account_email_with_password.html"
+                Notification.create_new_notification(template=template,
+                                                     context={"username": account.username,
+                                                              "response": account.response.name,
+                                                              "approved_by": account.approved_by},
+                                                     subject="Your EPA Geoplatform Account has been enabled",
+                                                     to=[account.email],
+                                                     content_object=account)
+    return success_total

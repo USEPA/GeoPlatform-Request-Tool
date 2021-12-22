@@ -15,7 +15,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from .models import *
 from .serializers import *
 from .permissions import IsSponsor
-from .func import create_accounts, add_accounts_to_groups, update_requests_groups
+from .func import create_accounts, add_accounts_to_groups, update_requests_groups, enable_accounts
 from natsort import natsorted
 
 
@@ -34,7 +34,7 @@ class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
     def perform_create(self, serializer):
         agol = AGOL.objects.first()
         username = format_username(self.request.data)
-        username_valid, agol_id, groups = agol.check_username(username)
+        username_valid, agol_id, groups, existing_account_enabled = agol.check_username(username)
         possible_accounts = agol.find_accounts_by_email(self.request.data['email'])
         is_existing_account = True if agol_id is not None else False
         # try to capture reason here but proceed if we can't
@@ -44,6 +44,7 @@ class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
             reason = None
         account_request = serializer.save(username_valid=username_valid, agol_id=agol_id, username=username,
                                           is_existing_account=is_existing_account,
+                                          existing_account_enabled=existing_account_enabled,
                                           possible_existing_account=possible_accounts, reason=reason)
         update_requests_groups(account_request, groups)
 
@@ -59,7 +60,7 @@ class AccountFilterSet(FilterSet):
 
     class Meta:
         model = AccountRequests
-        fields = ['approved_and_created', 'approved']
+        fields = ['approved_and_created', 'approved', 'response']
 
 
 class SponsorFilterBackend(BaseFilterBackend):
@@ -84,10 +85,11 @@ class AccountViewSet(ModelViewSet):
 
     def perform_update(self, serializer):
         agol = AGOL.objects.first()
-        username_valid, agol_id, existing_groups = agol.check_username(self.request.data['username'])
+        username_valid, agol_id, existing_groups, existing_account_enabled = agol.check_username(self.request.data['username'])
         is_existing_account = True if agol_id is not None else False
         account_request = serializer.save(username_valid=username_valid, agol_id=agol_id,
-                                          is_existing_account=is_existing_account)
+                                          is_existing_account=is_existing_account,
+                                          existing_account_enabled=existing_account_enabled)
         update_requests_groups(account_request, existing_groups, self.request.data['groups'])
 
     # create account (or queue up creation?)
@@ -101,8 +103,15 @@ class AccountViewSet(ModelViewSet):
         for x in account_requests:
             self.check_object_permissions(request, x)
 
+        # marked approved and capture who dun it
+        account_requests.update(approved=now(), approved_by=request.user)
+
+        password = request.data.get('password', None)
         # create accounts that don't exist
-        create_success = create_accounts(account_requests, request.data.get('password', None))
+        create_success = create_accounts(account_requests, password)
+
+        # re-enabled disabled accounts
+        enabled_success = enable_accounts(account_requests, password)
 
         # add accounts to groups
         group_success = add_accounts_to_groups(account_requests)
@@ -111,12 +120,15 @@ class AccountViewSet(ModelViewSet):
         AccountRequests.objects.filter(pk__in=success).update(created=now())
 
         # todo: this whole things needs more testing
-        if len(create_success) == len(account_requests) and len(group_success) == len(account_requests):
+        if len(create_success) == len(account_requests) and len(group_success) == len(account_requests)\
+                and len(enabled_success) == len(account_requests):
             return Response()
         if len(create_success) != len(account_requests):
-            return Response("Error creating and updating accounts", status=500)
+            return Response("Error creating and updating account(s).", status=500)
         if len(group_success) != len(account_requests):
-            return Response("Accounts created. Existing account NOT updated.", status=500)
+            return Response("Account(s) created. Existing account NOT updated.", status=500)
+        if len(enabled_success) != len(account_requests):
+            return Response("Account(s) created and updated. Disabled accounts NOT enabled.")
 
         return Response(status=400)
 
@@ -186,6 +198,8 @@ class AccountViewSet(ModelViewSet):
     def get_serializer_class(self):
         if self.request.query_params.get('include_sponsor_details', False):
             return AccountWithSponsorSerializer
+        if self.request.query_params.get('include_all_details', False):
+            return AccountWithNestedDataSerializer
         return AccountSerializer
 
     @action(['GET'], detail=True)
@@ -263,6 +277,15 @@ class ResponseProjectViewSet(ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
     filterset_class = ResponseProjectFilterSet
 
+    def perform_create(self, serializer):
+        obj = serializer.save()
+        to, subject, message = obj.generate_new_email()
+        Notification.create_new_notification(
+            to=to,
+            subject=subject,
+            content=message,
+            content_object=obj
+        )
 
     def get_serializer_class(self):
         if not self.request.user.is_anonymous:

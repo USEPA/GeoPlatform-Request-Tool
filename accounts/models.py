@@ -40,6 +40,7 @@ class AccountRequests(models.Model):
     email = models.EmailField()
     possible_existing_account = models.CharField(max_length=300, blank=True, null=True)
     is_existing_account = models.BooleanField(default=False)
+    existing_account_enabled = models.BooleanField(default=False)
     organization = models.CharField(max_length=200)
     username = models.CharField(max_length=200)
     username_valid = models.BooleanField(default=False)
@@ -53,6 +54,8 @@ class AccountRequests(models.Model):
     recaptcha = models.TextField()
     submitted = models.DateTimeField(auto_now_add=True)
     approved = models.DateTimeField(null=True, blank=True)
+    approved_by = models.ForeignKey(User, on_delete=models.PROTECT, null=True, blank=True,
+                                    related_name='accounts_approved')
     created = models.DateTimeField(null=True, blank=True)
     agol_id = models.UUIDField(blank=True, null=True)
     response = models.ForeignKey('ResponseProject', on_delete=models.PROTECT, blank=True, null=True,
@@ -64,12 +67,13 @@ class AccountRequests(models.Model):
         return self.notifications.count() > 0
 
     def create_new_notification(self):
-        n = Notification.objects.create(
+        Notification.create_new_notification(
             subject='New GeoPlatform Account Request',
-            content=render_to_string("new_account_request_email.html", {"HOST_ADDRESS": settings.HOST_ADDRESS}),
-            content_object=self
+            context={"HOST_ADDRESS": settings.HOST_ADDRESS},
+            template="new_account_request_email.html",
+            content_object=self,
+            to=self.response.get_email_recipients()
         )
-        n.to.set(self.response.get_email_recipients())
 
     def save(self, *args, **kwargs):
         # this resets role and auth_group if the response changes
@@ -306,28 +310,28 @@ class AGOL(models.Model):
 
         response = r.json()
         if 'error' in response:
-            return False, None, []
+            return False, None, [], False
 
         if 'usernames' in response:
             # if it suggested matches requested...great this is normal for new accounts
             if response['usernames'] and response['usernames'][0]['requested'] == response['usernames'][0]['suggested']:
-                return True, None, []
+                return True, None, [], False
             # if list is blank the account appears to not exist but may have been previously deleted
             elif len(response['usernames']) == 0:
-                return True, None, []
+                return True, None, [], False
             else:
                 user_url = f'{self.portal_url}/sharing/rest/community/users/{username}'
 
                 user_response = requests.get(user_url, params={'token': token, 'f': 'json'})
                 user_response_json = user_response.json()
                 if 'error' in user_response_json:
-                    return False, None, []
+                    return False, None, [], False
                 else:
                     # fixes issue #34
                     group_ids = list(x['id'] for x in user_response_json.get('groups', []))
                     for id in (x for x in group_ids if not AGOLGroup.objects.filter(id=x).exists()):
                         self.get_group(id)
-                    return False, user_response_json['id'], group_ids
+                    return False, user_response_json['id'], group_ids, not user_response_json.get('disabled', False)
 
     def add_to_group(self, user, group):
         token = self.get_token()
@@ -366,6 +370,31 @@ class AGOL(models.Model):
 
         return ",".join(usernames)
 
+    def enable_user_account(self, username):
+        token = self.get_token()
+        url = f'{self.portal_url}/sharing/rest/community/users/{username}/enable'
+        data = {
+            'f': 'json',
+            'token': token
+        }
+        r = requests.post(url, data=data)
+        response_json = r.json()
+        if r.status_code == requests.codes.ok:
+            return response_json.get('success', False)
+        return False
+
+    def update_user_account(self, username, data):
+        token = self.get_token()
+        url = f'{self.portal_url}/sharing/rest/community/users/{username}/update'
+        data['f'] = 'json'
+        data['token'] = token
+
+        r = requests.post(url, data=data)
+        response_json = r.json()
+        if r.status_code == requests.codes.ok:
+            return response_json.get('success', False)
+        return False
+
 
 class AGOLUserFields(models.Model):
     agol_username = models.CharField(max_length=200, null=True, blank=True)
@@ -376,9 +405,9 @@ class AGOLUserFields(models.Model):
 
     def get_email_recipients(self):
         to = set()
-        to.add(self.user)
+        to.add(self.user.email.lower())
         for delegate in self.delegates.all():
-            to.add(delegate)
+            to.add(delegate.email.lower())
         return to
 
     def clean(self):
@@ -392,6 +421,8 @@ class ResponseProject(models.Model):
         super(ResponseProject, self).__init__(*args, **kwargs)
         # capture is_disabled value at init before any changes are made
         self._disabled = self.disabled
+        self._approved = self.approved
+
 
     users = models.ManyToManyField(User, related_name='response', verbose_name='Sponsors',
                                    limit_choices_to={'agol_info__sponsor': True}, blank=True)
@@ -439,19 +470,30 @@ class ResponseProject(models.Model):
     def save(self, *args, **kwargs):
         if self.role is None:
             self.role = AGOLRole.objects.get(system_default=True)
-        send_notification = self.pk is None
-        super().save(*args, **kwargs)
-        if send_notification:
-            self.create_new_notification()
 
-    def create_new_notification(self):
+        send_approved_email = not self._approved and self.approved
+        send_disabled_email = not self._disabled and self.disabled
+
+        super().save(*args, **kwargs)
+        if send_approved_email:
+            to, subject, message = self.generate_approval_email()
+        elif send_disabled_email:
+            to, subject, message = self.generate_disable_email()
+
+        if send_approved_email or send_disabled_email:
+            Notification.create_new_notification(
+                to=to,
+                subject=subject,
+                content=message,
+                content_object=self
+            )
+
+    def generate_new_email(self):
         REQUEST_URL = f"{settings.HOST_ADDRESS}/api/admin/accounts/responseproject/{self.pk}"
-        n = Notification.objects.create(
-            subject='New Response/Project Request for Review in GeoPlatform Account Request Tool',
-            content=render_to_string("new_response_request_email.html", {"REQUEST_URL": REQUEST_URL}),
-            content_object=self
-        )
-        n.to.set(User.objects.filter(groups__pk=settings.COORDINATOR_ADMIN_GROUP_ID))
+        to = [x.email.lower() for x in User.objects.filter(groups__pk=settings.COORDINATOR_ADMIN_GROUP_ID)]
+        subject = 'New Response/Project Request for Review in GeoPlatform Account Request Tool'
+        content = render_to_string('new_response_request_email.html', {"REQUEST_URL": REQUEST_URL})
+        return to, subject, content
 
     def get_email_recipients(self):
         recipients = set()
@@ -461,8 +503,6 @@ class ResponseProject(models.Model):
 
     def generate_approval_email(self):
         try:
-            # from_email_account = settings.GPO_REQUEST_EMAIL_ACCOUNT
-
             recipients = self.get_email_recipients()
             request_url = f"{settings.HOST_ADDRESS}?response={self.pk}"
             approval_url = f"{settings.HOST_ADDRESS}/accounts/list"
@@ -476,11 +516,12 @@ class ResponseProject(models.Model):
 
         except Exception as e:
             logger.error(
-                "Email Error: There was an error emailing the disabled Response Project's assigned sponsors and their delegates.", e)
+                "Email Error: There was an error emailing the disabled Response Project's assigned sponsors and their delegates.",
+                e)
+            raise e
 
     def generate_disable_email(self):
         try:
-            # from_email_account = settings.GPO_REQUEST_EMAIL_ACCOUNT
             recipients = self.get_email_recipients()
             email_subject = f"GeoPlatform Account Response/Project {self.name} has been disabled"
             msg = render_to_string('response_disable_email.html', {"response_project": self})
@@ -489,6 +530,7 @@ class ResponseProject(models.Model):
         except Exception as e:
             logger.error(
                 "Email Error: There was an error emailing the disabled Response Project's assigned sponsors and their delegates.")
+            raise e
 
     class Meta:
         verbose_name_plural = 'Responses/Projects'
@@ -496,7 +538,7 @@ class ResponseProject(models.Model):
 
 
 class Notification(models.Model):
-    to = models.ManyToManyField(User)
+    to = models.TextField()
     subject = models.TextField()
     content = models.TextField()
     sent = models.DateTimeField(null=True, blank=True)
@@ -509,4 +551,25 @@ class Notification(models.Model):
 
     @property
     def to_emails(self):
-        return set([x.email.lower() for x in self.to.all()])
+        return set([x.lower() for x in json.loads(self.to)])
+
+    @classmethod
+    def create_new_notification(cls, subject, to, content_object, template=None, context=None, content=None):
+        if content:
+            n = cls.objects.create(
+                subject=subject,
+                content=content,
+                content_object=content_object,
+                to=json.dumps(list(to))
+            )
+        elif template and context:
+            n = cls.objects.create(
+                subject=subject,
+                content=render_to_string(template, context),
+                content_object=content_object,
+                to=json.dumps(list(to))
+            )
+        else:
+            raise ValueError('Must provide content or template and context')
+
+        return n

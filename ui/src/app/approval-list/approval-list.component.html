@@ -11,6 +11,12 @@
                       (filterCleared)="accounts.clearFilter('approved_and_created')"
                       label="Approved & Created" type="boolean"></filter-input>
       </mat-list-item>
+      <mat-list-item>
+        <filter-input [(filtered)]="accounts.filter.response"
+                      (filterCleared)="accounts.clearFilter('response')"
+                      [choices]="responses | async" value_field="id" field_name="name"
+                      label="Response / Project" type="choices"></filter-input>
+      </mat-list-item>
       <mat-list-item class="filter-btn">
         <button type="button" (click)="accounts.runSearch()" mat-raised-button
                 color="primary">
@@ -86,8 +92,12 @@
             Username
           </mat-header-cell>
           <mat-cell *cdkCellDef="let row" class="cell">
-            <mat-icon color="warn" *ngIf="!row.username_valid"
+            <mat-icon color="warn" *ngIf="!row.username_valid && row.existing_account_enabled"
                       matTooltip="Username already exists. Approval will modify existing groups.">
+              warning
+            </mat-icon>
+            <mat-icon style="color: red;" *ngIf="!row.username_valid && !row.existing_account_enabled"
+                      matTooltip="Username already exists but account is disabled. Approval will re-enable account and modify existing groups.">
               warning
             </mat-icon>
             {{ row.username }}
@@ -228,8 +238,8 @@
         <mat-row *cdkRowDef="let row; columns: displayedColumns;" class="row"></mat-row>
       </mat-table>
       <mat-paginator [length]="accounts.count" [pageSize]="25"
-                     [pageSizeOptions]="[10, 25, 50, 100]"
-                     (page)="accounts.getPage($event)"
+                     [pageSizeOptions]="[1, 10, 25, 50, 100]"
+                     (page)="getPage($event)"
                      [pageIndex]="accounts.filter.page-1"></mat-paginator>
 
     </div>

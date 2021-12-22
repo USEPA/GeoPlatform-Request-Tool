@@ -53,6 +53,7 @@ export class ApprovalListComponent implements OnInit {
   isApprovalReady: boolean;
   roles: Observable<[]>;
   user_types: Observable<[]>;
+  responses: Observable<any[]>;
   searchInput = new FormControl(null);
 
   constructor(public http: HttpClient, loadingService: LoadingService, public snackBar: MatSnackBar = null,
@@ -73,6 +74,7 @@ export class ApprovalListComponent implements OnInit {
     ).subscribe();
     this.roles = this.http.get<[]>('/v1/account/approvals/roles').pipe(share());
     this.user_types = this.http.get<[]>('/v1/account/approvals/user_types').pipe(share());
+    this.responses = this.http.get<[]>('/v1/responses', {params: {for_approver: true}}).pipe(share());
 
     this.searchInput.valueChanges.pipe(
       startWith(this.searchInput.value),
@@ -268,7 +270,9 @@ export class ApprovalListComponent implements OnInit {
   openSetPasswordDialog(): Observable<any> {
     let password_needed = false;
     for (const account of this.accounts.data) {
-      if (this.selectedAccountIds.indexOf(account.id) > -1 && account.username_valid) {
+      if (this.selectedAccountIds.indexOf(account.id) > -1 &&
+        (!account.is_existing_account ||
+        !account.existing_account_enabled)) {
         password_needed = true;
         break;
       }
@@ -359,5 +363,10 @@ export class ApprovalListComponent implements OnInit {
         duration: environment.snackbar_duration, panelClass: ['snackbar-error']
       });
     }
+  }
+
+  getPage(e) {
+    this.accounts.getPage(e);
+    this.clearAllSelected();
   }
 }
