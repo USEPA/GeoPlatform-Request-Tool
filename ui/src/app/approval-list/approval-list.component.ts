@@ -69,9 +69,10 @@ export class ApprovalListComponent implements OnInit {
     // this.setAccountsListProps();
 
     this.accounts.filter = {created: false};
-    this.accounts.getItems().pipe(
+    this.accounts.dataChange.pipe(
       tap(response => this.setAccountsListProps(response))
     ).subscribe();
+    this.accounts.getItems().subscribe();
     this.roles = this.http.get<[]>('/v1/account/approvals/roles').pipe(share());
     this.user_types = this.http.get<[]>('/v1/account/approvals/user_types').pipe(share());
     this.responses = this.http.get<[]>('/v1/responses', {params: {for_approver: true}}).pipe(share());
@@ -84,12 +85,25 @@ export class ApprovalListComponent implements OnInit {
     ).subscribe();
   }
 
-  search(search: any) {
-    this.accounts.filter.search = search;
+  search(search?: any) {
+    this.clearAllSelected();
+    this.accounts.filter.search = search ? search : this.accounts.filter.search ? this.accounts.filter.search : '';
     return this.accounts.runSearch();
   }
 
+  clearAllFilters() {
+    this.clearAllSelected();
+    this.accounts.clearAllFilters();
+  }
+
+  clearSearch() {
+    this.clearAllSelected();
+    this.searchInput.setValue('');
+    this.accounts.clearSearch();
+  }
+
   setAccountsListProps(init_accounts) {
+    this.accountsListProps = {};
     this.needsEditing = false;
     this.isApprovalReady = false;
     // const init_accounts = await this.accounts.getItems().toPromise();
@@ -169,6 +183,7 @@ export class ApprovalListComponent implements OnInit {
   }
 
   clearAllSelected() {
+    this.allChecked = false;
     Object.keys(this.accountsListProps).forEach(id => {
       this.accountsListProps[id].isChecked = false;
       this.allChecked = false;
@@ -272,7 +287,7 @@ export class ApprovalListComponent implements OnInit {
     for (const account of this.accounts.data) {
       if (this.selectedAccountIds.indexOf(account.id) > -1 &&
         (!account.is_existing_account ||
-        !account.existing_account_enabled)) {
+          !account.existing_account_enabled)) {
         password_needed = true;
         break;
       }
