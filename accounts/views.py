@@ -256,6 +256,7 @@ class AGOLGroupViewSet(ReadOnlyModelViewSet):
 class ResponseProjectFilterSet(FilterSet):
     for_approver = BooleanFilter(method='for_approver_func')
     id_in = BaseCSVFilter(field_name='pk', lookup_expr='in')
+    is_disabled = BooleanFilter(field_name='disabled', lookup_expr='isnull', exclude=True)
 
     def for_approver_func(self, queryset, name, value):
         if not value:
