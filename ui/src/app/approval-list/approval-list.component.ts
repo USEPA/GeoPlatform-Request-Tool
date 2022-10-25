@@ -334,7 +334,7 @@ export class ApprovalListComponent implements OnInit {
   setNeedsEditing(account) {
     let needsEditing = false;
     // removed group as requirement for editing per issue #31
-    if (!account.organization || !account.response || !account.sponsor || !account.reason) {
+    if (!account.organization || !account.response || !account.sponsor || !account.reason || (!account.is_existing_account && !account.username_valid)) {
       needsEditing = true;
     }
     this.accountsListProps[account.id].needsEditing = needsEditing;
