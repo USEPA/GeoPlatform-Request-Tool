@@ -1,12 +1,6 @@
-from django.template.response import TemplateResponse
-
+from django.db.models import Q
 from .models import AccountRequests, AGOL, GroupMembership, AGOLGroup, Notification
-from django.utils.timezone import now
-from django.core.mail import send_mail
 from uuid import UUID
-from django.conf import settings
-
-import urllib
 import logging
 
 logger = logging.getLogger('AGOLAccountRequestor')
@@ -41,8 +35,9 @@ def add_accounts_to_groups(account_requests: [AccountRequests]):
             if success:
                 GroupMembership.objects.filter(request=account_request, group=group).update(is_member=True)
 
-    # return all accounts who's group requests have been fulfilled
-    return account_requests.filter(groupmembership__is_member=True).values_list('pk', flat=True).distinct()
+    # return all accounts whose group requests have been fulfilled or doesn't have any group requests
+    return account_requests.filter(Q(groupmembership__is_member=True) |
+                                   Q(groupmembership__isnull=True)).values_list('pk', flat=True).distinct()
 
 
 def update_requests_groups(account_request: AccountRequests, existing_groups: [str], requested_groups=None):

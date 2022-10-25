@@ -320,18 +320,19 @@ class AGOL(models.Model):
             elif len(response['usernames']) == 0:
                 return True, None, [], False
             else:
+                # else check actual username endpoint and see if user exists
                 user_url = f'{self.portal_url}/sharing/rest/community/users/{username}'
 
                 user_response = requests.get(user_url, params={'token': token, 'f': 'json'})
                 user_response_json = user_response.json()
-                if 'error' in user_response_json:
+                if 'error' in user_response_json or 'disabled' not in user_response_json:
                     return False, None, [], False
                 else:
                     # fixes issue #34
                     group_ids = list(x['id'] for x in user_response_json.get('groups', []))
                     for id in (x for x in group_ids if not AGOLGroup.objects.filter(id=x).exists()):
                         self.get_group(id)
-                    return False, user_response_json['id'], group_ids, not user_response_json.get('disabled', False)
+                    return False, user_response_json['id'], group_ids, not user_response_json['disabled']
 
     def add_to_group(self, user, group):
         token = self.get_token()

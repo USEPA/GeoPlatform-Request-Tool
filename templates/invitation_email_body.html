@@ -1,12 +1,4 @@
 <html><body><p>{{account_request.sponsor.get_full_name}} has invited you to join an ArcGIS Online Organization,
     EPA GeoPlatform Online, as part of {{ account_request.response.name }}</p>
 
-<p>Please adhere to the following rules when selecting a password. The password must:
-    <ul>
-        <li>Not match username.</li>
-        <li>Be at least 13 character(s) long.</li>
-        <li>Contain at least 1 letter(s) (A-Za-z).</li>
-        <li>Contain at least 1 number(s) (0-9).</li>
-    </ul>
-</p>
-</body></html>
+{% include 'signature_line.html' %}
