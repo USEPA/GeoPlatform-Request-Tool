@@ -38,11 +38,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'rest_framework_recaptcha',
+    'drf_recaptcha',
     'django_filters',
     'oauth2_provider',
     'social_django',
-    # 'rest_framework_social_oauth2',
+    # 'drf_social_oauth2',
     'accounts'
 ] + local_settings.INSTALLED_APPS
 

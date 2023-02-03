@@ -31,6 +31,7 @@ REASON_CHOICES = (('Emergency Response', 'Emergency Response'),
 
 
 class AccountRequests(models.Model):
+    id = models.AutoField(primary_key=True)
     USER_TYPE_CHOICES = (('creatorUT', 'Creator'),)
     # ROLE_CHOICES = (('jmc1ObdWfBTH6NAN', 'EPA Publisher'),
     #                 ('71yacZLdeuDirQ6K', 'EPA Viewer'))
@@ -114,6 +115,7 @@ class AGOLGroup(models.Model):
 
 
 class GroupMembership(models.Model):
+    id = models.AutoField(primary_key=True)
     group = models.ForeignKey('AGOLGroup', on_delete=models.CASCADE)
     request = models.ForeignKey('AccountRequests', on_delete=models.CASCADE)
     is_member = models.BooleanField(default=False)
@@ -138,6 +140,7 @@ class AGOLRole(models.Model):
 
 
 class AGOL(models.Model):
+    id = models.AutoField(primary_key=True)
     portal_url = models.URLField()
     org_id = models.CharField(max_length=50, blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.PROTECT)
@@ -398,6 +401,7 @@ class AGOL(models.Model):
 
 
 class AGOLUserFields(models.Model):
+    id = models.AutoField(primary_key=True)
     agol_username = models.CharField(max_length=200, null=True, blank=True)
     sponsor = models.BooleanField(default=False)
 
@@ -424,7 +428,7 @@ class ResponseProject(models.Model):
         self._disabled = self.disabled
         self._approved = self.approved
 
-
+    id = models.AutoField(primary_key=True)
     users = models.ManyToManyField(User, related_name='response', verbose_name='Sponsors',
                                    limit_choices_to={'agol_info__sponsor': True}, blank=True)
     name = models.CharField('Name', max_length=500)
@@ -539,6 +543,7 @@ class ResponseProject(models.Model):
 
 
 class Notification(models.Model):
+    id = models.AutoField(primary_key=True)
     to = models.TextField()
     subject = models.TextField()
     content = models.TextField()

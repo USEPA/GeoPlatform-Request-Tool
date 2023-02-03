@@ -125,21 +125,20 @@ class TestAccounts(TestCase):
 
     @patch('accounts.models.requests.post', side_effect=mock_check_username)
     def test_check_username(self, mock_post):
-        results, idk, idk2 = self.agol.check_username('Smo.doesntmatter')
-
-        self.assertTrue(results)
+        results = self.agol.check_username('Smo.doesntmatter')
+        self.assertTrue(results[0])
 
     @patch('accounts.models.requests.post', side_effect=mock_existing_check_username)
     @patch('accounts.models.requests.get', side_effect=mock_get_user)
     def test_check_existing_username(self, mock_post, mock_get):
-        results, idk, idk2 = self.agol.check_username('doesntmatter')
-        self.assertFalse(results)
+        results = self.agol.check_username('doesntmatter')
+        self.assertFalse(results[0])
 
     @patch('accounts.models.requests.post', side_effect=mock_check_username_empty)
     @patch('accounts.models.requests.get', side_effect=mock_get_user)
     def test_check_existing_username_empty(self, mock_post, mock_get):
-        results, idk, idk2 = self.agol.check_username('doesntmatter')
-        self.assertTrue(results)
+        results = self.agol.check_username('doesntmatter')
+        self.assertTrue(results[0])
 
     @patch('accounts.models.requests.post', side_effect=mock_fail_create_user)
     @patch('accounts.models.requests.get', side_effect=mock_get_user)

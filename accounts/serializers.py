@@ -2,12 +2,12 @@ from rest_framework.serializers import ModelSerializer, CharField, PrimaryKeyRel
     JSONField, BooleanField
 from .models import *
 from rest_framework.decorators import api_view
-from rest_framework_recaptcha.fields import ReCaptchaField
+from drf_recaptcha.fields import ReCaptchaV2Field
 from .func import has_outstanding_request
 
 
 class AccountRequestSerializer(ModelSerializer):
-    recaptcha = ReCaptchaField()
+    recaptcha = ReCaptchaV2Field()
     response = PrimaryKeyRelatedField(required=True, queryset=ResponseProject.objects.all())
 
     def validate(self, attrs):
