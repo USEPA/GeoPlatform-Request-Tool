@@ -71,3 +71,4 @@ __pycache__/
 
 venv
 error.log
+.env

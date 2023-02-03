@@ -1,0 +1,25 @@
+FROM python:3.11
+
+# adding custom MS repository
+RUN sh -c 'curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -'
+RUN sh -c 'curl https://packages.microsoft.com/config/debian/11/prod.list > /etc/apt/sources.list.d/mssql-release.list'
+
+# install SQL Server drivers
+RUN apt-get update && ACCEPT_EULA=Y apt-get install -y msodbcsql17
+
+# install SQL Server tools
+RUN apt-get update && ACCEPT_EULA=Y apt-get install -y mssql-tools
+RUN echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
+RUN /bin/bash -c "source ~/.bashrc"
+
+RUN mkdir /code
+WORKDIR /code
+COPY requirements.txt /code/
+RUN pip install pip --upgrade
+
+RUN pip install --upgrade -r requirements.txt
+
+COPY . /code/
+RUN python manage.py collectstatic --noinput
+
+#ADD ./rest_framework_recaptcha/validators.py /usr/local/lib/python3.11/site-packages/rest_framework_recaptcha/validators.py

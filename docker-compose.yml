@@ -1,0 +1,34 @@
+version: '3.7'
+
+x-common-variables: &common-variables
+   ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+   SERVER: ${DB_SERVER}
+   DB_USER: ${DB_USER}
+   DB_PASSWORD: ${DB_PASSWORD}
+#   SECRET_KEY: ${SECRET_KEY}
+   DEBUG: ${DEBUG}
+#   INTERNAL_IP: ${INTERNAL_IP}
+#   STATIC_URL: ${STATIC_URL}
+#   ARC_SERVER_USERNAME: ${ARC_SERVER_USERNAME}
+#   ARC_SERVER_PASSWORD: ${ARC_SERVER_PASSWORD}
+   SA_PASSWORD: ${SA_PASSWORD}
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      <<: *common-variables
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      <<: *common-variables
