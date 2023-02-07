@@ -15,7 +15,7 @@ from .models import *
 
 
 # hack to make full name show up in autocomplete b/c nothing else worked
-User.__str__ = lambda x: f"{x.first_name} {x.last_name}"
+User.__str__ = lambda x: f"{x.first_name} {x.last_name} ({x.agol_info.auth_provider if hasattr(x, 'agol_info') else None})"
 
 
 @admin.register(AGOL)
