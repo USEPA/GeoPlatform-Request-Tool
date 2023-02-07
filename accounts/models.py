@@ -163,7 +163,7 @@ class AGOL(models.Model):
         return self.portal_url
 
     def get_token(self):
-        social = self.user.social_auth.get(provider='agol')
+        social = self.user.social_auth.get(provider=self.user.agol_info.auth_provider)
         return social.get_access_token(load_strategy())
 
     def get_org_id(self):
@@ -403,7 +403,10 @@ class AGOL(models.Model):
 class AGOLUserFields(models.Model):
     id = models.AutoField(primary_key=True)
     agol_username = models.CharField(max_length=200, null=True, blank=True)
+    auth_provider = models.CharField(max_length=50, choices=[('geosecure', 'Geosecure'),
+                                                             ('geoplatform', 'Geoplatform')])
     sponsor = models.BooleanField(default=False)
+
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='agol_info')
     delegates = models.ManyToManyField(User, related_name='delegate_for', blank=True)

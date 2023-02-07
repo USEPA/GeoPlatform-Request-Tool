@@ -95,8 +95,11 @@
     text-decoration: none;
 }
 </style>
-    <a href="{% url 'social:begin' 'agol' %}" style="cursor: pointer">
+    <a href="{% url 'social:begin' 'geoplatform' %}" style="cursor: pointer">
       <span class="esriSignIn">Login using EPA GeoPlatform</span>
+    </a><br>
+    <a href="{% url 'social:begin' 'geosecure' %}" style="cursor: pointer">
+      <span class="esriSignIn">Login using EPA GeoSecure</span>
     </a><br>
   </div>
 </form>
