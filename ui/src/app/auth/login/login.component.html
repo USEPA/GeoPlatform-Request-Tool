@@ -1,7 +1,12 @@
 <div class="login-container">
   <div>
     <mat-card style="display: flex; flex-direction: column; align-items: center;">
-      <button mat-raised-button color="primary" (click)="login('agol')">Login using EPA GeoPlatform</button>
+      <div style="padding-bottom: 10px">
+        <button mat-raised-button color="primary" (click)="login('geoplatform')">Login using EPA GeoPlatform</button>
+      </div>
+      <div>
+        <button mat-raised-button color="primary" (click)="login('geosecure')">Login using EPA GeoSecure</button>
+      </div>
       <p *ngIf="showNewUserMessage">Please proceed to be able to submit a new response / project request.</p>
     </mat-card>
   </div>

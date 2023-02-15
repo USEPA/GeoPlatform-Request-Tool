@@ -141,6 +141,8 @@ class AGOLRole(models.Model):
 
 class AGOL(models.Model):
     id = models.AutoField(primary_key=True)
+    portal_name = models.CharField(max_length=50, blank=True, null=True , choices=[('geosecure', 'GeoSecure'),
+                                                                                   ('geoplatform', 'GeoPlatform')])
     portal_url = models.URLField()
     org_id = models.CharField(max_length=50, blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.PROTECT)
@@ -160,10 +162,10 @@ class AGOL(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.portal_url
+        return self.get_portal_name_display()
 
     def get_token(self):
-        social = self.user.social_auth.get(provider=self.user.agol_info.auth_provider)
+        social = self.user.social_auth.get()
         return social.get_access_token(load_strategy())
 
     def get_org_id(self):
@@ -174,8 +176,7 @@ class AGOL(models.Model):
 
     def get_list(self, url, results_key='results'):
         try:
-
-            sys.stdout.write(f'\nGetting All {url}... \n')
+            sys.stdout.write(f'\nGetting All from {self.portal_url}... \n')
 
             next_record, total_records, update_total = 0, 1, True
             all_records = []
@@ -206,7 +207,6 @@ class AGOL(models.Model):
 
             return all_records
 
-
         except:
             sys.stdout.write('\nError encountered. Stopping update.\n')
             # logger.exception('Error in refreshAllAGOL refresh_catalog')
@@ -215,7 +215,7 @@ class AGOL(models.Model):
     def get_all_groups(self):
         try:
             all_groups = self.get_list('community/groups')
-            sys.stdout.write('\nCreating/updating groups...\n')
+            sys.stdout.write(f'\nCreating/updating groups from {self.portal_url}...\n')
 
             for group in all_groups:
                 AGOLGroup.objects.update_or_create(id=group['id'], defaults={'title': group['title'], 'agol': self})
@@ -226,7 +226,7 @@ class AGOL(models.Model):
 
     def get_all_roles(self):
         all_roles = self.get_list('portals/self/roles', 'roles')
-        sys.stdout.write('\nCreating/updating roles...\n')
+        sys.stdout.write(f'\nCreating/updating roles from {self.portal_url}...\n')
         for role in all_roles:
             AGOLRole.objects.update_or_create(id=role['id'], defaults={'name': role['name'],
                                                                        'description': role['description'],
@@ -403,10 +403,8 @@ class AGOL(models.Model):
 class AGOLUserFields(models.Model):
     id = models.AutoField(primary_key=True)
     agol_username = models.CharField(max_length=200, null=True, blank=True)
-    auth_provider = models.CharField(max_length=50, choices=[('geosecure', 'Geosecure'),
-                                                             ('geoplatform', 'Geoplatform')])
+    portal = models.ForeignKey(AGOL, models.PROTECT, default=1)
     sponsor = models.BooleanField(default=False)
-
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='agol_info')
     delegates = models.ManyToManyField(User, related_name='delegate_for', blank=True)
@@ -435,6 +433,7 @@ class ResponseProject(models.Model):
     users = models.ManyToManyField(User, related_name='response', verbose_name='Sponsors',
                                    limit_choices_to={'agol_info__sponsor': True}, blank=True)
     name = models.CharField('Name', max_length=500)
+    portal = models.ForeignKey(AGOL, models.PROTECT, default=1)
     assignable_groups = models.ManyToManyField('AGOLGroup', related_name='response',
                                                verbose_name='GeoPlatform Assignable Groups')
     role = models.ForeignKey('AGOLRole', on_delete=models.PROTECT, verbose_name='GeoPlatform Role',
@@ -461,8 +460,8 @@ class ResponseProject(models.Model):
 
     @property
     def disable_users_link(self):
-        # define link to relevant user accounts
-        agol = AGOL.objects.first()
+        # define link to relevant user accounts using AGOL/portal of response/project being modified
+        agol = self.portal
         url = f'{agol.portal_url}/home/organization.html?'
         query_params = {'showFilters': 'false', 'view': 'table', 'sortOrder': 'asc', 'sortField': 'fullname'}
         # get account request AGOL IDs to define in link

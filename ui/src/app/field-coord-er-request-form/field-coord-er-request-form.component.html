@@ -24,6 +24,7 @@
   </mat-form-field>
   <!-- reason -->
   <mat-form-field>
+    <mat-label>Reason / Affiliation</mat-label>
     <mat-select required formControlName="default_reason" placeholder="Reason / Affiliation">
       <mat-option *ngFor="let r of reasons | async" [value]="r.value">
         {{r.display_name}}
