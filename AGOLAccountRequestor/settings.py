@@ -11,9 +11,9 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
-from . import local_settings
+# from . import local_settings
 from django.utils.log import DEFAULT_LOGGING
-
+import json
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -21,12 +21,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = local_settings.SECRET_KEY
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = local_settings.DEBUG
+DEBUG = os.environ.get('DEBUG') == 'True'
 
-ALLOWED_HOSTS = local_settings.ALLOWED_HOSTS
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(',')
 
 # Application definition
 
@@ -40,16 +40,15 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_recaptcha',
     'django_filters',
-    'oauth2_provider',
     'social_django',
     # 'drf_social_oauth2',
     'accounts'
-] + local_settings.INSTALLED_APPS
+] + os.environ.get('INSTALLED_APPS', '').split(',')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-] + local_settings.CORS_MIDDLEWARE + [
+] + os.environ.get('CORS_MIDDLEWARE', '').split(',') + [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -82,7 +81,7 @@ WSGI_APPLICATION = 'AGOLAccountRequestor.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
-DATABASES = local_settings.DATABASES
+DATABASES = json.loads(os.environ.get('DATABASES'))
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
@@ -118,16 +117,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
-STATIC_URL = getattr(local_settings, 'STATIC_URL', '/request/static/')
+STATIC_URL = os.environ.get('STATIC_URL', '/request/static/')
 
 #STATIC_ROOT = 'static'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
  )
 
-MIGRATION_MODULES = {
-    'oauth2_provider': 'oauth2_migrations'
-}
 
 AUTHENTICATION_BACKENDS = (
     'AGOLAccountRequestor.agol_auth.AGOLOAuth2Geoplatform',
@@ -135,35 +131,40 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend'
 )
 
-OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL = 'oauth2_provider.AccessToken'
-OAUTH2_PROVIDER_APPLICATION_MODEL = 'oauth2_provider.Application'
-OAUTH2_PROVIDER_REFRESH_TOKEN_MODEL = 'oauth2_provider.RefreshToken'
-OAUTH2_PROVIDER_ID_TOKEN_MODEL = "oauth2_provider.IDToken"
+SOCIAL_AUTH_GEOPLATFORM_DOMAIN = os.environ.get('SOCIAL_AUTH_GEOPLATFORM_DOMAIN')
+SOCIAL_AUTH_GEOPLATFORM_KEY = os.environ.get('SOCIAL_AUTH_GEOPLATFORM_KEY')
+SOCIAL_AUTH_GEOPLATFORM_SECRET = os.environ.get('SOCIAL_AUTH_GEOPLATFORM_SECRET')
+SOCIAL_AUTH_GEOSECURE_DOMAIN = os.environ.get('SOCIAL_AUTH_GEOSECURE_DOMAIN')
+SOCIAL_AUTH_GEOSECURE_KEY = os.environ.get('SOCIAL_AUTH_GEOSECURE_KEY')
+SOCIAL_AUTH_GEOSECURE_SECRET = os.environ.get('SOCIAL_AUTH_GEOSECURE_SECRET')
+SOCIAL_AUTH_REDIRECT_IS_HTTPS = os.environ.get('SOCIAL_AUTH_REDIRECT_IS_HTTPS', True) == True
+SOCIAL_AUTH_PIPELINE = [  # Note: Sequence of functions matters here.
+    'social_core.pipeline.social_auth.social_details',  # 0
+    'social_core.pipeline.social_auth.social_uid',  # 1
+    'social_core.pipeline.social_auth.auth_allowed',  # 2
+    'social_core.pipeline.social_auth.social_user',  # 3
+    'social_core.pipeline.user.get_username',  # 4
+    # 'social_core.pipeline.social_auth.associate_by_email',  # 5 need custom associate method
+    'AGOLAccountRequestor.agol_auth.associate_by_username',
+    'AGOLAccountRequestor.agol_auth.create_accounts_for_preapproved_domains',
+    'social_core.pipeline.social_auth.associate_user',  # 6
+    'social_core.pipeline.social_auth.load_extra_data',  # 7
+    'social_core.pipeline.user.user_details',  # 8
+]
+SOCIAL_AUTH_GEOPLATFORM_PREAPPROVED_DOMAINS = os.environ.get('SOCIAL_AUTH_GEOPLATFORM_PREAPPROVED_DOMAINS', [])
+SOCIAL_AUTH_GEOPLATFORM_UNKNOWN_REQUESTER_GROUP_ID = os.environ.get('SOCIAL_AUTH_GEOPLATFORM_UNKNOWN_REQUESTER_GROUP_ID', 0)
+SOCIAL_AUTH_GEOSECURE_PREAPPROVED_DOMAINS = os.environ.get('SOCIAL_AUTH_GEOPLATFORM_PREAPPROVED_DOMAINS', [])
+SOCIAL_AUTH_GEOSECURE_UNKNOWN_REQUESTER_GROUP_ID = os.environ.get('SOCIAL_AUTH_GEOPLATFORM_UNKNOWN_REQUESTER_GROUP_ID', 0)
+SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS = os.environ.get('SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS', [])
 
-SOCIAL_AUTH_GEOPLATFORM_DOMAIN = local_settings.SOCIAL_AUTH_GEOPLATFORM_DOMAIN
-SOCIAL_AUTH_GEOPLATFORM_KEY = local_settings.SOCIAL_AUTH_GEOPLATFORM_KEY
-SOCIAL_AUTH_GEOPLATFORM_SECRET = local_settings.SOCIAL_AUTH_GEOPLATFORM_SECRET
-SOCIAL_AUTH_GEOSECURE_DOMAIN = local_settings.SOCIAL_AUTH_GEOSECURE_DOMAIN
-SOCIAL_AUTH_GEOSECURE_KEY = local_settings.SOCIAL_AUTH_GEOSECURE_KEY
-SOCIAL_AUTH_GEOSECURE_SECRET = local_settings.SOCIAL_AUTH_GEOSECURE_SECRET
-SOCIAL_AUTH_REDIRECT_IS_HTTPS = getattr(local_settings, 'SOCIAL_AUTH_REDIRECT_IS_HTTPS', True)
-SOCIAL_AUTH_PIPELINE = local_settings.SOCIAL_AUTH_PIPELINE
-SOCIAL_AUTH_GEOPLATFORM_PREAPPROVED_DOMAINS = getattr(local_settings, 'SOCIAL_AUTH_GEOPLATFORM_PREAPPROVED_DOMAINS', [])
-SOCIAL_AUTH_GEOPLATFORM_UNKNOWN_REQUESTER_GROUP_ID = getattr(local_settings, 'SOCIAL_AUTH_GEOPLATFORM_UNKNOWN_REQUESTER_GROUP_ID', 0)
-SOCIAL_AUTH_GEOSECURE_PREAPPROVED_DOMAINS = getattr(local_settings, 'SOCIAL_AUTH_GEOPLATFORM_PREAPPROVED_DOMAINS', [])
-SOCIAL_AUTH_GEOSECURE_UNKNOWN_REQUESTER_GROUP_ID = getattr(local_settings, 'SOCIAL_AUTH_GEOPLATFORM_UNKNOWN_REQUESTER_GROUP_ID', 0)
-SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS = getattr(local_settings, 'SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS', [])
+REST_FRAMEWORK = json.loads(os.environ.get('REST_FRAMEWORK'))
 
-REST_FRAMEWORK = local_settings.REST_FRAMEWORK
+DRF_RECAPTCHA_SECRET_KEY = os.environ.get('DRF_RECAPTCHA_SECRET_KEY')
 
-DRF_RECAPTCHA_SECRET_KEY = local_settings.DRF_RECAPTCHA_SECRET_KEY
+CORS_ORIGIN_WHITELIST = os.environ.get('CORS_ORIGIN_WHITELIST', '').split(',')
+CORS_ALLOW_CREDENTIALS = os.environ.get('CORS_ALLOW_CREDENTIALS', False) == 'True'
 
-CORS_ORIGIN_WHITELIST = local_settings.CORS_ORIGIN_WHITELIST
-CORS_ALLOW_CREDENTIALS = getattr(local_settings, 'CORS_ALLOW_CREDENTIALS', False)
-
-EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
-SENDGRID_API_KEY = local_settings.SENDGRID_API_KEY
-SENDGRID_SANDBOX_MODE_IN_DEBUG = local_settings.SENDGRID_SANDBOX_MODE_IN_DEBUG
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND')
 
 LOGGING = DEFAULT_LOGGING
 
@@ -171,8 +172,8 @@ LOGGING['handlers']['slack'] = {
     'level': 'ERROR',
     'filters': ['require_debug_false'],
     'class': 'slack_logging.SlackExceptionHandler',
-    'bot_token': getattr(local_settings.SLACK_LOGGING, 'SLACK_BOT_TOKEN', ''),
-    'channel_id': getattr(local_settings.SLACK_LOGGING, 'SLACK_CHANNEL', '')
+    'bot_token': os.environ.get('SLACK_BOT_TOKEN', ''),
+    'channel_id': os.environ.get('SLACK_CHANNEL', '')
 }
 
 LOGGING['handlers']['file'] = {
@@ -192,14 +193,14 @@ LOGGING['loggers']['R9DMT'] = {
 }
 
 
-USE_X_FORWARDED_HOST = getattr(local_settings, 'USE_X_FORWARDED_HOST', False)
-URL_PREFIX = getattr(local_settings, 'URL_PREFIX', '')
+USE_X_FORWARDED_HOST = os.environ.get('USE_X_FORWARDED_HOST', False)
+URL_PREFIX = os.environ.get('URL_PREFIX', '')
 LOGIN_REDIRECT_URL = f'/{URL_PREFIX}api/admin/'
 LOGIN_URL = f'/{URL_PREFIX}api/admin/'
 
-INTERNAL_IPS = getattr(local_settings, 'INTERNAL_IPS', [])
-HOST_ADDRESS = getattr(local_settings, 'HOST_ADDRESS', '')
+INTERNAL_IPS = os.environ.get('INTERNAL_IPS', '').split(',')
+HOST_ADDRESS = os.environ.get('HOST_ADDRESS', '')
 
-COORDINATOR_ADMIN_GROUP_ID = getattr(local_settings, 'COORDINATOR_ADMIN_GROUP_ID', 0)
+COORDINATOR_ADMIN_GROUP_ID = os.environ.get('COORDINATOR_ADMIN_GROUP_ID', 0)
 
 CSRF_COOKIE_NAME = 'requestcsrftoken'
