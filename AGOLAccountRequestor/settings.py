@@ -81,7 +81,7 @@ WSGI_APPLICATION = 'AGOLAccountRequestor.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
-DATABASES = json.loads(os.environ.get('DATABASES', '{}').replace("'", "'"))
+DATABASES = json.loads(os.environ.get('DATABASES', '{}').replace("'", '"'))
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
@@ -157,7 +157,7 @@ SOCIAL_AUTH_GEOSECURE_PREAPPROVED_DOMAINS = os.environ.get('SOCIAL_AUTH_GEOPLATF
 SOCIAL_AUTH_GEOSECURE_UNKNOWN_REQUESTER_GROUP_ID = os.environ.get('SOCIAL_AUTH_GEOPLATFORM_UNKNOWN_REQUESTER_GROUP_ID', 0)
 SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS = os.environ.get('SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS', [])
 
-REST_FRAMEWORK = json.loads(os.environ.get('REST_FRAMEWORK', '{}').replace("'", "'"))
+REST_FRAMEWORK = json.loads(os.environ.get('REST_FRAMEWORK', '{}').replace("'", '"'))
 
 DRF_RECAPTCHA_SECRET_KEY = os.environ.get('DRF_RECAPTCHA_SECRET_KEY')
 
