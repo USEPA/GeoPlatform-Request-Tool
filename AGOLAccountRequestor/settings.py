@@ -160,7 +160,7 @@ SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS = os.environ.get('SOCIAL_AUTH_ALLOWED_REDIREC
 
 REST_FRAMEWORK = json.loads(os.environ.get('REST_FRAMEWORK', '{}').replace("'", '"'))
 
-DRF_RECAPTCHA_SECRET_KEY = os.environ.get('DRF_RECAPTCHA_SECRET_KEY')
+DRF_RECAPTCHA_SECRET_KEY = os.environ.get('DRF_RECAPTCHA_SECRET_KEY', 'fakey')
 
 CORS_ORIGIN_WHITELIST = os.environ.get('CORS_ORIGIN_WHITELIST', '').split(',') if 'CORS_ORIGIN_WHITELIST' in os.environ else []
 CORS_ALLOW_CREDENTIALS = os.environ.get('CORS_ALLOW_CREDENTIALS', False) == 'True'
