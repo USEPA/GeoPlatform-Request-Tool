@@ -43,12 +43,13 @@ INSTALLED_APPS = [
     'social_django',
     # 'drf_social_oauth2',
     'accounts'
-] + os.environ.get('INSTALLED_APPS', '').split(',') if 'INSTALLED_APPS' in os.environ else []
+]
+INSTALLED_APPS += os.environ.get('INSTALLED_APPS', '').split(',') if os.environ.get('INSTALLED_APPS') else []
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-] + os.environ.get('CORS_MIDDLEWARE', '').split(',') if 'CORS_MIDDLEWARE' in os.environ else [] + [
+] + (os.environ.get('CORS_MIDDLEWARE', '').split(',') if 'CORS_MIDDLEWARE' in os.environ else []) + [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
