@@ -26,7 +26,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if 'ALLOWED_HOSTS' in os.environ else []
 
 # Application definition
 
@@ -43,12 +43,12 @@ INSTALLED_APPS = [
     'social_django',
     # 'drf_social_oauth2',
     'accounts'
-] + os.environ.get('INSTALLED_APPS', '').split(',')
+] + os.environ.get('INSTALLED_APPS', '').split(',') if 'INSTALLED_APPS' in os.environ else []
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-] + os.environ.get('CORS_MIDDLEWARE', '').split(',') + [
+] + os.environ.get('CORS_MIDDLEWARE', '').split(',') if 'CORS_MIDDLEWARE' in os.environ else [] + [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -161,7 +161,7 @@ REST_FRAMEWORK = json.loads(os.environ.get('REST_FRAMEWORK', '{}'))
 
 DRF_RECAPTCHA_SECRET_KEY = os.environ.get('DRF_RECAPTCHA_SECRET_KEY')
 
-CORS_ORIGIN_WHITELIST = os.environ.get('CORS_ORIGIN_WHITELIST', '').split(',')
+CORS_ORIGIN_WHITELIST = os.environ.get('CORS_ORIGIN_WHITELIST', '').split(',') if 'CORS_ORIGIN_WHITELIST' in os.environ else []
 CORS_ALLOW_CREDENTIALS = os.environ.get('CORS_ALLOW_CREDENTIALS', False) == 'True'
 
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND')
@@ -198,7 +198,7 @@ URL_PREFIX = os.environ.get('URL_PREFIX', '')
 LOGIN_REDIRECT_URL = f'/{URL_PREFIX}api/admin/'
 LOGIN_URL = f'/{URL_PREFIX}api/admin/'
 
-INTERNAL_IPS = os.environ.get('INTERNAL_IPS', '').split(',')
+INTERNAL_IPS = os.environ.get('INTERNAL_IPS', '').split(',') if 'INTERNAL_IPS' in os.environ else []
 HOST_ADDRESS = os.environ.get('HOST_ADDRESS', '')
 
 COORDINATOR_ADMIN_GROUP_ID = os.environ.get('COORDINATOR_ADMIN_GROUP_ID', 0)
