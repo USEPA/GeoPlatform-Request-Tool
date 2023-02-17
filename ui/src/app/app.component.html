@@ -9,7 +9,7 @@
       <span *ngIf="config | async as c">
         <button mat-button [matMenuTriggerFor]="menu">{{ c.name }}</button>
         <mat-menu #menu="matMenu">
-          <button *ngIf="c.permissions.includes('view_accountrequests')" mat-menu-item routerLink="/accounts/list/">
+          <button *ngIf="c.is_superuser || c.permissions.includes('view_accountrequests')" mat-menu-item routerLink="/accounts/list/">
             Approval List
           </button>
           <a *ngIf="c && c.is_staff" style="text-decoration: none;" [href]="admin_url">

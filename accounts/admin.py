@@ -15,12 +15,15 @@ from .models import *
 
 
 # hack to make full name show up in autocomplete b/c nothing else worked
-User.__str__ = lambda x: f"{x.first_name} {x.last_name} ({x.agol_info.auth_provider if hasattr(x, 'agol_info') else None})"
+User.__str__ = lambda x: f"{x.first_name} {x.last_name} ({x.agol_info.portal if hasattr(x, 'agol_info') else None})"
+# make admin panel show full name and portal of currently logged in user
+User.get_short_name = lambda user_instance: f"{user_instance.first_name} {user_instance.last_name} ({user_instance.agol_info.portal if hasattr(user_instance, 'agol_info') else None})"
 
 
 @admin.register(AGOL)
 class AGOLAdmin(admin.ModelAdmin):
-    fields = ['portal_url', 'user']
+    fields = ['portal_name', 'portal_url', 'user']
+    list_display = ['portal_name', 'portal_url']
 
 
 admin.site.unregister(User)
@@ -49,6 +52,14 @@ class AGOLUserFieldsInline(admin.StackedInline):
 @admin.register(User)
 class AGOLUserAdmin(UserAdmin):
     inlines = (AGOLUserFieldsInline,)
+    # list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'is_superuser')
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        if request.user.is_superuser:
+            return queryset
+        return queryset.filter(agol_info__portal_id=request.user.agol_info.portal_id)
+
 
     # hacky solution b/c of https://code.djangoproject.com/ticket/29707
     def get_search_results(self, request, queryset, search_term):
@@ -69,9 +80,15 @@ class AGOLUserAdmin(UserAdmin):
 class AGOLGroupAdmin(admin.ModelAdmin):
     ordering = ['-is_auth_group', 'title']
     search_fields = ['title']
-    list_display = ['title', 'is_auth_group']
-    fields = ['title', 'is_auth_group']
-    readonly_fields = ['title']
+    list_display = ['title', 'agol', 'is_auth_group']
+    fields = ['title', 'agol', 'is_auth_group']
+    readonly_fields = ['title', 'agol']
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        if request.user.is_superuser:
+            return queryset
+        return queryset.filter(agol=request.user.agol_info.portal_id)
 
     def has_add_permission(self, request):
         return False
@@ -110,7 +127,14 @@ class RequestAdmin(admin.ModelAdmin):
     list_display = ['last_name', 'first_name', 'email', 'username']
     search_fields = list_display
     ordering = ['-submitted']
-    list_filter = ['response', 'submitted', 'approved_by', 'approved', 'created']
+    #list_filter = ['response', 'submitted', 'approved_by', 'approved', 'created']
+    list_filter = (
+        ('response', admin.RelatedOnlyFieldListFilter),
+        ('submitted'),
+        ('approved_by', admin.RelatedOnlyFieldListFilter),
+        ('approved'),
+        ('created'),
+    )
     fields = ['first_name', 'last_name', 'email', 'possible_existing_account', 'existing_account_enabled', 'organization', 'username',
               'username_valid', 'user_type', 'role', 'auth_group', 'sponsor', 'sponsor_notified', 'reason',
               'approved', 'approved_by', 'created', 'response', 'is_existing_account']
@@ -118,6 +142,11 @@ class RequestAdmin(admin.ModelAdmin):
                        'is_existing_account', 'existing_account_enabled', 'approved_by']
     inlines = [GroupAdminInline, PendingNotificationInline]
 
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        if request.user.is_superuser:
+            return queryset
+        return queryset.filter(response__portal_id=request.user.agol_info.portal_id)
 
 def set_system_default(modeladmin, request, queryset):
     if queryset.count() > 1:
@@ -163,6 +192,7 @@ class ResponseProjectForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['users'].required = True
+        #self.fields['requester'].queryset = User.objects.filter(agol_info__portal_id=35)
 
     class Meta:
         model = ResponseProject
@@ -172,7 +202,7 @@ class ResponseProjectForm(ModelForm):
 @admin.register(ResponseProject)
 class ResponseProjectAdmin(admin.ModelAdmin):
 
-    list_display = ['name', 'requester', 'sponsors', 'approved', 'disabled']
+    list_display = ['name', 'portal', 'requester', 'sponsors', 'approved', 'disabled']
     search_fields = ['name']
     ordering = ['name']
     fields = ['name', 'requester', 'users', 'assignable_groups', 'role', 'authoritative_group', 'default_reason',
@@ -183,6 +213,18 @@ class ResponseProjectAdmin(admin.ModelAdmin):
     inlines = [AccountRequestsInline, PendingNotificationInline]
     list_filter = ['disabled', 'approved']
     form = ResponseProjectForm
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        if request.user.is_superuser:
+            return queryset
+        return queryset.filter(portal=request.user.agol_info.portal_id)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "requester":
+            if not request.user.is_superuser:
+                kwargs["queryset"] = User.objects.filter(agol_info__portal_id=request.user.agol_info.portal_id)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         response = super(ResponseProjectAdmin, self).change_view(request, object_id, form_url, extra_context)

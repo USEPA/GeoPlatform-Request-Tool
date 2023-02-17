@@ -32,7 +32,7 @@ class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
     authentication_classes = ()
 
     def perform_create(self, serializer):
-        agol = AGOL.objects.first()
+        agol = ResponseProject.objects.get(id=self.request.data['response']).portal
         username = format_username(self.request.data)
         username_valid, agol_id, groups, existing_account_enabled = agol.check_username(username)
         possible_accounts = agol.find_accounts_by_email(self.request.data['email'])
@@ -83,8 +83,18 @@ class AccountViewSet(ModelViewSet):
     filter_backends = ModelViewSet.filter_backends + [SponsorFilterBackend]
     permission_classes = [IsSponsor]
 
+    def get_queryset(self):
+        user_portal = self.request.user.agol_info.portal_id
+        # return self.queryset.filter(sponsor__agol_info__portal_id=user_portal)
+        return self.queryset.filter(response__portal_id=user_portal)
+
     def perform_update(self, serializer):
-        agol = AGOL.objects.first()
+        #agol of the logged in approver/admin
+        #agol = self.request.user.agol_info.portal
+
+        #agol of the user request from response/project
+        agol = ResponseProject.objects.get(pk=self.request.data['response']).portal
+
         username_valid, agol_id, existing_groups, existing_account_enabled = agol.check_username(self.request.data['username'])
         is_existing_account = True if agol_id is not None else False
         account_request = serializer.save(username_valid=username_valid, agol_id=agol_id,
@@ -212,28 +222,15 @@ class AGOLGroupViewSet(ReadOnlyModelViewSet):
     queryset = AGOLGroup.objects.none()
     serializer_class = AGOLGroupSerializer
     ordering = ['title']
+    permission_classes = [IsAuthenticated]
     pagination_class = None
-    filter_fields = ['response', 'is_auth_group']
+    filterset_fields = ['response', 'is_auth_group']
     search_fields = ['title']
 
-    # only show groups for which the user the user has access per agol group fields assignable groups
+    # only show groups for which the user has access per agol group fields assignable groups
     def get_queryset(self):
-        # if self.request.query_params:
-        #     if 'all' in self.request.query_params and self.request.query_params['all'] == 'true':
-        #         return AGOLGroup.objects.all()
-            # elif 'search' in self.request.query_params:
-            #     search_text = self.request.query_params['search']
-            #     return AGOLGroup.objects.filter(title__contains=search_text)
-            # elif 'is_auth_group' in self.request.query_params:
-            #     is_auth_group = False
-            #     if self.request.query_params.get('is_auth_group').lower() == 'true':
-            #         is_auth_group = True
-            #     elif self.request.query_params.get('is_auth_group').lower() == 'false':
-            #         is_auth_group = False
-            #     return AGOLGroup.objects.filter(is_auth_group=is_auth_group)
-
         sponsors = User.objects.filter(agol_info__delegates=self.request.user)
-        return AGOLGroup.objects.filter(Q(response__users=self.request.user) | Q(response__users__in=sponsors))
+        return AGOLGroup.objects.filter(Q(agol_id=self.request.user.agol_info.portal_id) &  Q(response__users=self.request.user) | Q(response__users__in=sponsors))
 
     def get_permissions(self):
         if self.action == 'all':
@@ -242,7 +239,7 @@ class AGOLGroupViewSet(ReadOnlyModelViewSet):
 
     @action(['GET'], detail=False)
     def all(self, request):
-        groups = self.filter_queryset(AGOLGroup.objects.all())
+        groups = self.filter_queryset(AGOLGroup.objects.filter(agol_id=self.request.user.agol_info.portal))
         groups_list = list()
         for group in groups:
             groups_list.append({
@@ -293,6 +290,11 @@ class ResponseProjectViewSet(ModelViewSet):
             return FullResponseProjectSerializer
         return ResponseProjectSerializer
 
+    def get_queryset(self):
+        if not self.request.user.is_anonymous:
+            user_portal = self.request.user.agol_info.portal
+            return self.queryset.filter(portal=user_portal)
+        return self.queryset
 
 class SponsorsViewSet(ReadOnlyModelViewSet):
     queryset = User.objects.filter(agol_info__sponsor=True)
@@ -300,16 +302,21 @@ class SponsorsViewSet(ReadOnlyModelViewSet):
     ordering = ['last_name']
     permission_classes = [IsAuthenticated]
     search_fields = ['last_name', 'first_name', 'email']
-    filter_fields = ['response', 'agol_info__delegates']
+    filterset_fields = ['response', 'agol_info__delegates', 'agol_info__portal__user']
 
+    def get_queryset(self):
+        return self.queryset.filter(agol_info__portal__user=self.request.user)
 
 class AGOLRoleViewSet(ReadOnlyModelViewSet):
     queryset = AGOLRole.objects.all()
     serializer_class = AGOLRoleSerializer
     ordering = ['system_default', 'name']
+    permission_classes = [IsAuthenticated]
     search_fields = ['name', 'description']
-    filter_fields = ['system_default', 'is_available']
+    filterset_fields = ['system_default', 'is_available']
 
+    def get_queryset(self):
+        return self.queryset.filter(Q(agol__user=self.request.user))
 
 class PendingNotificationViewSet(ReadOnlyModelViewSet):
     queryset = Notification.objects.filter(sent__isnull=True)
@@ -321,3 +328,9 @@ class PendingNotificationViewSet(ReadOnlyModelViewSet):
         notification.sent = now()
         notification.save()
         return Response('')
+
+class PortalsViewSet(ReadOnlyModelViewSet):
+    queryset = AGOL.objects.all()
+    serializer_class = PortalsSerializer
+    ordering = ['portal_name']
+    search_fields = ['portal_name', 'portal_url']

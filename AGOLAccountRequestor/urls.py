@@ -25,6 +25,7 @@ import debug_toolbar
 
 router = routers.DefaultRouter()
 
+router.register('portals', account_views.PortalsViewSet)
 router.register('account/request', account_views.AccountRequestViewSet)
 router.register('account/approvals', account_views.AccountViewSet)
 router.register('responses', account_views.ResponseProjectViewSet)
@@ -44,7 +45,7 @@ urlpatterns = [
     path(f'{settings.URL_PREFIX}api/v1/', include(router.urls)),
     path(f'{settings.URL_PREFIX}api/v1/email_field_coordinator_request/', email_field_coordinator_request),
     # path('api/rest-auth/', include('rest_auth.urls')),
-    path(f'{settings.URL_PREFIX}api/auth/', include('rest_framework.urls', namespace='rest_framework')),
+    # path(f'{settings.URL_PREFIX}api/auth/', include('rest_framework.urls', namespace='rest_framework')), #remove support for password based auth
     path(f'{settings.URL_PREFIX}api/oauth2/', include('social_django.urls', namespace='social_django')),
     path(f'{settings.URL_PREFIX}api/current_user/', current_user),
 

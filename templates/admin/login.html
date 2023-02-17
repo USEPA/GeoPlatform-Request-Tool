@@ -40,28 +40,6 @@
 {% endblocktrans %}
 </p>
 {% endif %}
-
-<form action="{{ app_path }}" method="post" id="login-form">{% csrf_token %}
-  <div class="form-row">
-    {{ form.username.errors }}
-    {{ form.username.label_tag }} {{ form.username }}
-  </div>
-  <div class="form-row">
-    {{ form.password.errors }}
-    {{ form.password.label_tag }} {{ form.password }}
-    <input type="hidden" name="next" value="{{ next }}">
-  </div>
-  {% url 'admin_password_reset' as password_reset_url %}
-  {% if password_reset_url %}
-  <div class="password-reset-link">
-    <a href="{{ password_reset_url }}">{% trans 'Forgotten your password or username?' %}</a>
-  </div>
-  {% endif %}
-  <div class="submit-row"
-       style="display: flex; flex-direction: row; justify-content: space-around; align-items: center; padding: 0;">
-    <input type="submit" value="{% trans 'Log in' %}">
-
-    <div>OR</div>
 <style>
   .esriSignIn {
     background: #0079c1;
@@ -95,12 +73,29 @@
     text-decoration: none;
 }
 </style>
-    <a href="{% url 'social:begin' 'geoplatform' %}" style="cursor: pointer">
-      <span class="esriSignIn">Login using EPA GeoPlatform</span>
-    </a><br>
-    <a href="{% url 'social:begin' 'geosecure' %}" style="cursor: pointer">
-      <span class="esriSignIn">Login using EPA GeoSecure</span>
-    </a><br>
+<form action="{{ app_path }}" method="post" id="login-form">{% csrf_token %}
+  {% url 'admin_password_reset' as password_reset_url %}
+  {% if password_reset_url %}
+  <div class="password-reset-link">
+    <a href="{{ password_reset_url }}">{% trans 'Forgotten your password or username?' %}</a>
+  </div>
+  {% endif %}
+  <div class="submit-row"
+       style="display: flex; flex-direction: row; justify-content: space-around; align-items: center; padding: 0;">
+
+      <div class="form-row">
+        <a href="{% url 'social:begin' 'geoplatform' %}" style="cursor: pointer">
+          <span class="esriSignIn">Login using EPA GeoPlatform</span>
+        </a>
+      </div>
+  </div>
+  <div class="submit-row"
+       style="display: flex; flex-direction: row; justify-content: space-around; align-items: center; padding: 0;">
+      <div class="form-row">
+        <a href="{% url 'social:begin' 'geosecure' %}" style="cursor: pointer">
+          <span class="esriSignIn">Login using EPA GeoSecure</span>
+        </a>
+      </div>
   </div>
 </form>
 
