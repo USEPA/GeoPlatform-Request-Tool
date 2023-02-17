@@ -104,7 +104,7 @@
               ],
               "assets": [
                 {
-                  "input": "src/prod/",
+                  "input": "src/ngst-staging/",
                   "output": "/",
                   "glob": "web.config"
                 },
