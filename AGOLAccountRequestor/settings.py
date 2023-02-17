@@ -209,4 +209,4 @@ COORDINATOR_ADMIN_GROUP_ID = os.environ.get('COORDINATOR_ADMIN_GROUP_ID', 0)
 
 CSRF_COOKIE_NAME = 'requestcsrftoken'
 
-CSRF_TRUSTED_ORIGINS = getattr(local_settings, 'CSRF_TRUSTED_ORIGINS', [])
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', [])
