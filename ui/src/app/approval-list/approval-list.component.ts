@@ -16,6 +16,9 @@ import {ChooseCreationMethodComponent} from '../dialogs/choose-creation-method/c
 import {GenericConfirmDialogComponent} from '../dialogs/generic-confirm-dialog/generic-confirm-dialog.component';
 import {environment} from '@environments/environment';
 
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import {ToastrModule, ToastrService} from 'ngx-toastr';
+
 export interface AccountProps {
   first_name: string;
   last_name: string;
@@ -43,7 +46,7 @@ export interface Accounts {
 })
 export class ApprovalListComponent implements OnInit {
   accounts: BaseService;
-  displayedColumns = ['selected', 'first_name', 'last_name', 'email', 'username', 'organization', 'groups', 'response',
+  displayedColumns = ['selected', 'username', 'first_name', 'last_name', 'email', 'organization', 'groups', 'response',
     'sponsor', 'reason', 'approved', 'created', 'delete'];
   // took out "roll" and "user_type"
   selectedAccountIds = [];
@@ -56,8 +59,9 @@ export class ApprovalListComponent implements OnInit {
   responses: Observable<any[]>;
   searchInput = new FormControl(null);
 
-  constructor(public http: HttpClient, loadingService: LoadingService, public snackBar: MatSnackBar = null,
-              public dialog: MatDialog = null, public loginService: LoginService = null) {
+  constructor(public http: HttpClient, loadingService: LoadingService,
+              public dialog: MatDialog = null, public loginService: LoginService = null,
+              private toastr: ToastrService) {
     this.accounts = new BaseService('v1/account/approvals', http, loadingService);
   }
 
@@ -196,9 +200,9 @@ export class ApprovalListComponent implements OnInit {
       tap(response => {
         this.setNeedsEditing(response);
         this.accounts.dataChange.next(this.accounts.data);
-        this.snackBar.open('Success', null, {duration: 2000});
+        this.toastr.success('Success updating '+record.username);
       }),
-      catchError(() => of(this.snackBar.open('Error', null, {duration: 3000})))
+      catchError(() => of(this.handleErrorResponse(null, ['Error'])))
     );
   }
 
@@ -265,10 +269,7 @@ export class ApprovalListComponent implements OnInit {
         return of({confirmed: false});
       }),
       filter(x => x.confirmed),
-      switchMap(r => iif(() => r.password,
-        this.createAccounts(r.password),
-        this.createAccounts())
-      )
+      tap(r => this.createAccounts(r.password)),
     ).subscribe();
   }
 
@@ -301,7 +302,7 @@ export class ApprovalListComponent implements OnInit {
     return dialogRef.afterClosed().pipe(
       filter(results => results.confirmed),
       // switchMap(results => this.createAccounts(results.password)),
-      // catchError(() => of(this.snackBar.open('Error', null, {duration: 3000})))
+      // catchError(() => of(this.toastr.error('Error')))
     );
   }
 
@@ -320,7 +321,7 @@ export class ApprovalListComponent implements OnInit {
       switchMap(() => this.accounts.delete(selectedRequest.id)),
       switchMap(() => this.accounts.getItems()),
       tap((accountRequests) => {
-        this.snackBar.open('Deleted', null, {duration: 2000});
+        this.toastr.info('Deleted '+selectedRequest.username);
         this.setAccountsListProps(accountRequests);
         this.clearAllSelected();
       }),
@@ -341,42 +342,30 @@ export class ApprovalListComponent implements OnInit {
   }
 
   createAccounts(password?) {
-    return this.http.post('/v1/account/approvals/approve/', {accounts: this.selectedAccountIds, password})
-      .pipe(
-        tap(r => {
-          if (typeof r === 'string') {
-            this.snackBar.open(r, null, {duration: 2000});
-          } else {
-            this.snackBar.open('Success', null, {duration: 2000});
-          }
-          // clear selected accounts after approval issue #33
-          this.clearAllSelected();
-        }),
-        switchMap(() => this.accounts.getItems())
-      );
+    this.selectedAccountIds.map(account => {
+      return this.http.post('/v1/account/approvals/approve/', {account_id: account, password});
+    }).forEach(x => x.subscribe(response => {
+      this.toastr.success(response.toString());
+      this.accounts.getItems().subscribe();
+    }, error => {
+      this.accounts.getItems().subscribe();
+      this.handleErrorResponse(error);
+    }));
   }
 
   handleErrorResponse(err: HttpErrorResponse, customErrorMessages?: string[]) {
     if (err && err.error && err.error.detail) {
-      this.snackBar.open(err.error.detail, null, {
-        duration: environment.snackbar_duration, panelClass: ['snackbar-error']
-      });
+      this.toastr.error(err.error.detail);
+    } else if (err && err.error && err.error.status) {
+      this.toastr.error(err.error.status);
     } else if (err && err.error && typeof err.error === 'string') {
-      this.snackBar.open(err.error, null, {
-        duration: environment.snackbar_duration, panelClass: ['snackbar-error']
-      });
+      this.toastr.error(err.error);
     } else if (err && err.error && err.error instanceof Array) {
-      this.snackBar.open(`Error: ${JSON.stringify(err.error[0])}`, null, {
-        duration: environment.snackbar_duration, panelClass: ['snackbar-error']
-      });
+      this.toastr.error(`Error: ${JSON.stringify(err.error[0])}`);
     } else if (customErrorMessages.length > 0) {
-      this.snackBar.open(customErrorMessages.join(', '), null, {
-        duration: environment.snackbar_duration, panelClass: ['snackbar-error']
-      });
+      this.toastr.error(customErrorMessages.join(', '));
     } else {
-      this.snackBar.open('Error occurred.', null, {
-        duration: environment.snackbar_duration, panelClass: ['snackbar-error']
-      });
+      this.toastr.error('Error occurred.');
     }
   }
 

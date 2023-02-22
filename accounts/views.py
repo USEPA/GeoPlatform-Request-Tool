@@ -15,7 +15,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from .models import *
 from .serializers import *
 from .permissions import IsSponsor
-from .func import create_accounts, add_accounts_to_groups, update_requests_groups, enable_accounts
+from .func import create_account, add_account_to_groups, update_requests_groups, enable_account
 from natsort import natsorted
 
 
@@ -105,42 +105,47 @@ class AccountViewSet(ModelViewSet):
     # create account (or queue up creation?)
     @action(['POST'], detail=False)
     def approve(self, request):
-        account_requests = AccountRequests.objects.filter(pk__in=request.data['accounts'])
-        if not account_requests:
-            return Http404
+        account = AccountRequests.objects.get(pk=request.data['account_id'])
+        if not account:
+            return Response(f"Account not {request.data['account_id']} found", status=404)
+
+        if request.data['account_id'] == 4289:
+            return Response(f"Error creating {account.username} at {account.response.portal.portal_name}.", status=500)
 
         # verify user has permission on each request submitted.
-        for x in account_requests:
-            self.check_object_permissions(request, x)
+        self.check_object_permissions(request, account)
 
-        # marked approved and capture who dun it
-        account_requests.update(approved=now(), approved_by=request.user)
+        # marked approved and capture who dun it (do we want to do this here, or after it's actually created?)
+        account.approved=now()
+        account.approved_by=request.user
+        account.save()
 
         password = request.data.get('password', None)
+
         # create accounts that don't exist
-        create_success = create_accounts(account_requests, password)
+        create_success = create_account(account, password)
+        if not create_success:
+            return Response(f"Error creating {account.username} at {account.response.portal.portal_name}.", status=500)
 
         # re-enabled disabled accounts
-        enabled_success = enable_accounts(account_requests, password)
+        enabled_success = enable_account(account, password)
+        if not enabled_success:
+            return Response(f"Error enabling {account.username} at {account.response.portal.portal_name}.", status=500)
 
-        # add accounts to groups
-        group_success = add_accounts_to_groups(account_requests)
+        # add account to groups
+        if account.groupmembership_set.count() > 0:
+            group_success = add_account_to_groups(account)
+            if not group_success:
+                return Response(f"Account {account.username} created but groups not added at {account.response.portal.portal_name}", status=500)
+        else:
+            #no groups to add
+            group_success = True
 
-        success = [x.pk for x in account_requests if x.pk in create_success and x.pk in group_success]
-        AccountRequests.objects.filter(pk__in=success).update(created=now())
+        #success = [x.pk for x in account_requests if x.pk in create_success and x.pk in group_success]
+        if create_success and enabled_success and group_success:
+            return Response(f"Successfully approved {account.username} at {account.response.portal.portal_name}", status=200)
 
-        # todo: this whole things needs more testing
-        if len(create_success) == len(account_requests) and len(group_success) == len(account_requests)\
-                and len(enabled_success) == len(account_requests):
-            return Response()
-        if len(create_success) != len(account_requests):
-            return Response("Error creating and updating account(s).", status=500)
-        if len(group_success) != len(account_requests):
-            return Response("Account(s) created. Existing account NOT updated.", status=500)
-        if len(enabled_success) != len(account_requests):
-            return Response("Account(s) created and updated. Disabled accounts NOT enabled.")
-
-        return Response(status=400)
+        return Response(f"Unknown error with account {account.username} at {account.response.portal.portal_name}", status=400)
 
     # possible to setup email to request with reason
     @action(['POST'], detail=True)

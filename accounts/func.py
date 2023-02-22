@@ -1,4 +1,5 @@
 from django.db.models import Q
+from django.utils.timezone import now
 from .models import AccountRequests, AGOL, GroupMembership, AGOLGroup, Notification
 from uuid import UUID
 import logging
@@ -6,38 +7,39 @@ import logging
 logger = logging.getLogger('AGOLAccountRequestor')
 
 
-def create_accounts(account_requests: [AccountRequests], password: str = None):
-    # return existing accounts ass successful since they already exist
-    success = [x.pk for x in account_requests if x.agol_id is not None]
-    agol = AGOL.objects.first()
-    create_accounts = [x for x in account_requests if x.agol_id is None]
-    if len(create_accounts) > 0:
-        success += agol.create_users_accounts(create_accounts, password)
-        # if len(success) == len(create_accounts):
-        #     AccountRequests.objects.filter(pk__in=success).update(created=now())
-        #     return True
-        # else:
-        #     return False
+def create_account(account_request, password: str = None):
+    agol = account_request.response.portal
 
-    return success
+    if account_request.agol_id is None:
+        # double check if username already exists, but we are out of sync
+        username_valid, agol_id, groups, existing_account_enabled = agol.check_username(username)
+        if agol_id:
+            account_request.agol_id = agol_id
+            account_request.existing_account_enabled = existing_account_enabled
+            account_request.save()
+    else:
+        # account already exists since we already grabbed their user id from agol
+        return True
 
+    if agol.create_users_account(account_request, password):
+        # account was created successfully
+        account_request.created=now()
+        account_request.save()
+        return True
 
-def add_accounts_to_groups(account_requests: [AccountRequests]):
+    # account creation failed, return false
+    return False
+
+def add_account_to_groups(account_request):
     # add users to groups for either existing or newly created
-    agol = AGOL.objects.first()
-    group_account_requests = [x for x in account_requests.filter(agol_id__isnull=False)]
-    total_group_requests = 0
-
-    for account_request in group_account_requests:
-        groups = AGOLGroup.objects.filter(groupmembership__request=account_request, groupmembership__is_member=False)
-        for group in groups:
-            success = agol.add_to_group(account_request.username, group.id)
-            if success:
-                GroupMembership.objects.filter(request=account_request, group=group).update(is_member=True)
-
-    # return all accounts whose group requests have been fulfilled or doesn't have any group requests
-    return account_requests.filter(Q(groupmembership__is_member=True) |
-                                   Q(groupmembership__isnull=True)).values_list('pk', flat=True).distinct()
+    agol = account_request.response.portal
+    groups = AGOLGroup.objects.filter(groupmembership__request=account_request, groupmembership__is_member=False)
+    for group in groups:
+        success = agol.add_to_group(account_request.username, group.id)
+        if success:
+            GroupMembership.objects.filter(request=account_request, group=group).update(is_member=True)
+            return True
+    return None
 
 
 def update_requests_groups(account_request: AccountRequests, existing_groups: [str], requested_groups=None):
@@ -67,27 +69,28 @@ def has_outstanding_request(request_data):
                                           approved__isnull=True).exists()
 
 
-def enable_accounts(account_requests, password):
-    success_total = [x.pk for x in account_requests if x.existing_account_enabled]
-    agol = AGOL.objects.first()
-    disabled_accounts = [x for x in account_requests if not x.existing_account_enabled]
-    if len(disabled_accounts) > 0:
-        for account in disabled_accounts:
-            success = agol.enable_user_account(account.username)
-            if success:
-                account.existing_account_enabled = True
-                account.save()
-                password_update_success = agol.update_user_account(account.username, {"password": password})
-                success_total += [account]
+def enable_account(account_request, password):
+    if account_request.existing_account_enabled:
+        return True
 
-                template = "enabled_account_email.html"
-                if password is not None and password_update_success:
-                    template = "enabled_account_email_with_password.html"
-                Notification.create_new_notification(template=template,
-                                                     context={"username": account.username,
-                                                              "response": account.response.name,
-                                                              "approved_by": account.approved_by},
-                                                     subject="Your EPA Geoplatform Account has been enabled",
-                                                     to=[account.email],
-                                                     content_object=account)
-    return success_total
+    agol = account_request.response.portal
+
+    enable_success = agol.enable_user_account(account_request.username)
+    if enable_success:
+        account_request.existing_account_enabled = True
+        account_request.save()
+
+    if password is not None:
+        password_update_success = agol.update_user_account(account_request.username, {"password": password})
+
+    template = "enabled_account_email.html"
+    if password is not None and password_update_success:
+        template = "enabled_account_email_with_password.html"
+    Notification.create_new_notification(template=template,
+                                         context={"username": account_request.username,
+                                                  "response": account_request.response.name,
+                                                  "approved_by": account_request.approved_by},
+                                         subject="Your EPA Geoplatform Account has been enabled",
+                                         to=[account_request.email],
+                                         content_object=account_request)
+    return True
