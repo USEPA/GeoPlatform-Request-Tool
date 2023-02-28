@@ -158,10 +158,10 @@ def set_system_default(modeladmin, request, queryset):
 
 @admin.register(AGOLRole)
 class AGOLRoleAdmin(admin.ModelAdmin):
-    list_display = ['name', 'is_available', 'system_default']
+    list_display = ['name', 'is_available', 'system_default', 'agol']
     search_fields = ['name', 'description']
-    ordering = ['-is_available', 'name']
-    list_filter = ['is_available']
+    ordering = ['-is_available', 'agol', 'name']
+    list_filter = ['is_available', 'agol']
     fields = ['name', 'id', 'description', 'agol', 'is_available', 'system_default']
     readonly_fields = ['name', 'id', 'description', 'agol']
     actions = [set_system_default]

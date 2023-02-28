@@ -11,6 +11,7 @@ import requests
 from django.db.models import UniqueConstraint
 from social_django.utils import load_strategy
 import time
+from datetime import datetime
 from django.contrib.auth.models import User, Group
 from urllib.parse import urlencode
 import json
@@ -141,8 +142,8 @@ class AGOLRole(models.Model):
 
 class AGOL(models.Model):
     id = models.AutoField(primary_key=True)
-    portal_name = models.CharField(max_length=50, blank=True, null=True , choices=[('geosecure', 'GeoSecure'),
-                                                                                   ('geoplatform', 'GeoPlatform')])
+    portal_name = models.CharField(max_length=50, blank=True, null=True, choices=[('geosecure', 'GeoSecure'),
+                                                                                  ('geoplatform', 'GeoPlatform')])
     portal_url = models.URLField()
     org_id = models.CharField(max_length=50, blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.PROTECT)
@@ -242,8 +243,8 @@ class AGOL(models.Model):
                 "agol": self
             })
 
-    def generate_invitation(self, account_request, initial_password=None):
-        invitation = {
+    def generate_user_request_data(self, account_request, initial_password=None):
+        user_request_data = {
             "email": account_request.email,
             "firstname": account_request.first_name,
             "lastname": account_request.last_name,
@@ -255,21 +256,20 @@ class AGOL(models.Model):
             "userCreditAssignment": 2000
         }
         if initial_password:
-            invitation["password"] = initial_password
+            user_request_data["password"] = initial_password
 
-        return invitation
+        return user_request_data
 
-    def create_users_account(self, account_request, initial_password=None):
+    def create_user_account(self, account_request, initial_password=None):
         token = self.get_token()
 
         url = f'{self.portal_url}/sharing/rest/portals/self/invite/'
 
-        if account_request.agol_id is None:
-            invitation = self.generate_invitation(account_request, initial_password)
+        user_request_data = self.generate_user_request_data(account_request, initial_password)
 
         # goofy way of encoding data since requests library does not seem to appreciate the nested structure.
         data = {
-            "invitationList": json.dumps({"invitations": [invitation]}),
+            "invitationList": json.dumps({"invitations": [user_request_data]}),
             "f": "json",
             "token": token
         }
@@ -284,17 +284,18 @@ class AGOL(models.Model):
 
         response_json = response.json()
 
-        user_url = f'{self.portal_url}/sharing/rest/community/users/{account_request.username}'
         if 'success' in response_json and response_json['success'] \
                 and account_request.username not in response_json['notInvited']:
+            user_url = f'{self.portal_url}/sharing/rest/community/users/{account_request.username}'
             user_response = requests.get(user_url, params={'token': token, 'f': 'json'})
             user_response_json = user_response.json()
             if 'error' in user_response_json:
-                return False, None, None
+                return False
             else:
                 account_request.agol_id = user_response_json['id']
                 account_request.save(update_fields=['agol_id'])
-        return account_request.pk
+
+        return True
 
     def check_username(self, username):
         token = self.get_token()
@@ -310,15 +311,15 @@ class AGOL(models.Model):
 
         response = r.json()
         if 'error' in response:
-            return False, None, [], False
+            return False, None, [], False, None
 
         if 'usernames' in response:
             # if it suggested matches requested...great this is normal for new accounts
             if response['usernames'] and response['usernames'][0]['requested'] == response['usernames'][0]['suggested']:
-                return True, None, [], False
+                return True, None, [], False, None
             # if list is blank the account appears to not exist but may have been previously deleted
             elif len(response['usernames']) == 0:
-                return True, None, [], False
+                return True, None, [], False, None
             else:
                 # else check actual username endpoint and see if user exists
                 user_url = f'{self.portal_url}/sharing/rest/community/users/{username}'
@@ -326,13 +327,14 @@ class AGOL(models.Model):
                 user_response = requests.get(user_url, params={'token': token, 'f': 'json'})
                 user_response_json = user_response.json()
                 if 'error' in user_response_json or 'disabled' not in user_response_json:
-                    return False, None, [], False
+                    return False, None, [], False, None
                 else:
                     # fixes issue #34
                     group_ids = list(x['id'] for x in user_response_json.get('groups', []))
                     for id in (x for x in group_ids if not AGOLGroup.objects.filter(id=x).exists()):
                         self.get_group(id)
-                    return False, user_response_json['id'], group_ids, not user_response_json['disabled']
+                    return False, user_response_json['id'], group_ids, not user_response_json['disabled'], datetime.utcfromtimestamp(
+                        user_response_json['created'] / 1000)
 
     def add_to_group(self, user, group):
         token = self.get_token()
@@ -472,6 +474,9 @@ class ResponseProject(models.Model):
         return not self.requests.filter(approved__isnull=True).exists()
 
     def save(self, *args, **kwargs):
+        # set the portal to same as authoritative group
+        self.portal = self.authoritative_group.agol
+
         if self.role is None:
             self.role = AGOLRole.objects.get(system_default=True)
 

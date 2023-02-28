@@ -345,8 +345,12 @@ export class ApprovalListComponent implements OnInit {
     this.selectedAccountIds.map(account => {
       return this.http.post('/v1/account/approvals/approve/', {account_id: account, password});
     }).forEach(x => x.subscribe(response => {
-      this.toastr.success(response.toString());
       this.accounts.getItems().subscribe();
+      if (response.toString().toLowerCase().includes('warning')) {
+        this.toastr.warning(response.toString());
+      } else {
+        this.toastr.success(response.toString());
+      }
     }, error => {
       this.accounts.getItems().subscribe();
       this.handleErrorResponse(error);

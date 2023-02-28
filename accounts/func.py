@@ -12,16 +12,18 @@ def create_account(account_request, password: str = None):
 
     if account_request.agol_id is None:
         # double check if username already exists, but we are out of sync
-        username_valid, agol_id, groups, existing_account_enabled = agol.check_username(username)
+        username_valid, agol_id, groups, existing_account_enabled, created = agol.check_username(account_request.username)
         if agol_id:
             account_request.agol_id = agol_id
             account_request.existing_account_enabled = existing_account_enabled
+            account_request.created=created
             account_request.save()
-    else:
-        # account already exists since we already grabbed their user id from agol
-        return True
 
-    if agol.create_users_account(account_request, password):
+            # account already exists since we already grabbed their user id from agol
+            return True
+
+    # invite user since they don't exist yet
+    if agol.create_user_account(account_request, password):
         # account was created successfully
         account_request.created=now()
         account_request.save()

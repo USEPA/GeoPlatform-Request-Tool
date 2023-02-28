@@ -34,7 +34,7 @@ class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
     def perform_create(self, serializer):
         agol = ResponseProject.objects.get(id=self.request.data['response']).portal
         username = format_username(self.request.data)
-        username_valid, agol_id, groups, existing_account_enabled = agol.check_username(username)
+        username_valid, agol_id, groups, existing_account_enabled, created = agol.check_username(username)
         possible_accounts = agol.find_accounts_by_email(self.request.data['email'])
         is_existing_account = True if agol_id is not None else False
         # try to capture reason here but proceed if we can't
@@ -89,13 +89,13 @@ class AccountViewSet(ModelViewSet):
         return self.queryset.filter(response__portal_id=user_portal)
 
     def perform_update(self, serializer):
-        #agol of the logged in approver/admin
-        #agol = self.request.user.agol_info.portal
+        # agol of the logged in approver/admin
+        # agol = self.request.user.agol_info.portal
 
-        #agol of the user request from response/project
+        # agol of the user request from response/project
         agol = ResponseProject.objects.get(pk=self.request.data['response']).portal
 
-        username_valid, agol_id, existing_groups, existing_account_enabled = agol.check_username(self.request.data['username'])
+        username_valid, agol_id, existing_groups, existing_account_enabled, created = agol.check_username(self.request.data['username'])
         is_existing_account = True if agol_id is not None else False
         account_request = serializer.save(username_valid=username_valid, agol_id=agol_id,
                                           is_existing_account=is_existing_account,
@@ -136,7 +136,7 @@ class AccountViewSet(ModelViewSet):
         if account.groupmembership_set.count() > 0:
             group_success = add_account_to_groups(account)
             if not group_success:
-                return Response(f"Account {account.username} created but groups not added at {account.response.portal.portal_name}", status=500)
+                return Response(f"Warning, {account.username} created but groups not added at {account.response.portal.portal_name}", status=200)
         else:
             #no groups to add
             group_success = True
@@ -145,7 +145,7 @@ class AccountViewSet(ModelViewSet):
         if create_success and enabled_success and group_success:
             return Response(f"Successfully approved {account.username} at {account.response.portal.portal_name}", status=200)
 
-        return Response(f"Unknown error with account {account.username} at {account.response.portal.portal_name}", status=400)
+        return Response(f"Unknown error with {account.username} at {account.response.portal.portal_name}", status=400)
 
     # possible to setup email to request with reason
     @action(['POST'], detail=True)
@@ -281,6 +281,7 @@ class ResponseProjectViewSet(ModelViewSet):
     filterset_class = ResponseProjectFilterSet
 
     def perform_create(self, serializer):
+        # self.request.portal_id = self.request.user.agol_info.portal_id
         obj = serializer.save()
         to, subject, message = obj.generate_new_email()
         Notification.create_new_notification(
@@ -297,8 +298,8 @@ class ResponseProjectViewSet(ModelViewSet):
 
     def get_queryset(self):
         if not self.request.user.is_anonymous:
-            user_portal = self.request.user.agol_info.portal
-            return self.queryset.filter(portal=user_portal)
+            user_portal = self.request.user.agol_info.portal_id
+            return self.queryset.filter(portal_id=user_portal)
         return self.queryset
 
 class SponsorsViewSet(ReadOnlyModelViewSet):
