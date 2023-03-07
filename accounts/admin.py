@@ -16,9 +16,13 @@ from .models import *
 
 
 # hack to make full name show up in autocomplete b/c nothing else worked
-User.__str__ = lambda x: f"{x.first_name} {x.last_name} ({x.agol_info.portal if hasattr(x, 'agol_info') else None})"
+User.__str__ = lambda x: f"{x.first_name} {x.last_name} ({x.agol_info.portal.portal_name if hasattr(x, 'agol_info') and x.agol_info.portal is not None else ''})"
 # make admin panel show full name and portal of currently logged in user
-User.get_short_name = lambda user_instance: f"{user_instance.first_name} {user_instance.last_name} ({user_instance.agol_info.portal if hasattr(user_instance, 'agol_info') else None})"
+def _get_short_name_(user_instance):
+    return f"{user_instance.first_name} {user_instance.last_name} ({user_instance.agol_info.portal if hasattr(user_instance, 'agol_info') and user_instance.agol_info.portal is not None else ''})"
+
+
+User.get_short_name = _get_short_name_
 
 @admin.register(AGOL)
 class AGOLAdmin(admin.ModelAdmin):
@@ -246,13 +250,11 @@ class ResponseProjectForm(ModelForm):
 
 @admin.register(ResponseProject)
 class ResponseProjectAdmin(admin.ModelAdmin):
-
     list_display = ['name', 'portal', 'requester', 'sponsors', 'approved', 'disabled']
     search_fields = ['name']
     ordering = ['name']
     fields = ['name', 'requester', 'users', 'assignable_groups', 'role', 'authoritative_group', 'default_reason',
-              'approved', 'approved_by',
-              'disabled', 'disabled_by', 'disable_users_link']
+              'approved', 'approved_by', 'disabled', 'disabled_by', 'disable_users_link']
     readonly_fields = ['approved', 'approved_by', 'disabled', 'disabled_by', 'disable_users_link']
     autocomplete_fields = ['users', 'assignable_groups']
     inlines = [AccountRequestsInline, PendingNotificationInline]
@@ -264,6 +266,11 @@ class ResponseProjectAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return queryset
         return queryset.filter(portal=request.user.agol_info.portal_id)
+
+    def get_fields(self, request, obj=None):
+        if request.user.is_superuser:
+            self.fields = ['portal'] + self.fields
+        return self.fields
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "requester":
