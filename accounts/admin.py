@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericTabularInline
+from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
 from django.shortcuts import get_object_or_404, redirect
@@ -18,7 +19,6 @@ from .models import *
 User.__str__ = lambda x: f"{x.first_name} {x.last_name} ({x.agol_info.portal if hasattr(x, 'agol_info') else None})"
 # make admin panel show full name and portal of currently logged in user
 User.get_short_name = lambda user_instance: f"{user_instance.first_name} {user_instance.last_name} ({user_instance.agol_info.portal if hasattr(user_instance, 'agol_info') else None})"
-
 
 @admin.register(AGOL)
 class AGOLAdmin(admin.ModelAdmin):
@@ -110,6 +110,51 @@ class GroupAdminInline(admin.TabularInline):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+class UserCreateForm(UserCreationForm):
+
+    def __init__(self, *args, **kwargs):
+        super(UserCreationForm, self).__init__(*args, **kwargs)
+        self.fields['password1'].required = False
+        self.fields['password2'].required = False
+
+    # def clean_password2(self):
+    #     return None
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_unusable_password()
+        if commit:
+            user.save()
+        return user
+
+    class Meta:
+        model = User
+        fields = ['username']
+
+
+class UserAdmin(AGOLUserAdmin):
+    add_form = UserCreateForm
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username',),
+        }),
+    )
+    fieldsets = (
+        (None, {'fields': ('username',)}),
+        ('Personal info', {'fields': ('first_name', 'last_name', 'email')}),
+        ('Permissions', {
+            'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
+        }),
+        ('Important dates', {'fields': ('last_login', 'date_joined')}),
+    )
+
+
+# only do this if explicit in settings
+if getattr(settings, 'DISABLE_PASSWORD_AUTH', False):
+    admin.site.unregister(User)
+    admin.site.register(User, UserAdmin)
 
 
 class PendingNotificationInline(GenericTabularInline):
