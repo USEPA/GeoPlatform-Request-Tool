@@ -19,6 +19,7 @@ from rest_framework import routers
 from django.conf import settings
 
 from accounts import views as account_views
+from django.contrib.auth import views as auth_views
 from .views import current_user
 from .views import email_field_coordinator_request
 import debug_toolbar
@@ -48,7 +49,7 @@ urlpatterns = [
     # path(f'{settings.URL_PREFIX}api/auth/', include('rest_framework.urls', namespace='rest_framework')), #remove support for password based auth
     path(f'{settings.URL_PREFIX}api/oauth2/', include('social_django.urls', namespace='social_django')),
     path(f'{settings.URL_PREFIX}api/current_user/', current_user),
-
+    path(f'{settings.URL_PREFIX}api/auth/logout/', auth_views.LogoutView.as_view(), name='logout'),
 ]
 
 if settings.DEBUG:
