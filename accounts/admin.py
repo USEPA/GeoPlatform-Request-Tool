@@ -10,6 +10,7 @@ from django.utils.safestring import mark_safe
 from django.http.response import HttpResponse, HttpResponseRedirect
 from django.contrib.messages import WARNING
 from django.utils.timezone import now
+from django.utils.translation import gettext_lazy as _
 
 
 from .models import *
@@ -147,11 +148,11 @@ class UserAdmin(AGOLUserAdmin):
     )
     fieldsets = (
         (None, {'fields': ('username',)}),
-        ('Personal info', {'fields': ('first_name', 'last_name', 'email')}),
-        ('Permissions', {
+        (_('Personal info', {'fields': ('first_name', 'last_name', 'email')})),
+        (_('Permissions'), {
             'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
         }),
-        ('Important dates', {'fields': ('last_login', 'date_joined')}),
+        (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
     )
 
 
