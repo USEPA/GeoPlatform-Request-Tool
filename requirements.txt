@@ -3,7 +3,7 @@ djangorestframework>=3.14,<=3.14.99
 pyodbc>=4.0.34,<=4.0.35
 mssql-django>=1.2
 django-filter>=22.1,<=22.9
-requests>=2.28.2<=2.28.99
+requests>=2.28.2,<=2.28.99
 wfastcgi>=3.0.0,<=3.0.99
 tqdm>=4.64.1<=4.64.99
 drf-recaptcha>=2.2.2,<2.2.99
