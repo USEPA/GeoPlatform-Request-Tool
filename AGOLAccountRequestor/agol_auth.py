@@ -37,9 +37,9 @@ class AGOLOAuth2Geoplatform(BaseOAuth2):
         return {
             'username': response.get('username'),
             'email': response.get('email'),
-            'fullname': response.get('fullName'),
-            'first_name': response.get('firstName'),
-            'last_name': response.get('lastName'),
+            'fullname': response.get('fullName', ''),
+            'first_name': response.get('firstName', ''),
+            'last_name': response.get('lastName', ''),
             'agol_groups': [x.get('id') for x in response.get('groups')] # get list of group ids user is a member of
         }
 
@@ -89,12 +89,20 @@ class AGOLOAuth2Geosecure(BaseOAuth2):
         if 'error' in response:
             return {}
 
+        first_name = ''
+        last_name = ''
+        fullname = response.get('fullname', '')
+        if fullname != '':
+            fullname = fullname.split(' ')
+            first_name = fullname[0]
+            last_name = ' '.join(fullname[1:])
+
         return {
             'username': response.get('username'),
             'email': response.get('email'),
-            'fullname': response.get('fullName'),
-            'first_name': response.get('firstName'),
-            'last_name': response.get('lastName'),
+            'fullname': response.get('fullName', ''),
+            'first_name': first_name,
+            'last_name': last_name,
             'agol_groups': [x.get('id') for x in response.get('groups')] # get list of group ids user is a member of
         }
 
@@ -148,7 +156,7 @@ def create_accounts_for_preapproved_domains(backend, details, user=None, *args, 
             username=details.get('username'),
             email=details.get('email'),
             first_name=details.get('first_name'),
-            last_name=details.get('last_name'),
+            last_name=details.get('last_name')
         )
         AGOLUserFields.objects.create(user=user,
                                       agol_username=user.username)
