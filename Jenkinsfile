@@ -7,8 +7,8 @@ node('staging') {
     try {
         configFileProvider([
             configFile(fileId: 'a9ed1374-1437-4d32-9593-094073a48bca', variable: 'APP_ROOT'),
-            configFile(fileId: 'a9ed1374-1437-4d32-9593-094073a48bca', variable: 'NOTIFICATION_CHANNEL_ID')
-            configFile(fileId: 'a9ed1374-1437-4d32-9593-094073a48bca', variable: 'VENV_ACTIVATE_CMD')
+            configFile(fileId: 'a9ed1374-1437-4d32-9593-094073a48bca', variable: 'NOTIFICATION_CHANNEL_ID'),
+            configFile(fileId: 'a9ed1374-1437-4d32-9593-094073a48bca', variable: 'VENV_ACTIVATE_CMD'),
             configFile(fileId: 'a9ed1374-1437-4d32-9593-094073a48bca', variable: 'NPM_PATH')
         ]) {
             dir('$APP_ROOT') {
