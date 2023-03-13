@@ -3,7 +3,7 @@ import os
 import sys
 import logging
 
-logger = logging.getLogger('AGOLAccountRequestor')
+logger = logging.getLogger(__name__)
 
 if __name__ == '__main__':
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'AGOLAccountRequestor.settings')
@@ -16,7 +16,7 @@ if __name__ == '__main__':
             "forget to activate a virtual environment?"
         ) from exc
 
-    try:
-        execute_from_command_line(sys.argv)
-    except Exception as e:
-        logger.error('Command Error: {}'.format(' '.join(sys.argv)), exc_info=sys.exc_info())
+    # try:
+    execute_from_command_line(sys.argv)
+    # except Exception as e:
+    #     logger.error('Command Error: {}'.format(' '.join(sys.argv)), exc_info=sys.exc_info())
