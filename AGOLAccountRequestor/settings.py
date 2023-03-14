@@ -173,6 +173,7 @@ CSRF_COOKIE_DOMAIN = os.environ.get('CSRF_COOKIE_DOMAIN', '')
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if 'CSRF_TRUSTED_ORIGINS' in os.environ else CORS_ORIGIN_WHITELIST
 
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND')
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'localhost')
 
 LOGGING = DEFAULT_LOGGING
 
