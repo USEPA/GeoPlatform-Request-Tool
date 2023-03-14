@@ -4,7 +4,7 @@ import {HttpClient} from '@angular/common/http';
 import {COMMA, ENTER} from '@angular/cdk/keycodes';
 import {Observable} from 'rxjs';
 import {debounceTime, map, startWith, switchMap} from 'rxjs/operators';
-import {isArray} from 'rxjs/internal-compatibility';
+// import {isArray} from 'rxjs/internal-compatibility';
 
 import {BaseService, Response} from '@services/base.service';
 import {LoadingService} from '@services/loading.service';
@@ -28,7 +28,7 @@ export class TagInputComponent implements OnInit {
   @Input() hint: '';
 
   tagsCtrl = new FormControl();
-  filteredTags: Observable<TagItem[]>;
+  filteredTags: Observable<Response>;
   tagsService: BaseService;
   allTags: Observable<Response>;
   // for tag autocomplete... all may not be needed
@@ -56,19 +56,19 @@ export class TagInputComponent implements OnInit {
           return this.allTags;
         }
       }),
-      map((response) => {
-        if (isArray(response)) {
-          if (this.tags && this.tags.length > 0) {
-            return response.filter(result => this.tags.indexOf(result.title) === -1);
-          }
-          return response;
-        }
-      }),
+      // map((response) => {
+      //   if (isArray(response)) {
+      //     if (this.tags && this.tags.length > 0) {
+      //       return response.filter(result => this.tags.indexOf(result.title) === -1);
+      //     }
+      //     return response;
+      //   }
+      // }),
     );
   }
 
   add(event: MatChipInputEvent): void {
-    const input = event.input;
+    const input = event.chipInput.inputElement;
     const value = event.value;
 
     if ((value || '').trim()) {
