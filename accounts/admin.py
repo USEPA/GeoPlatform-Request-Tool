@@ -17,13 +17,13 @@ from .models import *
 
 
 # hack to make full name show up in autocomplete b/c nothing else worked
-User.__str__ = lambda x: f"{x.first_name} {x.last_name} ({x.agol_info.portal.portal_name if hasattr(x, 'agol_info') and x.agol_info.portal is not None else ''})"
-# make admin panel show full name and portal of currently logged in user
-def _get_short_name_(user_instance):
-    return f"{user_instance.first_name} {user_instance.last_name} ({user_instance.agol_info.portal if hasattr(user_instance, 'agol_info') and user_instance.agol_info.portal is not None else ''})"
+# User.__str__ = lambda x: f"{x.first_name} {x.last_name} ({x.agol_info.portal.portal_name if hasattr(x, 'agol_info') and x.agol_info.portal is not None else ''})"
+# # make admin panel show full name and portal of currently logged in user
+# def _get_short_name_(user_instance):
+#     return f"{user_instance.first_name} {user_instance.last_name} ({user_instance.agol_info.portal if hasattr(user_instance, 'agol_info') and user_instance.agol_info.portal is not None else ''})"
 
 
-User.get_short_name = _get_short_name_
+# User.get_short_name = _get_short_name_
 
 @admin.register(AGOL)
 class AGOLAdmin(admin.ModelAdmin):
@@ -198,12 +198,12 @@ class RequestAdmin(admin.ModelAdmin):
             return queryset
         return queryset.filter(response__portal_id=request.user.agol_info.portal_id)
 
-def set_system_default(modeladmin, request, queryset):
-    if queryset.count() > 1:
-        modeladmin.message_user(request, 'Only select one role for system default.', WARNING)
-    else:
-        AGOLRole.objects.all().update(system_default=False)
-        queryset.update(system_default=True)
+# def set_system_default(modeladmin, request, queryset):
+#     if queryset.count() > 1:
+#         modeladmin.message_user(request, 'Only select one role for system default.', WARNING)
+#     else:
+#         AGOLRole.objects.filter().update(system_default=False)
+#         queryset.update(system_default=True)
 
 
 @admin.register(AGOLRole)
@@ -214,7 +214,7 @@ class AGOLRoleAdmin(admin.ModelAdmin):
     list_filter = ['is_available', 'agol']
     fields = ['name', 'id', 'description', 'agol', 'is_available', 'system_default']
     readonly_fields = ['name', 'id', 'description', 'agol']
-    actions = [set_system_default]
+    # actions = [set_system_default] removed b/c its more complicated with multiple agols
 
     def has_add_permission(self, request):
         return False
