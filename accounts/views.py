@@ -152,12 +152,12 @@ class AccountViewSet(ModelViewSet):
     def reject(self, request):
         pass
 
-    @action(['GET'], detail=False)
-    def roles(self, request):
-        options = list()
-        for value, display in AccountRequests.ROLE_CHOICES:
-            options.append({'display': display, 'value': value})
-        return Response(options)
+    # @action(['GET'], detail=False)
+    # def roles(self, request):
+    #     options = list()
+    #     for value, display in AccountRequests.ROLE_CHOICES:
+    #         options.append({'display': display, 'value': value})
+    #     return Response(options)
 
     @action(['GET'], detail=False)
     def user_types(self, request):
@@ -313,16 +313,18 @@ class SponsorsViewSet(ReadOnlyModelViewSet):
     def get_queryset(self):
         return self.queryset.filter(agol_info__portal__user=self.request.user)
 
+
 class AGOLRoleViewSet(ReadOnlyModelViewSet):
     queryset = AGOLRole.objects.all()
     serializer_class = AGOLRoleSerializer
     ordering = ['system_default', 'name']
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated] # todo: can we remove this adn just assign read permission now?
     search_fields = ['name', 'description']
     filterset_fields = ['system_default', 'is_available']
 
     def get_queryset(self):
-        return self.queryset.filter(Q(agol__user=self.request.user))
+        # filter role options based on currently logged in user association
+        return self.queryset.filter(Q(agol=self.request.user.agol_info.portal))
 
 class PendingNotificationViewSet(ReadOnlyModelViewSet):
     queryset = Notification.objects.filter(sent__isnull=True)
