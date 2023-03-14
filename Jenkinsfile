@@ -37,8 +37,6 @@ node('staging') {
                 input(message: "Approved for merge?")
                 // todo: revert migrations on abort
             }
-
-        }
       } catch(Exception e) {
           slackSend(channel:'$NOTIFICATION_CHANNEL_ID', message: "Account Request Tool Staging Build FAILED or SUPERSEDED",
           teamDomain:'innovateinc', botUser:true, tokenCredentialId:'9de5b95a-9ad8-418a-989e-7ae694f3613f')
