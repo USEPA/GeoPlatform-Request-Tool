@@ -14,6 +14,10 @@ node('staging') {
                 stage('update backend dependencies') {
                     bat "$props.VENV_ACTIVATE_CMD && pip install -r requirements.txt"
                 }
+
+                state('run backend unit tests') {
+                    bat "$props.VENV_ACTIVATE_CMD && python manage.py test"
+                }
                 // need permissions to create test db
         //         stage('run backend test') {
         //             bat ".\\venv\\Scripts\\activate && python manage.py test --noinput"
