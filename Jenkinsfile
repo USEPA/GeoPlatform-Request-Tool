@@ -4,44 +4,45 @@ if (buildNumber > 1) milestone(buildNumber - 1)
 milestone(buildNumber)
 
 node('staging') {
-    try {
-        configFileProvider([
-            configFile(fileId: 'a9ed1374-1437-4d32-9593-094073a48bca', variable: 'APP_ROOT'),
-            configFile(fileId: 'a9ed1374-1437-4d32-9593-094073a48bca', variable: 'NOTIFICATION_CHANNEL_ID'),
-            configFile(fileId: 'a9ed1374-1437-4d32-9593-094073a48bca', variable: 'VENV_ACTIVATE_CMD'),
-            configFile(fileId: 'a9ed1374-1437-4d32-9593-094073a48bca', variable: 'NPM_PATH')
-        ]) {
-            dir('$APP_ROOT') {
+    configFileProvider([
+        configFile(fileId:'a9ed1374-1437-4d32-9593-094073a48bca', variable:'CONFIG')
+    ]) {
+        def props = readProperties file: "$CONFIG"
+        try {
+            dir(props.APP_ROOT) {
                 checkout scm
                 stage('update backend dependencies') {
-                    bat "$VENV_ACTIVATE_CMD && pip install -r requirements.txt"
+                    bat "$props.VENV_ACTIVATE_CMD && pip install -r requirements.txt"
                 }
                 // need permissions to create test db
         //         stage('run backend test') {
         //             bat ".\\venv\\Scripts\\activate && python manage.py test --noinput"
         //         }
                 stage('run migrations') {
-                    bat "$VENV_ACTIVATE_CMD && python manage.py migrate"
+                    bat "$props.VENV_ACTIVATE_CMD && python manage.py migrate"
                 }
 
                 dir('.\\ui') {
                     stage('update frontend dependencies') {
-                        bat "$NPM_PATH\\npm i"
+                        bat "$props.NPM_PATH\\npm i"
                     }
                     stage("build frontend") {
-                        bat "$NPM_PATH\\npm run build:ngst-staging"
+                        bat "$props.NPM_PATH\\npm run build:ngst-staging"
                     }
                 }
            }
             stage("Approval") {
-                slackSend(channel:'$NOTIFICATION_CHANNEL_ID', message: "Account Request Tool Staging Build COMPLETE")
+                slackSend(channel:'$NOTIFICATION_CHANNEL_ID', message: "Account Request Tool Staging Build COMPLETE",
+                teamDomain:'innovateinc', botUser:true, tokenCredentialId:'9de5b95a-9ad8-418a-989e-7ae694f3613f')
                 input(message: "Approved for merge?")
                 // todo: revert migrations on abort
             }
 
         }
   } catch(Exception e) {
-      slackSend(channel:'$NOTIFICATION_CHANNEL_ID', message: "Account Request Tool Staging Build FAILED or SUPERSEDED")
-      slackSend(channel:'$NOTIFICATION_CHANNEL_ID', message: e)
+      slackSend(channel:'$NOTIFICATION_CHANNEL_ID', message: "Account Request Tool Staging Build FAILED or SUPERSEDED",
+      teamDomain:'innovateinc', botUser:true, tokenCredentialId:'9de5b95a-9ad8-418a-989e-7ae694f3613f')
+      slackSend(channel:'$NOTIFICATION_CHANNEL_ID', message: e.message,
+      teamDomain:'innovateinc', botUser:true, tokenCredentialId:'9de5b95a-9ad8-418a-989e-7ae694f3613f')
     }
 }

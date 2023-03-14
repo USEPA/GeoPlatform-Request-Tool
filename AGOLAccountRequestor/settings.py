@@ -9,9 +9,11 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 import os
-# from . import local_settings
 from django.utils.log import DEFAULT_LOGGING
 import json
+from dotenv import load_dotenv
+load_dotenv()
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
