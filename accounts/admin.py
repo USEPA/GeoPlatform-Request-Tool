@@ -148,7 +148,7 @@ class UserAdmin(AGOLUserAdmin):
     )
     fieldsets = (
         (None, {'fields': ('username',)}),
-        (_('Personal info', {'fields': ('first_name', 'last_name', 'email')})),
+        (_('Personal info'), {'fields': ('first_name', 'last_name', 'email')}),
         (_('Permissions'), {
             'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
         }),
