@@ -37,9 +37,9 @@
     <mat-select formControlName="users" multiple>
       <mat-option *ngFor="let field_coordinator of field_coordinators | async"
                   [value]="field_coordinator.id">
-            <span>
-              {{field_coordinator.first_name + ' ' + field_coordinator.last_name}}
-            </span>
+            <span *ngIf="field_coordinator.last_name && field_coordinator.first_name; then nameBlock else emailBlock"></span>
+              <ng-template #nameBlock>{{field_coordinator.first_name + ' ' + field_coordinator.last_name}}</ng-template>
+              <ng-template #emailBlock>{{field_coordinator.email}}</ng-template>
       </mat-option>
     </mat-select>
   </mat-form-field>
