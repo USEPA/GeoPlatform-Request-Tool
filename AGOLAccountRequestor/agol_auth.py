@@ -1,7 +1,7 @@
 from social_core.backends.oauth import BaseOAuth2
 from django.contrib.auth.models import User
 from social_core.exceptions import AuthException
-from accounts.models import AGOLUserFields
+from accounts.models import AGOL, AGOLUserFields
 
 
 class AGOLOAuth2Geoplatform(BaseOAuth2):
@@ -40,7 +40,7 @@ class AGOLOAuth2Geoplatform(BaseOAuth2):
             'fullname': response.get('fullName', ''),
             'first_name': response.get('firstName', ''),
             'last_name': response.get('lastName', ''),
-            'agol_groups': [x.get('id') for x in response.get('groups')] # get list of group ids user is a member of
+            'agol_groups': [x.get('id') for x in response.get('groups')]  # get list of group ids user is a member of
         }
 
     def user_data(self, access_token, *args, **kwargs):
@@ -89,13 +89,13 @@ class AGOLOAuth2Geosecure(BaseOAuth2):
         if 'error' in response:
             return {}
 
-        first_name = ''
-        last_name = ''
-        fullname = response.get('fullname', '')
-        if fullname != '':
-            fullname = fullname.split(' ')
-            first_name = fullname[0]
-            last_name = ' '.join(fullname[1:])
+        first_name = response.get('firstName', '')
+        last_name = response.get('lastName', '')
+        full_name = response.get('fullName', '')
+        if full_name != '' and first_name == '' and last_name == '':
+            full_name = full_name.split(' ')
+            first_name = full_name[0]
+            last_name = ' '.join(full_name[1:])
 
         return {
             'username': response.get('username'),
@@ -103,7 +103,7 @@ class AGOLOAuth2Geosecure(BaseOAuth2):
             'fullname': response.get('fullName', ''),
             'first_name': first_name,
             'last_name': last_name,
-            'agol_groups': [x.get('id') for x in response.get('groups')] # get list of group ids user is a member of
+            'agol_groups': [x.get('id') for x in response.get('groups')]  # get list of group ids user is a member of
         }
 
     def user_data(self, access_token, *args, **kwargs):
@@ -159,7 +159,9 @@ def create_accounts_for_preapproved_domains(backend, details, user=None, *args, 
             last_name=details.get('last_name')
         )
         AGOLUserFields.objects.create(user=user,
-                                      agol_username=user.username)
+                                      agol_username=user.username,
+                                      portal_id=AGOL.objects.get(portal_name=backend.name).pk,
+                                      )
         # any authenticated user needs to be able to create
         user.groups.add(backend.setting('UNKNOWN_REQUESTER_GROUP_ID'))
 
