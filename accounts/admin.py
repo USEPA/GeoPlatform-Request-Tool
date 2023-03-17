@@ -270,7 +270,7 @@ class ResponseProjectAdmin(admin.ModelAdmin):
 
     def get_fields(self, request, obj=None):
         if request.user.is_superuser:
-            self.fields = ['portal'] + self.fields
+            return ['portal'] + self.fields
         return self.fields
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
