@@ -51,6 +51,12 @@ admin.site.unregister(User)
 class AGOLUserFieldsInline(admin.StackedInline):
     model = AGOLUserFields
     autocomplete_fields = ['delegates']
+    readonly_fields = []
+
+    def get_readonly_fields(self, request, obj=None):
+        if not request.user.is_superuser:
+            return self.readonly_fields + ['portal']
+        return self.readonly_fields
     # form = AGOLUserFieldsForm
 
 
@@ -177,13 +183,12 @@ class RequestAdmin(admin.ModelAdmin):
     list_display = ['last_name', 'first_name', 'email', 'username']
     search_fields = list_display
     ordering = ['-submitted']
-    #list_filter = ['response', 'submitted', 'approved_by', 'approved', 'created']
     list_filter = (
         ('response', admin.RelatedOnlyFieldListFilter),
-        ('submitted'),
+        'submitted',
         ('approved_by', admin.RelatedOnlyFieldListFilter),
-        ('approved'),
-        ('created'),
+        'approved',
+        'created',
     )
     fields = ['first_name', 'last_name', 'email', 'possible_existing_account', 'existing_account_enabled', 'organization', 'username',
               'username_valid', 'user_type', 'role', 'auth_group', 'sponsor', 'sponsor_notified', 'reason',
