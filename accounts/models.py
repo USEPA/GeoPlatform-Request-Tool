@@ -331,8 +331,8 @@ class AGOL(models.Model):
                 else:
                     # fixes issue #34
                     group_ids = list(x['id'] for x in user_response_json.get('groups', []))
-                    for id in (x for x in group_ids if not AGOLGroup.objects.filter(id=x).exists()):
-                        self.get_group(id)
+                    for group_id in (x for x in group_ids if not AGOLGroup.objects.filter(id=x).exists()):
+                        self.get_group(group_id)
                     return False, user_response_json['id'], group_ids, not user_response_json['disabled'], datetime.utcfromtimestamp(
                         user_response_json['created'] / 1000)
 
