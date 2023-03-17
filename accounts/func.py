@@ -32,16 +32,17 @@ def create_account(account_request, password: str = None):
     # account creation failed, return false
     return False
 
+
 def add_account_to_groups(account_request):
     # add users to groups for either existing or newly created
     agol = account_request.response.portal
     groups = AGOLGroup.objects.filter(groupmembership__request=account_request, groupmembership__is_member=False)
+    success_list = []
     for group in groups:
-        success = agol.add_to_group(account_request.username, group.id)
-        if success:
+        if agol.add_to_group(account_request.username, group.id):
             GroupMembership.objects.filter(request=account_request, group=group).update(is_member=True)
-            return True
-    return None
+            success_list.append(group.pk)
+    return success_list
 
 
 def update_requests_groups(account_request: AccountRequests, existing_groups: [str], requested_groups=None):
