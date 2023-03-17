@@ -3,7 +3,7 @@ import {HttpClient, HttpErrorResponse} from '@angular/common/http';
 import {catchError, debounceTime, share, skip, startWith, switchMap, tap, filter, map} from 'rxjs/operators';
 import {MatDialog} from '@angular/material/dialog';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {FormControl} from '@angular/forms';
+import {UntypedFormControl} from '@angular/forms';
 import {forkJoin, iif, Observable, of, throwError} from 'rxjs';
 
 import {LoginService} from '../auth/login.service';
@@ -57,7 +57,7 @@ export class ApprovalListComponent implements OnInit {
   roles: Observable<[]>;
   user_types: Observable<[]>;
   responses: Observable<any[]>;
-  searchInput = new FormControl(null);
+  searchInput = new UntypedFormControl(null);
 
   constructor(public http: HttpClient, loadingService: LoadingService,
               public dialog: MatDialog = null, public loginService: LoginService = null,

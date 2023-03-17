@@ -7,7 +7,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import {Observable} from 'rxjs';
 import {RequestFieldCoordDialogComponent} from '../dialogs/request-field-coord-dialog/request-field-coord-dialog.component';
 import {LoginService} from '../auth/login.service';
-import {FormControl} from "@angular/forms";
+import {UntypedFormControl} from "@angular/forms";
 import {debounceTime, skip, startWith, tap} from "rxjs/operators";
 
 export interface FieldCoordinator {
@@ -33,7 +33,7 @@ export class FieldCoordListComponent implements OnInit {
   // sponsors: Observable<[]>;
   displayedColumns = ['first_name', 'last_name', 'email', 'phone_number'];
   field_coordinator: FieldCoordinator;
-  searchInput = new FormControl(null);
+  searchInput = new UntypedFormControl(null);
 
   constructor(public http: HttpClient, loadingService: LoadingService, public snackBar: MatSnackBar,
               public dialog: MatDialog, public loginService: LoginService) {

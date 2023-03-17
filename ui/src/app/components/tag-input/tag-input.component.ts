@@ -1,5 +1,5 @@
 import {Component, ElementRef, Input, OnInit, ViewChild} from '@angular/core';
-import {FormControl, FormGroup} from '@angular/forms';
+import {FormGroup, FormControl} from '@angular/forms';
 import {HttpClient} from '@angular/common/http';
 import {COMMA, ENTER} from '@angular/cdk/keycodes';
 import {Observable} from 'rxjs';
@@ -27,7 +27,7 @@ export class TagInputComponent implements OnInit {
   @Input() label: '';
   @Input() hint: '';
 
-  tagsCtrl = new FormControl();
+  tagsCtrl = new FormControl([]);
   filteredTags: Observable<Response>;
   tagsService: BaseService;
   allTags: Observable<Response>;
