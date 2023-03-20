@@ -41,7 +41,7 @@ def add_account_to_groups(account_request):
     for group in groups:
         if agol.add_to_group(account_request.username, group.id):
             GroupMembership.objects.filter(request=account_request, group=group).update(is_member=True)
-            success_list.append(group.pk)
+            success_list.append(str(group.pk))
     return success_list
 
 
