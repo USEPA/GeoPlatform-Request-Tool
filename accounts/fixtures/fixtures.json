@@ -3,200 +3,588 @@
     "model": "auth.user",
     "pk": 1,
     "fields": {
-      "password": "secret password",
-      "last_login": "2020-05-06T21:22:04.324Z",
+      "password": "secretPassword",
+      "last_login": "2022-10-24T19:39:33Z",
       "is_superuser": false,
-      "username": "sponsor",
-      "first_name": "sponsor",
+      "username": "geoplatform_sponsor",
+      "first_name": "geoplatform",
       "last_name": "sponsor",
       "email": "sponsor@epa.gov",
       "is_staff": true,
       "is_active": true,
-      "date_joined": "2020-03-15T22:11:57Z",
+      "date_joined": "2018-12-15T19:22:26Z",
       "groups": [],
       "user_permissions": []
     }
-  },
-  {
+  }, {
     "model": "auth.user",
     "pk": 2,
     "fields": {
-      "password": "secret password",
-      "last_login": "2020-05-06T21:22:04.324Z",
+      "password": "secretPassword",
+      "last_login": "2023-03-17T21:25:11.994Z",
       "is_superuser": false,
-      "username": "delegate",
-      "first_name": "delegate",
+      "username": "geoplatform_delegate",
+      "first_name": "geoplatform",
       "last_name": "delegate",
       "email": "delegate@epa.gov",
       "is_staff": true,
       "is_active": true,
-      "date_joined": "2020-03-15T22:11:57Z",
+      "date_joined": "2022-02-08T21:44:11Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  }, {
+    "model": "auth.user",
+    "pk": 3,
+    "fields": {
+      "password": "secretPassword",
+      "last_login": "2023-03-17T21:28:11.790Z",
+      "is_superuser": false,
+      "username": "geosecure_sponsor",
+      "first_name": "geosecure",
+      "last_name": "sponsor",
+      "email": "geosecure_sponsor",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2021-03-17T18:35:05Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  }, {
+    "model": "auth.user",
+    "pk": 4,
+    "fields": {
+      "password": "secretPassword",
+      "last_login": "2023-03-17T21:23:58.968Z",
+      "is_superuser": false,
+      "username": "geosecure_delegate",
+      "first_name": "geosecure",
+      "last_name": "delegate",
+      "email": "secure.delegate@epa.gov",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2023-03-17T21:07:02Z",
       "groups": [],
       "user_permissions": []
     }
   },
-  {
-    "model": "accounts.accountrequests",
-    "pk": 1,
-    "fields": {
-      "first_name": "Joe",
-      "last_name": "Smo",
-      "email": "Smo.Joe@epa.gov",
-      "possible_existing_account": "",
-      "organization": "Org",
-      "username": "Smo.Joe_EPAEXT",
-      "username_valid": true,
-      "user_type": "user_type",
-      "role": "specialid",
-      "sponsor": 1,
-      "reason": "Emergency Response",
-      "recaptcha": "supersecret",
-      "submitted": "2020-03-19T14:35:39.647Z",
-      "approved": null,
-      "created": null,
-      "agol_id": null,
-      "groups": [
-        "000b6ee1-21bb-4739-a502-1e0f0241ff01"
-      ],
-      "auth_group": "00237b67-4c33-47a1-8e0f-b2bfcdb248e1",
-      "response": 1
-    }
-  },
-  {
-    "model": "accounts.accountrequests",
-    "pk": 2,
-    "fields": {
-      "first_name": "Joe",
-      "last_name": "Smith",
-      "email": "Smith.Joe@epa.gov",
-      "possible_existing_account": "",
-      "organization": "Org",
-      "username": "Smith.Joe_EPAEXT",
-      "username_valid": true,
-      "user_type": "user_type",
-      "role": "specialid",
-      "sponsor": 1,
-      "reason": "Emergency Response",
-      "recaptcha": "supersecret",
-      "submitted": "2021-01-19T14:35:39.647Z",
-      "approved": "2021-01-19T14:35:39.647Z",
-      "created": "2021-01-19T14:35:39.647Z",
-      "agol_id": "69ac034ef09e4abca2fe67fda9cf6bda",
-      "groups": [
-        "000b6ee1-21bb-4739-a502-1e0f0241ff01"
-      ],
-      "auth_group": "00237b67-4c33-47a1-8e0f-b2bfcdb248e1",
-      "response": 1
-    }
-  },
-  {
-    "model": "accounts.agol",
-    "pk": 1,
-    "fields": {
-      "portal_url": "https://epa.maps.arcgis.com",
-      "org_id": "org_id",
-      "user": 1
-    }
-  },
+
   {
     "model": "accounts.agoluserfields",
     "pk": 1,
     "fields": {
-      "agol_username": "",
+      "agol_username": "geoplatform_sponsor",
+      "portal": 1,
       "sponsor": true,
       "user": 1,
       "delegates": []
     }
-  },
-  {
+  }, {
     "model": "accounts.agoluserfields",
     "pk": 2,
     "fields": {
-      "agol_username": "delegate",
-      "sponsor": false,
+      "agol_username": "geoplatform_delegate",
+      "portal": 1,
+      "sponsor": true,
       "user": 2,
       "delegates": []
     }
-  },
-  {
-    "model": "accounts.agolgroup",
-    "pk": "000b6ee1-21bb-4739-a502-1e0f0241ff01",
+  }, {
+    "model": "accounts.agoluserfields",
+    "pk": 21,
     "fields": {
-      "title": "Special Group",
-      "agol": 1,
-      "is_auth_group": false,
-      "requests": [
-        1
-      ]
+      "agol_username": "geosecure_sponsor",
+      "portal": 36,
+      "sponsor": true,
+      "user": 3,
+      "delegates": []
+    }
+  }, {
+    "model": "accounts.agoluserfields",
+    "pk": 22,
+    "fields": {
+      "agol_username": "geosecure.sponsor@epa.gov",
+      "portal": 36,
+      "sponsor": true,
+      "user": 4,
+      "delegates": []
     }
   },
+
   {
-    "model": "accounts.agolgroup",
-    "pk": "00237b67-4c33-47a1-8e0f-b2bfcdb248e1",
-    "fields": {
-      "title": "Auth Group",
-      "agol": 1,
-      "is_auth_group": true,
-      "requests": []
-    }
-  },
-  {
-    "model": "accounts.agolrole",
-    "pk": "specialid",
-    "fields": {
-      "name": "The One",
-      "description": "",
-      "is_available": true,
-      "agol": 1
-    }
-  },
-  {
-    "model": "accounts.responseproject",
+    "model": "social_django.usersocialauth",
     "pk": 1,
     "fields": {
-      "name": "test",
-      "role": "specialid",
-      "authoritative_group": "00237b67-4c33-47a1-8e0f-b2bfcdb248e1",
-      "requester_id": 1,
-      "users": [
-        1
-      ],
-      "assignable_groups": [
-        "000b6ee1-21bb-4739-a502-1e0f0241ff01"
-      ]
+      "user": 1,
+      "provider": "geoplatform",
+      "uid": "geoplatform_sponsor",
+      "extra_data": "{}",
+      "created": "2018-12-15T19:22:26Z",
+      "modified": "2018-12-15T19:22:26Z"
     }
-  },
-  {
-    "model": "accounts.responseproject",
+  }, {
+    "model": "social_django.usersocialauth",
     "pk": 2,
     "fields": {
-      "name": "no sponsors response",
-      "role": "specialid",
-      "authoritative_group": "00237b67-4c33-47a1-8e0f-b2bfcdb248e1",
-      "requester_id": 1,
-      "users": [
-      ],
-      "assignable_groups": [
-        "000b6ee1-21bb-4739-a502-1e0f0241ff01"
-      ]
+      "user": 2,
+      "provider": "geoplatform",
+      "uid": "geoplatform_delegate",
+      "extra_data": "{}",
+      "created": "2022-02-08T21:44:11Z",
+      "modified": "2022-02-08T21:44:11Z"
+    }
+  }, {
+    "model": "social_django.usersocialauth",
+    "pk": 3,
+    "fields": {
+      "user": 3,
+      "provider": "geosecure",
+      "uid": "secure_sponsor",
+      "extra_data": "{}",
+      "created": "2021-03-17T18:35:05Z",
+      "modified": "2021-03-17T18:35:05Z"
+    }
+  }, {
+    "model": "social_django.usersocialauth",
+    "pk": 4,
+    "fields": {
+      "user": 4,
+      "provider": "geosecure",
+      "uid": "secure_delegate",
+      "extra_data": "{}",
+      "created": "2023-03-17T21:07:02Z",
+      "modified": "2023-03-17T21:07:02Z"
     }
   },
+
+  {
+    "model": "accounts.accountrequests",
+    "pk": 101,
+    "fields": {
+      "first_name": "Geoplatform",
+      "last_name": "approved",
+      "email": "gapproved@company.com",
+      "possible_existing_account": "",
+      "is_existing_account": false,
+      "existing_account_enabled": false,
+      "organization": "company",
+      "username": "gapproved_EPAEXT",
+      "username_valid": false,
+      "user_type": "creatorUT",
+      "role": "iBBBBBBBBBBBBBBB",
+      "auth_group": "ff6c119c-27f5-4870-b8cb-4a36253b6bb9",
+      "sponsor": 1,
+      "reason": "Emergency Response",
+      "recaptcha": "03AFY_a8UvB5MQq6cPFuKyaBVKriNKlCoO7v0QDIXCdKb9DuFiT7fi5oJUyDt9BjjDW9gtHk7l4XSJXlHmgcXW0NtHdlj6bZbeMd2ktSz0rNi7ZUEXrbI7vTyOYzdfssOHxulEQqfzRNnHm-o9avMzk-YH7f_vVfVU1N7MgTBBrvnON3yOV9D1UXuKWxUgu68I-LlOf94d2emIdYJ_cYAGlHOS-2clgY1aFBfqoktQGJy2Cub2vt3gHNA3jBfX_RmR0NN_yL8uUnd_Mfr7mBekHED5vJnxkjTZo8MWNHMXKGGhF3PaxrIUaGCaIQKZZiBQCD252evICDrFQnlje_QMuLnpy1Oj4yiE3Nhlkc_yHYywz5pR2RVNrwHYaLppIWwq4Ya7jgmDXzz-pH7Nts-SiVnD-sDsdsr5XkyGW2nwNR74N7vwtqILTgx8Rd81kSvinctaVTNjqCOobosg_dJWAw0de2UebengiWAkuYiYs9Odg9jD0fs0_INFry3S1v2MSZKMZqmHJ0N9Qt5nH_82lCHwoGhsJxNsHA",
+      "submitted": "2021-09-13T16:08:37.390Z",
+      "approved": "2023-02-21T23:44:42.094Z",
+      "approved_by": 1,
+      "created": "2023-02-21T23:45:42.094Z",
+      "agol_id": "ed5b2bae-7e53-4efe-a8fa-15e5dc230d79",
+      "response": 1001
+    }
+  }, {
+    "model": "accounts.accountrequests",
+    "pk": 102,
+    "fields": {
+      "first_name": "geoplatform",
+      "last_name": "newb",
+      "email": "test.newb@asdf.com",
+      "possible_existing_account": "",
+      "is_existing_account": true,
+      "existing_account_enabled": true,
+      "organization": "asdf",
+      "username": "test.user",
+      "username_valid": false,
+      "user_type": "creatorUT",
+      "role": "iBBBBBBBBBBBBBBB",
+      "auth_group": "ff6c119c-27f5-4870-b8cb-4a36253b6bb9",
+      "sponsor": 1,
+      "reason": "Emergency Response",
+      "recaptcha": "03AFY_a8UvB5MQq6cPFuKyaBVKriNKlCoO7v0QDIXCdKb9DuFiT7fi5oJUyDt9BjjDW9gtHk7l4XSJXlHmgcXW0NtHdlj6bZbeMd2ktSz0rNi7ZUEXrbI7vTyOYzdfssOHxulEQqfzRNnHm-o9avMzk-YH7f_vVfVU1N7MgTBBrvnON3yOV9D1UXuKWxUgu68I-LlOf94d2emIdYJ_cYAGlHOS-2clgY1aFBfqoktQGJy2Cub2vt3gHNA3jBfX_RmR0NN_yL8uUnd_Mfr7mBekHED5vJnxkjTZo8MWNHMXKGGhF3PaxrIUaGCaIQKZZiBQCD252evICDrFQnlje_QMuLnpy1Oj4yiE3Nhlkc_yHYywz5pR2RVNrwHYaLppIWwq4Ya7jgmDXzz-pH7Nts-SiVnD-sDsdsr5XkyGW2nwNR74N7vwtqILTgx8Rd81kSvinctaVTNjqCOobosg_dJWAw0de2UebengiWAkuYiYs9Odg9jD0fs0_INFry3S1v2MSZKMZqmHJ0N9Qt5nH_82lCHwoGhsJxNsHA",
+      "submitted": "2021-12-07T22:50:23.934Z",
+      "approved": null,
+      "approved_by": null,
+      "created": null,
+      "agol_id": null,
+      "response": 1001
+    }
+  }, {
+    "model": "accounts.accountrequests",
+    "pk": 103,
+    "fields": {
+      "first_name": "Samwise",
+      "last_name": "Gamgee",
+      "email": "samwise@theshire.com",
+      "possible_existing_account": "sgamgee",
+      "is_existing_account": false,
+      "existing_account_enabled": false,
+      "organization": "test",
+      "username": "samwise_gamgee",
+      "username_valid": true,
+      "user_type": "creatorUT",
+      "role": "iBBBBBBBBBBBBBBB",
+      "auth_group": "ff6c119c-27f5-4870-b8cb-4a36253b6bb9",
+      "sponsor": 1,
+      "reason": "Emergency Response",
+      "recaptcha": "03AFY_a8UvB5MQq6cPFuKyaBVKriNKlCoO7v0QDIXCdKb9DuFiT7fi5oJUyDt9BjjDW9gtHk7l4XSJXlHmgcXW0NtHdlj6bZbeMd2ktSz0rNi7ZUEXrbI7vTyOYzdfssOHxulEQqfzRNnHm-o9avMzk-YH7f_vVfVU1N7MgTBBrvnON3yOV9D1UXuKWxUgu68I-LlOf94d2emIdYJ_cYAGlHOS-2clgY1aFBfqoktQGJy2Cub2vt3gHNA3jBfX_RmR0NN_yL8uUnd_Mfr7mBekHED5vJnxkjTZo8MWNHMXKGGhF3PaxrIUaGCaIQKZZiBQCD252evICDrFQnlje_QMuLnpy1Oj4yiE3Nhlkc_yHYywz5pR2RVNrwHYaLppIWwq4Ya7jgmDXzz-pH7Nts-SiVnD-sDsdsr5XkyGW2nwNR74N7vwtqILTgx8Rd81kSvinctaVTNjqCOobosg_dJWAw0de2UebengiWAkuYiYs9Odg9jD0fs0_INFry3S1v2MSZKMZqmHJ0N9Qt5nH_82lCHwoGhsJxNsHA",
+      "submitted": "2022-10-24T22:01:54.148Z",
+      "approved": null,
+      "approved_by": null,
+      "created": null,
+      "agol_id": null,
+      "response": 1001
+    }
+  }, {
+    "model": "accounts.accountrequests",
+    "pk": 201,
+    "fields": {
+      "first_name": "GeoSecure",
+      "last_name": "approved",
+      "email": "rasdf@asdf.com",
+      "possible_existing_account": "",
+      "is_existing_account": false,
+      "existing_account_enabled": true,
+      "organization": "asdf",
+      "username": "geosecure_approved",
+      "username_valid": true,
+      "user_type": "creatorUT",
+      "role": "iBBBBBBBBBBBBBBB",
+      "auth_group": "ad16a6c3-be08-4939-a23d-38d8e9f7b962",
+      "sponsor": 4,
+      "reason": "Long Term GIS Support",
+      "recaptcha": "03AFY_a8XOVEVcsQtQVFrYixQdekOuvKrxT8WUXtcEjb_f0hTSOeKAayDt_ThbIl6OOPKe_w8aPSmSRq-GZ1JTvTJPTFeBgV9uxEQfj9QW94J5UHNb39eDGOQ9b-LASb9M3Owzcc_bT_4em2JkenNsqM8KndLWmamCnJ3eTBoty9I3yYjLVjT04Hj_IZl_iCNWHF7lcO444r5Zunbrr3ALtPzBXSiBZjQhkCCmWB1wEhrvu3aQq_6wTwQTh_icJdbavlbaDhL1eMKB_DHwiTsnKnq3TiDZ4BL4443qT4gN1G62-ov1SS7cjUlyz__GHrKGJnvTe4dI8-xESBx_erfQA3Q7iU4OK5VnjOzQkrqyN2qEqCB-xx-9Df7bN6rqjhbjtVnDZPjunOowynnsootO-IToPKPOAX08KjcDEYT6aCpBhmbIqPKMRQ2BENsY3KVY4QdoQ5UHiAVnNGPj_Y6KXFbENb9bGl3MAUhRlpzceUbvD2lWHoOVaeHJu8Pc11EBCXJdiRQ0TK-a",
+      "submitted": "2023-03-16T21:00:39.863Z",
+      "approved": "2023-03-16T21:00:56.863Z",
+      "approved_by": 3,
+      "created": "2023-03-16T21:00:59.863Z",
+      "agol_id": "ed5b2bae-7e53-4efe-a8fa-15e5dc230d79",
+      "response": 2001
+    }
+  }, {
+    "model": "accounts.accountrequests",
+    "pk": 202,
+    "fields": {
+      "first_name": "geosecure",
+      "last_name": "newb",
+      "email": "newb@dasg.com",
+      "possible_existing_account": "",
+      "is_existing_account": false,
+      "existing_account_enabled": true,
+      "organization": "asdf",
+      "username": "User.Test4_EPAEXT",
+      "username_valid": true,
+      "user_type": "creatorUT",
+      "role": "iBBBBBBBBBBBBBBB",
+      "auth_group": "ad16a6c3-be08-4939-a23d-38d8e9f7b962",
+      "sponsor": 3,
+      "reason": "Long Term GIS Support",
+      "recaptcha": "03AFY_a8Xe9i7CwGsMEuQjW_fW3Mqb0UT6ehwSBMqeRhdaC2Xnn43SFkX-uY0cAjhjg_wET_EUMspnCqF5Urjz08UM96Q8koHOK8nzTkCCGGlzCffJySFZedOMTAWq4Ga0izA8SknrNxY65zh2DJzyUWUpvXpoWZvvIXUQFndO5-7oHpyL_ogNM8mQ0PYniifuwpbYo1NGz3zjrBK5D1cK52GyuKf0h2P4EsvOC9VVBtK614Oi-VXq1OEOZtC-qR8T_Ns27z9O7OHvZI7vcl9uFKsS6JAk_3B36FRESEoLzQfxhnQlniK8QGyqTG6SOC69ts8-E6amUeqJNDWHPSfq3nMiJsKRqK5cLqcLVxj-MpaS6DIel3IQvXFKzmxZ_EOeTHlYSwP7iFHzUHaKRjLjl_drkCuDzeZ5g_DBx36ctvFEqaMPpMNpDK4xDbwrrAR2qswKaWmZbKZF2agRxdqlD2B5QFM6_0l7LF4dqPdneET3cJp-kTxbF_2KI9A2R_g9qcKRsoOuelta",
+      "submitted": "2023-03-16T21:07:58.074Z",
+      "approved": null,
+      "approved_by": null,
+      "created": null,
+      "agol_id": null,
+      "response": 2001
+    }
+  }, {
+    "model": "accounts.accountrequests",
+    "pk": 203,
+    "fields": {
+      "first_name": "Pippin",
+      "last_name": "Took",
+      "email": "Pippin_Took@theshire.com",
+      "possible_existing_account": "Peregrin_Took",
+      "is_existing_account": false,
+      "existing_account_enabled": true,
+      "organization": "The Shire",
+      "username": "ptook_EPAEXT",
+      "username_valid": true,
+      "user_type": "creatorUT",
+      "role": "iBBBBBBBBBBBBBBB",
+      "auth_group": "ad16a6c3-be08-4939-a23d-38d8e9f7b962",
+      "sponsor": 3,
+      "reason": "Long Term GIS Support",
+      "recaptcha": "03AFY_a8UvB5MQq6cPFuKyaBVKriNKlCoO7v0QDIXCdKb9DuFiT7fi5oJUyDt9BjjDW9gtHk7l4XSJXlHmgcXW0NtHdlj6bZbeMd2ktSz0rNi7ZUEXrbI7vTyOYzdfssOHxulEQqfzRNnHm-o9avMzk-YH7f_vVfVU1N7MgTBBrvnON3yOV9D1UXuKWxUgu68I-LlOf94d2emIdYJ_cYAGlHOS-2clgY1aFBfqoktQGJy2Cub2vt3gHNA3jBfX_RmR0NN_yL8uUnd_Mfr7mBekHED5vJnxkjTZo8MWNHMXKGGhF3PaxrIUaGCaIQKZZiBQCD252evICDrFQnlje_QMuLnpy1Oj4yiE3Nhlkc_yHYywz5pR2RVNrwHYaLppIWwq4Ya7jgmDXzz-pH7Nts-SiVnD-sDsdsr5XkyGW2nwNR74N7vwtqILTgx8Rd81kSvinctaVTNjqCOobosg_dJWAw0de2UebengiWAkuYiYs9Odg9jD0fs0_INFry3S1v2MSZKMZqmHJ0N9Qt5nH_82lCHwoGhsJxNsHA",
+      "submitted": "2023-03-16T21:10:52.401Z",
+      "approved": null,
+      "approved_by": null,
+      "created": null,
+      "agol_id": null,
+      "response": 2001
+    }
+  },
+
+  {
+    "model": "accounts.agolgroup",
+    "pk": "ff6c119c-27f5-4870-b8cb-4a36253b6bb9",
+    "fields": {
+      "title": "GeoPortal Auth Group",
+      "agol": 1,
+      "is_auth_group": true
+    }
+  }, {
+    "model": "accounts.agolgroup",
+    "pk": "ff6c119c-bbe1-48df-84b6-ca80f489de84",
+    "fields": {
+      "title": "GeoPortal Group 1",
+      "agol": 1,
+      "is_auth_group": false
+    }
+  }, {
+    "model": "accounts.agolgroup",
+    "pk": "ff6c119c-d8c0-4f84-a4c9-fb49fa654064",
+    "fields": {
+      "title": "GeoPortal Group 2",
+      "agol": 1,
+      "is_auth_group": false
+    }
+  }, {
+    "model": "accounts.agolgroup",
+    "pk": "ad16a6c3-be08-4939-a23d-38d8e9f7b962",
+    "fields": {
+      "title": "GeoSecure Auth Group",
+      "agol": 36,
+      "is_auth_group": true
+    }
+  }, {
+    "model": "accounts.agolgroup",
+    "pk": "ad16a6c3-c4bc-4935-a472-c7631f9acb7d",
+    "fields": {
+      "title": "GeoSecure Group 1",
+      "agol": 36,
+      "is_auth_group": false
+    }
+  }, {
+    "model": "accounts.agolgroup",
+    "pk": "ad16a6c3-13ca-4f72-baaa-ee46a1b60132",
+    "fields": {
+      "title": "GeoSecure Group 2",
+      "agol": 36,
+      "is_auth_group": false
+    }
+  },
+
   {
     "model": "accounts.groupmembership",
-    "pk": 1,
+    "pk": 1001,
     "fields": {
-      "group": "000b6ee1-21bb-4739-a502-1e0f0241ff01",
-      "request": 1,
+      "group": "ff6c119c-bbe1-48df-84b6-ca80f489de84",
+      "request": 101,
+      "is_member": false
+    }
+  }, {
+    "model": "accounts.groupmembership",
+    "pk": 1002,
+    "fields": {
+      "group": "ff6c119c-d8c0-4f84-a4c9-fb49fa654064",
+      "request": 101,
       "is_member": false
     }
   },
+
   {
     "model": "accounts.groupmembership",
-    "pk": 2,
+    "pk": 2001,
     "fields": {
-      "group": "000b6ee1-21bb-4739-a502-1e0f0241ff01",
-      "request": 2,
-      "is_member": true
+      "group": "ad16a6c3-c4bc-4935-a472-c7631f9acb7d",
+      "request": 201,
+      "is_member": false
+    }
+  }, {
+    "model": "accounts.groupmembership",
+    "pk": 2002,
+    "fields": {
+      "group": "ad16a6c3-13ca-4f72-baaa-ee46a1b60132",
+      "request": 201,
+      "is_member": false
+    }
+  },
+
+
+  {
+    "model": "accounts.agolrole",
+    "pk": "iAAAAAAAAAAAAAAA",
+    "fields": {
+      "name": "Viewer",
+      "description": "Viewer",
+      "is_available": true,
+      "agol": 1,
+      "system_default": false
+    }
+  }, {
+    "model": "accounts.agolrole",
+    "pk": "iBBBBBBBBBBBBBBB",
+    "fields": {
+      "name": "Data Editor",
+      "description": "Data Editor",
+      "is_available": true,
+      "agol": 1,
+      "system_default": false
+    }
+  }, {
+    "model": "accounts.agolrole",
+    "pk": "iCCCCCCCCCCCCCCC",
+    "fields": {
+      "name": "Facilitator",
+      "description": "Facilitator",
+      "is_available": false,
+      "agol": 1,
+      "system_default": false
+    }
+  }, {
+    "model": "accounts.agolrole",
+    "pk": "iAAAAAAAAAAAAAAA",
+    "fields": {
+      "name": "Viewer",
+      "description": "Viewer",
+      "is_available": true,
+      "agol": 36,
+      "system_default": false
+    }
+  }, {
+    "model": "accounts.agolrole",
+    "pk": "iBBBBBBBBBBBBBBB",
+    "fields": {
+      "name": "Data Editor",
+      "description": "Data Editor",
+      "is_available": true,
+      "agol": 36,
+      "system_default": false
+    }
+  }, {
+    "model": "accounts.agolrole",
+    "pk": "iCCCCCCCCCCCCCCC",
+    "fields": {
+      "name": "Facilitator",
+      "description": "Facilitator",
+      "is_available": false,
+      "agol": 36,
+      "system_default": false
+    }
+  },
+
+  {
+    "model": "accounts.agol",
+    "pk": 1,
+    "fields": {
+      "portal_name": "geoplatform",
+      "portal_url": "https://innovate.maps.arcgis.com",
+      "org_id": "oKenFxF8DE2Ek7Xt",
+      "user": 1
+    }
+  }, {
+    "model": "accounts.agol",
+    "pk": 36,
+    "fields": {
+      "portal_name": "geosecure",
+      "portal_url": "https://gis.innovateteam.com/arcgis",
+      "org_id": "0123456789ABCDEF",
+      "user": 3
+    }
+  },
+
+  {
+    "model": "accounts.responseproject",
+    "pk": 1001,
+    "fields": {
+      "name": "geoportal test response",
+      "portal": 1,
+      "role": "iBBBBBBBBBBBBBBB",
+      "authoritative_group": "ff6c119c-27f5-4870-b8cb-4a36253b6bb9",
+      "disabled": null,
+      "disabled_by": null,
+      "default_reason": "Emergency Response",
+      "approved": "2023-03-16T20:58:21.089Z",
+      "approved_by": 1,
+      "requester": 1,
+      "users": [1],
+      "assignable_groups": ["ff6c119c-d8c0-4f84-a4c9-fb49fa654064", "ff6c119c-bbe1-48df-84b6-ca80f489de84"]
+    }
+  }, {
+    "model": "accounts.responseproject",
+    "pk": 1002,
+    "fields": {
+      "name": "geoportal test response unapproved",
+      "portal": 1,
+      "role": "iBBBBBBBBBBBBBBB",
+      "authoritative_group": "ff6c119c-27f5-4870-b8cb-4a36253b6bb9",
+      "disabled": null,
+      "disabled_by": null,
+      "default_reason": "Other Federal Agency",
+      "approved": null,
+      "approved_by": null,
+      "requester": 1,
+      "users": [1],
+      "assignable_groups": ["ff6c119c-d8c0-4f84-a4c9-fb49fa654064", "ff6c119c-bbe1-48df-84b6-ca80f489de84"]
+    }
+  }, {
+    "model": "accounts.responseproject",
+    "pk": 1003,
+    "fields": {
+      "name": "geoportal test response disabled",
+      "portal": 1,
+      "role": "iBBBBBBBBBBBBBBB",
+      "authoritative_group": "ff6c119c-27f5-4870-b8cb-4a36253b6bb9",
+      "disabled": "2021-12-10T17:06:40.527Z",
+      "disabled_by": 1,
+      "default_reason": "Other Federal Agency",
+      "approved": "2021-12-10T17:04:59.017Z",
+      "approved_by": 1,
+      "requester": 1,
+      "users": [1],
+      "assignable_groups": ["ff6c119c-d8c0-4f84-a4c9-fb49fa654064", "ff6c119c-bbe1-48df-84b6-ca80f489de84"]
+    }
+  }, {
+    "model": "accounts.responseproject",
+    "pk": 2001,
+    "fields": {
+      "name": "geosecure test response",
+      "portal": 36,
+      "role": "iBBBBBBBBBBBBBBB",
+      "authoritative_group": "ad16a6c3-be08-4939-a23d-38d8e9f7b962",
+      "disabled": null,
+      "disabled_by": null,
+      "default_reason": "Other",
+      "approved": "2023-03-16T18:54:38.275Z",
+      "approved_by": 3,
+      "requester": 3,
+      "users": [],
+      "assignable_groups": ["ad16a6c3-c4bc-4935-a472-c7631f9acb7d", "ad16a6c3-13ca-4f72-baaa-ee46a1b60132"]
+    }
+  }, {
+    "model": "accounts.responseproject",
+    "pk": 2002,
+    "fields": {
+      "name": "geosecure test response unapproved",
+      "portal": 36,
+      "role": "iBBBBBBBBBBBBBBB",
+      "authoritative_group": "ad16a6c3-be08-4939-a23d-38d8e9f7b962",
+      "disabled": null,
+      "disabled_by": null,
+      "default_reason": "Long Term GIS Support",
+      "approved": "2023-03-16T20:58:21.089Z",
+      "approved_by": 3,
+      "requester": 3,
+      "users": [],
+      "assignable_groups": ["ad16a6c3-c4bc-4935-a472-c7631f9acb7d", "ad16a6c3-13ca-4f72-baaa-ee46a1b60132"]
+    }
+  }, {
+    "model": "accounts.responseproject",
+    "pk": 2003,
+    "fields": {
+      "name": "geosecure test response disabled",
+      "portal": 36,
+      "role": "iBBBBBBBBBBBBBBB",
+      "authoritative_group": "ad16a6c3-be08-4939-a23d-38d8e9f7b962",
+      "disabled": "2023-03-16T20:58:21.089Z",
+      "disabled_by": 3,
+      "default_reason": "Other",
+      "approved": "2023-03-16T20:58:21.089Z",
+      "approved_by": 3,
+      "requester": 3,
+      "users": [],
+      "assignable_groups": ["ad16a6c3-c4bc-4935-a472-c7631f9acb7d", "ad16a6c3-13ca-4f72-baaa-ee46a1b60132"]
     }
   }
 ]
