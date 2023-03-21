@@ -293,7 +293,7 @@ class ResponseProjectAdmin(admin.ModelAdmin):
         return response
 
     def disable_users_link(self, obj):
-        return mark_safe(f'<a target=_blank href="{obj.disable_users_link}">Relevant Response/Project GeoPlatform Accounts List</a>')
+        return mark_safe(f'<a target=_blank href="{obj.disable_users_link}">Relevant Response/Project Accounts List</a>')
 
     def get_urls(self):
         from django.urls import path
@@ -327,8 +327,8 @@ class ResponseProjectAdmin(admin.ModelAdmin):
             "to": ', '.join(to),
             "subject": subject,
             "email_content": message,
-            'site_header': 'EPA GeoPlatform Account Request Tool',
-            'site_title': 'GeoPlatform Account Request Tool',
+            'site_header': 'EPA Account Request Tool',
+            'site_title': 'Account Request Tool',
         })
 
     def disable_view(self, request, object_id):
@@ -353,8 +353,8 @@ class ResponseProjectAdmin(admin.ModelAdmin):
             "to": ', '.join(to),
             "subject": subject,
             "email_content": message,
-            'site_header': 'EPA GeoPlatform Account Request Tool',
-            'site_title': 'GeoPlatform Account Request Tool',
+            'site_header': 'EPA Account Request Tool',
+            'site_title': 'Account Request Tool',
         })
 
 

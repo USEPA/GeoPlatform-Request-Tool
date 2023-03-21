@@ -70,7 +70,7 @@ class AccountRequests(models.Model):
 
     def create_new_notification(self):
         Notification.create_new_notification(
-            subject='New GeoPlatform Account Request',
+            subject=f'New {self.response.portal} Account Request',
             context={"HOST_ADDRESS": settings.HOST_ADDRESS},
             template="new_account_request_email.html",
             content_object=self,
@@ -434,12 +434,12 @@ class ResponseProject(models.Model):
     name = models.CharField('Name', max_length=500)
     portal = models.ForeignKey(AGOL, models.PROTECT, default=1)
     assignable_groups = models.ManyToManyField('AGOLGroup', related_name='response',
-                                               verbose_name='GeoPlatform Assignable Groups')
+                                               verbose_name='Assignable Groups')
     role = models.ForeignKey('AGOLRole', on_delete=models.PROTECT, verbose_name='GeoPlatform Role',
                              limit_choices_to={'is_available': True}, null=True, blank=True,
                              help_text='System default will be used if left blank.')
     authoritative_group = models.ForeignKey('AGOLGroup', on_delete=models.PROTECT,
-                                            verbose_name='Geoplatform Authoritative Group',
+                                            verbose_name='Authoritative Group',
                                             limit_choices_to={'is_auth_group': True})
     disabled = models.DateTimeField(null=True, blank=True)
     disabled_by = models.ForeignKey(User, models.PROTECT, 'disabled_responses', null=True, blank=True)
@@ -500,7 +500,7 @@ class ResponseProject(models.Model):
     def generate_new_email(self):
         REQUEST_URL = f"{settings.HOST_ADDRESS}/api/admin/accounts/responseproject/{self.pk}"
         to = [x.email.lower() for x in User.objects.filter(groups__pk=settings.COORDINATOR_ADMIN_GROUP_ID)]
-        subject = 'New Response/Project Request for Review in GeoPlatform Account Request Tool'
+        subject = f'New {self.portal} Response/Project Request for Review in Account Request Tool'
         content = render_to_string('new_response_request_email.html', {"REQUEST_URL": REQUEST_URL})
         return to, subject, content
 
@@ -515,7 +515,7 @@ class ResponseProject(models.Model):
             recipients = self.get_email_recipients()
             request_url = f"{settings.HOST_ADDRESS}?response={self.pk}"
             approval_url = f"{settings.HOST_ADDRESS}/accounts/list"
-            email_subject = f"GeoPlatform Account Response/Project {self.name} has been approved"
+            email_subject = f"{self.portal} Account Response/Project {self.name} has been approved"
             msg = render_to_string('response_approval_email.html', {
                 "response_project": self,
                 "request_url": request_url,
@@ -532,7 +532,7 @@ class ResponseProject(models.Model):
     def generate_disable_email(self):
         try:
             recipients = self.get_email_recipients()
-            email_subject = f"GeoPlatform Account Response/Project {self.name} has been disabled"
+            email_subject = f"{self.portal} Account Response/Project {self.name} has been disabled"
             msg = render_to_string('response_disable_email.html', {"response_project": self})
             return recipients, email_subject, msg
 

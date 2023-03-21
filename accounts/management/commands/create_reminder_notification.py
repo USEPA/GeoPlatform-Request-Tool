@@ -15,7 +15,7 @@ class Command(BaseCommand):
 
         for pending in pending_accounts:
             Notification.create_new_notification(
-                subject='Pending GeoPlatform Account Requests',
+                subject='Pending Account Requests',
                 context={
                     "HOST_ADDRESS": settings.HOST_ADDRESS,
                     "count": pending.total_pending
