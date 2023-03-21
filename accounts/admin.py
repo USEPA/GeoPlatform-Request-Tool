@@ -247,7 +247,6 @@ class ResponseProjectForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['users'].required = True
-        #self.fields['requester'].queryset = User.objects.filter(agol_info__portal_id=35)
 
     class Meta:
         model = ResponseProject
