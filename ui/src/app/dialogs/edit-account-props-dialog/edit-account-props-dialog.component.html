@@ -7,7 +7,7 @@
     </mat-error>
     <!--username-->
     <mat-form-field *ngIf="!data.isBulkEdit">
-      <input matInput required [(ngModel)]="data.username" type="text" formControlName="username" placeholder="GeoPlatform Username">
+      <input matInput required [(ngModel)]="data.username" type="text" formControlName="username" placeholder="Username">
     </mat-form-field>
     <!--group-->
     <!--response-->
@@ -29,7 +29,7 @@
     </mat-form-field>
     <!-- GeoPlatform groups -->
     <mat-form-field>
-      <mat-select [(ngModel)]="data.groups" formControlName="groups" multiple placeholder="GeoPlatform Groups">
+      <mat-select [(ngModel)]="data.groups" formControlName="groups" multiple placeholder="Groups">
         <mat-option *ngFor="let group of groups | async" [value]="group.id">
           {{ group.title }}
         </mat-option>

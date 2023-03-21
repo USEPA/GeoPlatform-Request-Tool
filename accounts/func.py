@@ -93,7 +93,7 @@ def enable_account(account_request, password):
                                          context={"username": account_request.username,
                                                   "response": account_request.response.name,
                                                   "approved_by": account_request.approved_by},
-                                         subject="Your EPA Geoplatform Account has been enabled",
+                                         subject=f"Your EPA {account_request.response.portal} Account has been enabled",
                                          to=[account_request.email],
                                          content_object=account_request)
     return True

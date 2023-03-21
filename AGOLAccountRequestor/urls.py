@@ -35,8 +35,8 @@ router.register('agol/groups', account_views.AGOLGroupViewSet)
 router.register('agol/roles', account_views.AGOLRoleViewSet)
 router.register('notifications', account_views.PendingNotificationViewSet)
 
-admin.site.site_header = "EPA GeoPlatform Account Request Tool"
-admin.site.site_title = "GeoPlatform Account Request Tool"
+admin.site.site_header = "EPA Account Request Tool"
+admin.site.site_title = "Account Request Tool"
 admin.site.index_title = "Tool Administration"
 admin.site.site_url = f"/{settings.URL_PREFIX}"
 

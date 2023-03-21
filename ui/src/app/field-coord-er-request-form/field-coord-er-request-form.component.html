@@ -43,13 +43,13 @@
       </mat-option>
     </mat-select>
   </mat-form-field>
-  <!-- GeoPlatform groups -->
-  <app-tag-input label="GeoPlatform Groups" [formControl]="fieldTeamCoordErForm.controls.assignable_groups"
+  <!-- groups -->
+  <app-tag-input label="Groups" [formControl]="fieldTeamCoordErForm.controls.assignable_groups"
                  [tags]="this.tags" hint="Select all applicable groups.">
   </app-tag-input>
     <!-- role -->
   <mat-form-field>
-    <mat-select required formControlName="role" placeholder="Geoplatform Role">
+    <mat-select required formControlName="role" placeholder="Role">
       <mat-option *ngFor="let r of roles | async" [value]="r.id">
         {{r.name}}
       </mat-option>
