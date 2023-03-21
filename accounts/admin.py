@@ -306,21 +306,21 @@ class ResponseProjectAdmin(admin.ModelAdmin):
         return urls
 
     def approve_view(self, request, object_id):
-        object = self.get_object(request, object_id)
+        obj = self.get_object(request, object_id)
 
         if request.POST:
-            object.approved = now()
-            object.approved_by = request.user
-            object.save()
+            obj.approved = now()
+            obj.approved_by = request.user
+            obj.save()
             return redirect('../change')
 
         opts = self.model._meta
         app_label = opts.app_label
-        to, subject, message = object.generate_approval_email()
+        to, subject, message = obj.generate_approval_email()
 
         return TemplateResponse(request, 'admin/confirmation.html', {
             'title': 'Are you sure?',
-            "object": object,
+            "object": obj,
             "opts": opts,
             "app_label": app_label,
             "type": "Approve",
