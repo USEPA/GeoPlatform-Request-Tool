@@ -71,7 +71,10 @@ class AccountRequests(models.Model):
     def create_new_notification(self):
         Notification.create_new_notification(
             subject=f'New {self.response.portal} Account Request',
-            context={"HOST_ADDRESS": settings.HOST_ADDRESS},
+            context={
+                "REQUEST_ADDRESS": settings.HOST_ADDRESS,
+                "PORTAL": self.response.portal
+            },
             template="new_account_request_email.html",
             content_object=self,
             to=self.response.get_email_recipients()
@@ -276,7 +279,10 @@ class AGOL(models.Model):
 
         if initial_password is None:
             template = get_template('invitation_email_body.html')
-            data["message"] = template.render({"account_request": account_request})
+            data["message"] = template.render({
+                "account_request": account_request,
+                "PORTAL": self
+            })
 
         # pre-encode to ensure nested data isn't lost
         data = urlencode(data)
@@ -501,7 +507,10 @@ class ResponseProject(models.Model):
         REQUEST_URL = f"{settings.HOST_ADDRESS}/api/admin/accounts/responseproject/{self.pk}"
         to = [x.email.lower() for x in User.objects.filter(groups__pk=settings.COORDINATOR_ADMIN_GROUP_ID)]
         subject = f'New {self.portal} Response/Project Request for Review in Account Request Tool'
-        content = render_to_string('new_response_request_email.html', {"REQUEST_URL": REQUEST_URL})
+        content = render_to_string('new_response_request_email.html', {
+            "REQUEST_URL": REQUEST_URL,
+            "PORTAL": self.portal
+        })
         return to, subject, content
 
     def get_email_recipients(self):
@@ -518,6 +527,7 @@ class ResponseProject(models.Model):
             email_subject = f"{self.portal} Account Response/Project {self.name} has been approved"
             msg = render_to_string('response_approval_email.html', {
                 "response_project": self,
+                "PORTAL": self.portal,
                 "request_url": request_url,
                 "approval_url": approval_url
             })
@@ -533,7 +543,7 @@ class ResponseProject(models.Model):
         try:
             recipients = self.get_email_recipients()
             email_subject = f"{self.portal} Account Response/Project {self.name} has been disabled"
-            msg = render_to_string('response_disable_email.html', {"response_project": self})
+            msg = render_to_string('response_disable_email.html', {"response_project": self, "PORTAL": self.portal})
             return recipients, email_subject, msg
 
         except Exception as e:
