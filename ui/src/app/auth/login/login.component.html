@@ -1,7 +1,11 @@
 <div class="login-container">
   <div>
     <mat-card style="display: flex; flex-direction: column; align-items: center;">
-      <div style="padding-bottom: 10px">
+      <p style="max-width: 400px; text-align: center">
+        <ng-container *ngIf="showNewUserMessage">Please proceed to be able to submit a new response / project request.</ng-container>
+        <ng-container *ngIf="!showNewUserMessage && !geoportal && !geosecure">Please select the environment in which you will be creating a response / project or approving requests.</ng-container>
+      </p>
+      <div *ngIf="!geosecure" style="padding-bottom: 10px">
         <button mat-raised-button color="primary" (click)="login('geoplatform')">Login using EPA GeoPlatform</button>
       </div>
       <div *ngIf="!geoportal">
