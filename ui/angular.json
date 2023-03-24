@@ -269,12 +269,12 @@
     }
   },
   "cli": {
-    "analytics": false
+    "analytics": false,
+    "schematicCollections": [
+      "@cypress/schematic",
+      "@schematics/angular"
+    ]
   },
-  "schematicCollections": [
-    "@cypress/schematic",
-    "@schematics/angular"
-  ],
   "schematics": {
     "@angular-eslint/schematics:application": {
       "setParserOptionsProject": true
