@@ -83,16 +83,21 @@ def enable_account(account_request, password):
         account_request.existing_account_enabled = True
         account_request.save()
 
+    template = "enabled_account_email.html"
+
     if password is not None:
         password_update_success = agol.update_user_account(account_request.username, {"password": password})
+        if password_update_success:
+            template = "enabled_account_email_with_password.html"
 
-    template = "enabled_account_email.html"
-    if password is not None and password_update_success:
-        template = "enabled_account_email_with_password.html"
     Notification.create_new_notification(template=template,
-                                         context={"username": account_request.username,
-                                                  "response": account_request.response.name,
-                                                  "approved_by": account_request.approved_by},
+                                         context={
+                                             "PORTAL": agol,
+                                             "portal_url": agol.portal_url,
+                                             "username": account_request.username,
+                                             "response": account_request.response.name,
+                                             "approved_by": account_request.approved_by
+                                         },
                                          subject=f"Your EPA {account_request.response.portal} Account has been enabled",
                                          to=[account_request.email],
                                          content_object=account_request)

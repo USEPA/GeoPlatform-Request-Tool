@@ -220,7 +220,7 @@ class AccountViewSet(ModelViewSet):
     @action(['GET'], detail=True)
     def preview_invitation_email(self, request, pk=None):
         account_request = get_object_or_404(AccountRequests, pk=pk)
-        return TemplateResponse(request, 'invitation_email_body.html', {"account_request": account_request})
+        return TemplateResponse(request, 'invitation_email_body.html', {"account_request": account_request, "PORTAL": account_request.response.portal})
 
 
 class AGOLGroupViewSet(ReadOnlyModelViewSet):
