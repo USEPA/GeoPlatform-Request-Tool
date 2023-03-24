@@ -13,11 +13,15 @@ export class LoginComponent implements OnInit {
   username: string;
   password: string;
   showNewUserMessage = false;
+  geosecure: boolean;
+  geoportal: boolean;
   constructor(private loginService: LoginService, private route: ActivatedRoute, private router: Router) {
   }
 
   ngOnInit() {
     this.showNewUserMessage = this.route.snapshot.queryParams.next.includes('new_response=true');
+    this.geosecure = this.route.snapshot.queryParams.next.toLowerCase().includes('#geosecure');
+    this.geoportal = this.route.snapshot.queryParams.next.toLowerCase().includes('#geoplatform');
   }
 
   login(loginType: string) {

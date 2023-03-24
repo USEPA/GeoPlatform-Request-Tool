@@ -2,7 +2,7 @@
   <mat-toolbar class="header" color="primary" style="justify-content: space-between">
     <div style="display: flex; align-items: center; cursor: pointer;" routerLink="/">
       <img src="./assets/EPA_logo.png" style="width: 60px;"/>
-      Account Request Tool
+      <ng-container *ngIf="config | async as c">{{ c.portal }}</ng-container> Account Request Tool
     </div>
     <div style="padding-right: 25px;">
       <button mat-button routerLink="/accounts/list/" *ngIf="!(config | async)">Team Coordinator Login</button>
@@ -25,4 +25,14 @@
     </div>
   </mat-toolbar>
 </header>
+<ng-container *ngIf="config | async as userConfig">
+  <header *ngIf="route.snapshot.fragment && !(userConfig.portal == (route.snapshot.fragment|lowercase))" style="background-color: #eeeeee; text-align: center; padding: 15px; vertical-align: middle">
+    <mat-icon style="vertical-align: text-bottom; font-size: 25pt" color="warn" role="img">warning</mat-icon>
+    <span style="padding-left: 15px; padding-right: 15px; font-weight: bold">
+      You seem to have followed a link for {{ route.snapshot.fragment }}, would you like to log out and switch?
+    </span>
+    <button  mat-raised-button color="warn" (click)="switch_portal()">Log Out</button>
+    <button mat-mini-fab aria-label="Dismiss" style="margin-left: 15px" (click)="close_warning()"><mat-icon>close</mat-icon></button>
+  </header>
+</ng-container>
 <router-outlet></router-outlet>

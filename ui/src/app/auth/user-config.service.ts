@@ -6,6 +6,7 @@ import {environment} from '../../environments/environment';
 
 export interface UserConfig {
   id: number;
+  portal: string;
   name: string;
   permissions: string[];
   is_superuser: boolean;

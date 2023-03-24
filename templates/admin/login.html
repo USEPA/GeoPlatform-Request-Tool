@@ -80,15 +80,20 @@
     <a href="{{ password_reset_url }}">{% trans 'Forgotten your password or username?' %}</a>
   </div>
   {% endif %}
+  {% if not 'geosecure' in REDIRECT_FIELD_VALUE|lower and 'geoplatorm' not in REDIRECT_FIELD_VALUE|lower %}
+  <div style="padding-bottom: 1em">Please select the environment in which you will be creating a response / project or approving requests</div>
+  {% endif %}
+  {% if not 'geosecure' in REDIRECT_FIELD_VALUE|lower %}
   <div class="submit-row"
        style="display: flex; flex-direction: row; justify-content: space-around; align-items: center; padding: 0;">
-
       <div class="form-row" style="text-align: center">
         <a href="{% url 'social:begin' 'geoplatform' %}" style="cursor: pointer">
           <span class="esriSignIn">Login using EPA GeoPlatform</span>
         </a>
       </div>
   </div>
+  {% endif %}
+  {% if not 'geoplatform' in REDIRECT_FIELD_VALUE|lower %}
   <div class="submit-row"
        style="display: flex; flex-direction: row; justify-content: space-around; align-items: center; padding: 0;">
       <div class="form-row" style="text-align: center">
@@ -97,6 +102,7 @@
         </a>
       </div>
   </div>
+{% endif %}
 </form>
 
 </div>
