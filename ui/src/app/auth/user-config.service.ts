@@ -5,6 +5,7 @@ import {map, share, tap} from 'rxjs/operators';
 
 export interface UserConfig {
   id: number;
+  portal: string;
   name: string;
   permissions: string[];
   is_superuser: boolean;

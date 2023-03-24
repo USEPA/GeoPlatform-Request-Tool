@@ -26,6 +26,7 @@ def current_user(request):
     delegate_for = request.user.delegate_for.values_list('id', flat=True)
     current_user = {
         'id': request.user.id,
+        'portal': request.user.agol_info.portal.get_portal_name_display(),
         'name': '{} {}'.format(request.user.first_name, request.user.last_name) if request.user.first_name else request.user.username,
         'permissions': set(permissions),
         'is_superuser': request.user.is_superuser,

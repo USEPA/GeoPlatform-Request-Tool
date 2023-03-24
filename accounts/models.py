@@ -72,7 +72,7 @@ class AccountRequests(models.Model):
         Notification.create_new_notification(
             subject=f'New {self.response.portal} Account Request',
             context={
-                "REQUEST_ADDRESS": settings.HOST_ADDRESS,
+                "REQUEST_ADDRESS": settings.HOST_ADDRESS+"/accounts/list#"+self.response.portal,
                 "PORTAL": self.response.portal
             },
             template="new_account_request_email.html",
@@ -504,7 +504,7 @@ class ResponseProject(models.Model):
             )
 
     def generate_new_email(self):
-        REQUEST_URL = f"{settings.HOST_ADDRESS}/api/admin/accounts/responseproject/{self.pk}"
+        REQUEST_URL = f"{settings.HOST_ADDRESS}/api/admin/accounts/responseproject/{self.pk}?{self.portal}"
         to = [x.email.lower() for x in User.objects.filter(groups__pk=settings.COORDINATOR_ADMIN_GROUP_ID)]
         subject = f'New {self.portal} Response/Project Request for Review in Account Request Tool'
         content = render_to_string('new_response_request_email.html', {
@@ -523,7 +523,7 @@ class ResponseProject(models.Model):
         try:
             recipients = self.get_email_recipients()
             request_url = f"{settings.HOST_ADDRESS}?response={self.pk}"
-            approval_url = f"{settings.HOST_ADDRESS}/accounts/list"
+            approval_url = f"{settings.HOST_ADDRESS}/accounts/list?{self.portal}"
             email_subject = f"{self.portal} Account Response/Project {self.name} has been approved"
             msg = render_to_string('response_approval_email.html', {
                 "response_project": self,

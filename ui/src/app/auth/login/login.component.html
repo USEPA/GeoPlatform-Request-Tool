@@ -4,10 +4,9 @@
       <div style="padding-bottom: 10px">
         <button mat-raised-button color="primary" (click)="login('geoplatform')">Login using EPA GeoPlatform</button>
       </div>
-      <div>
+      <div *ngIf="!geoportal">
         <button mat-raised-button color="primary" (click)="login('geosecure')">Login using EPA GeoSecure</button>
       </div>
-      <p *ngIf="showNewUserMessage">Please proceed to be able to submit a new response / project request.</p>
     </mat-card>
   </div>
 </div>
