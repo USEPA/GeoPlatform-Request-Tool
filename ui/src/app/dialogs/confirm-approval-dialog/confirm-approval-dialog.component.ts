@@ -1,6 +1,6 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import {FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
+import {UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
 import {AccountProps} from '../../approval-list/approval-list.component';
 
 export interface ConfirmDialogData {
@@ -9,7 +9,7 @@ export interface ConfirmDialogData {
   selected_request?: AccountProps;
 }
 
-export const passwordMatchValidator: ValidatorFn = (control: FormGroup): ValidationErrors | null => {
+export const passwordMatchValidator: ValidatorFn = (control: UntypedFormGroup): ValidationErrors | null => {
   const password = control.get('passwordInput');
   const confirm = control.get('passwordConfirm');
 
@@ -23,11 +23,11 @@ export const passwordMatchValidator: ValidatorFn = (control: FormGroup): Validat
 })
 
 export class ConfirmApprovalDialogComponent implements OnInit {
-  passwordForm: FormGroup = new FormGroup({
-    passwordInput: new FormControl(null,
+  passwordForm: UntypedFormGroup = new UntypedFormGroup({
+    passwordInput: new UntypedFormControl(null,
       [Validators.required, Validators.pattern('(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d@$!%*#?&]{13,}')]
     ),
-    passwordConfirm: new FormControl(null, Validators.required)
+    passwordConfirm: new UntypedFormControl(null, Validators.required)
   },
     {validators: passwordMatchValidator}
   );

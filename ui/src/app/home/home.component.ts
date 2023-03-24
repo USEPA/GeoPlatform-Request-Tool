@@ -3,7 +3,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {LoginService} from '../auth/login.service';
 import {MatDialog} from '@angular/material/dialog';
 import {ResponseProjectRequestDialogComponent} from '../dialogs/response-project-request-dialog/response-project-request-dialog.component';
-import {Observable} from 'rxjs';
+import {Observable, take} from 'rxjs';
 import {filter, map, tap} from 'rxjs/operators';
 import {UserConfigService} from '../auth/user-config.service';
 
@@ -25,11 +25,12 @@ export class HomeComponent implements OnInit {
     );
     if (this.route.snapshot.queryParams.new_response === 'true') {
       this.userConfig.config.pipe(
-        filter(c => c !== undefined),
+        filter(c => !!c),
         tap(() => {
           this.openResponseRequestDialog();
           this.clearResponseQueryParam();
-        })
+        }),
+        take(1)
       ).subscribe();
     }
   }

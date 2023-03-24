@@ -7,7 +7,7 @@
     <div style="padding-right: 25px;">
       <button mat-button routerLink="/accounts/list/" *ngIf="!(config | async)">Team Coordinator Login</button>
       <span *ngIf="config | async as c">
-        <button mat-button [matMenuTriggerFor]="menu">{{ c.name }}</button>
+        <button mat-button id="userName" [matMenuTriggerFor]="menu">{{ c.name }}</button>
         <mat-menu #menu="matMenu">
           <button *ngIf="c.is_superuser || c.permissions.includes('view_accountrequests')" mat-menu-item routerLink="/accounts/list/">
             Approval List

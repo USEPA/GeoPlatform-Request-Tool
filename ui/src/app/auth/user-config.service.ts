@@ -2,7 +2,6 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable, ReplaySubject} from 'rxjs';
 import {map, share, tap} from 'rxjs/operators';
-import {environment} from '../../environments/environment';
 
 export interface UserConfig {
   id: number;
@@ -37,7 +36,7 @@ export class UserConfigService {
   }
 
   clearConfig() {
-    this.config.next();
+    this.config.next(null);
     this.authenticated = false;
   }
 

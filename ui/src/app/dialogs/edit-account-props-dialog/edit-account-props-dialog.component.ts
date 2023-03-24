@@ -1,5 +1,5 @@
 import {Component, Inject, OnInit} from '@angular/core';
-import {FormControl, FormGroup, Validators} from '@angular/forms';
+import {UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {iif, Observable, Subject} from 'rxjs';
@@ -33,12 +33,12 @@ export class EditAccountPropsDialogComponent implements OnInit {
   sponsors: Subject<Sponsor[]> = new Subject<Sponsor[]>();
   current_user: Observable<UserConfig>;
   // Form Group
-  editAccountPropsForm: FormGroup = new FormGroup({
-    username: new FormControl(null),
-    groups: new FormControl([]),
-    sponsor: new FormControl(null, [Validators.required]),
-    response: new FormControl(null, [Validators.required]),
-    reason: new FormControl(null, [Validators.required]),
+  editAccountPropsForm: UntypedFormGroup = new UntypedFormGroup({
+    username: new UntypedFormControl(null),
+    groups: new UntypedFormControl([]),
+    sponsor: new UntypedFormControl(null, [Validators.required]),
+    response: new UntypedFormControl(null, [Validators.required]),
+    reason: new UntypedFormControl(null, [Validators.required]),
   });
   customerFormError: string = null;
 
