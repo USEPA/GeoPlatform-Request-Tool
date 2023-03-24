@@ -32,7 +32,7 @@
 
     <div class="list-header" style="display: flex; flex-direction: row; justify-content: space-between">
       <mat-form-field style="width:250px; padding-left: 25px; padding-top: 15px;">
-        <input [formControl]="searchInput" matInput type="text" placeholder="Search"/>
+        <input [formControl]="searchInput" matInput type="text" placeholder="Search" id="searchInput"/>
         <button style="position:absolute; top:-5px; right:0px;" type="button" mat-icon-button
                 (click)="clearSearch()"
                 *ngIf="accounts.filter.search">
@@ -44,14 +44,16 @@
         style="display: flex; flex-direction: row; align-items: center; justify-content: space-evenly; padding-right: 25px;">
         <div>
           <button *ngIf="selectedAccountIds.length > 0" type="button" mat-raised-button color="warn"
-                  (click)="editAccountDialog()" style="margin-right: 20px;">
+                  (click)="editAccountDialog()" style="margin-right: 20px;" id="editBtn">
             Edit
           </button>
           <button *ngIf="isApprovalReady" type="button" mat-raised-button color="warn"
-                  (click)="openApproveOptions()" style="margin-right: 20px;">
+                  (click)="openApproveOptions()" style="margin-right: 20px;" id="approveBtn">
             Approve
           </button>
-          <button type="button" mat-raised-button (click)="filterNav.toggle()" color="primary">
+          <button mat-raised-button (click)="openS()">Snack</button>
+          <button type="button" mat-raised-button (click)="filterNav.toggle()" color="primary"
+                  id="filterBtn">
             {{ filterNav.opened ? 'Hide Filter' : 'Show Filter' }}
           </button>
         </div>

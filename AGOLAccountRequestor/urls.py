@@ -46,7 +46,6 @@ urlpatterns = [
     path(f'{settings.URL_PREFIX}api/v1/', include(router.urls)),
     path(f'{settings.URL_PREFIX}api/v1/email_field_coordinator_request/', email_field_coordinator_request),
     # path('api/rest-auth/', include('rest_auth.urls')),
-    # path(f'{settings.URL_PREFIX}api/auth/', include('rest_framework.urls', namespace='rest_framework')), #remove support for password based auth
     path(f'{settings.URL_PREFIX}api/oauth2/', include('social_django.urls', namespace='social_django')),
     path(f'{settings.URL_PREFIX}api/current_user/', current_user),
     path(f'{settings.URL_PREFIX}api/auth/logout/', auth_views.LogoutView.as_view(), name='logout'),
@@ -54,3 +53,6 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += [path('__debug__/', include(debug_toolbar.urls)),]
+
+if not settings.DISABLE_PASSWORD_AUTH:
+    urlpatterns += [path(f'{settings.URL_PREFIX}api/auth/', include('rest_framework.urls', namespace='rest_framework'))]
