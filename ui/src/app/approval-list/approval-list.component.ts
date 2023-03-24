@@ -17,7 +17,6 @@ import {environment} from '@environments/environment';
 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import {ToastrModule, ToastrService} from 'ngx-toastr';
-import {MatSnackBar} from "@angular/material/snack-bar";
 
 export interface AccountProps {
   first_name: string;
@@ -61,8 +60,7 @@ export class ApprovalListComponent implements OnInit {
 
   constructor(public http: HttpClient, loadingService: LoadingService,
               public dialog: MatDialog = null, public loginService: LoginService = null,
-              private toastr: ToastrService,
-              private snackbar: MatSnackBar) {
+              private toastr: ToastrService) {
     this.accounts = new BaseService('v1/account/approvals', http, loadingService);
   }
 
@@ -377,9 +375,5 @@ export class ApprovalListComponent implements OnInit {
   getPage(e) {
     this.accounts.getPage(e);
     this.clearAllSelected();
-  }
-
-  openS(){
-    this.snackbar.open('test')
   }
 }
