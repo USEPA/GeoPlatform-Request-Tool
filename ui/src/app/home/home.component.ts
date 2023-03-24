@@ -30,6 +30,7 @@ export class HomeComponent implements OnInit {
           this.openResponseRequestDialog();
           this.clearResponseQueryParam();
         }),
+        take(1)
       ).subscribe();
     }
   }
