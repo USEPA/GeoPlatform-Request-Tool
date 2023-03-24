@@ -72,7 +72,7 @@ class AccountRequests(models.Model):
         Notification.create_new_notification(
             subject=f'New {self.response.portal} Account Request',
             context={
-                "REQUEST_ADDRESS": settings.HOST_ADDRESS+"/accounts/list#"+self.response.portal,
+                "REQUEST_ADDRESS": settings.HOST_ADDRESS+"/accounts/list#"+self.response.portal.portal_name,
                 "PORTAL": self.response.portal
             },
             template="new_account_request_email.html",

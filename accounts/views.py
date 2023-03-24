@@ -311,7 +311,7 @@ class SponsorsViewSet(ReadOnlyModelViewSet):
     filterset_fields = ['response', 'agol_info__delegates', 'agol_info__portal__user']
 
     def get_queryset(self):
-        return self.queryset.filter(agol_info__portal__user=self.request.user)
+        return self.queryset.filter(agol_info__portal=self.request.user.agol_info.portal)
 
 
 class AGOLRoleViewSet(ReadOnlyModelViewSet):
