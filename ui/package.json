@@ -28,7 +28,6 @@
     "@discoveryjs/json-ext": "^0.5.7",
     "core-js": "^3.29.1",
     "ng-recaptcha": "~11.0.0",
-    "ngx-toastr": "^16.1.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.5.0",
     "zone.js": "^0.13.0"

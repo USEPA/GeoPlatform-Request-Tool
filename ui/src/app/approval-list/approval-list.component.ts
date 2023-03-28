@@ -1,13 +1,27 @@
 import {Component, OnInit} from '@angular/core';
 import {HttpClient, HttpErrorResponse} from '@angular/common/http';
-import {catchError, debounceTime, share, skip, startWith, switchMap, tap, filter, map} from 'rxjs/operators';
+import {
+  catchError,
+  debounceTime,
+  share,
+  skip,
+  startWith,
+  switchMap,
+  tap,
+  filter,
+  map,
+  mergeMap,
+  finalize
+} from 'rxjs/operators';
 import {MatDialog} from '@angular/material/dialog';
+import {MatSnackBar} from '@angular/material/snack-bar';
 import {FormControl} from '@angular/forms';
-import {forkJoin, iif, Observable, of, throwError} from 'rxjs';
+import {forkJoin, from, iif, Observable, of, throwError} from 'rxjs';
 
 import {LoginService} from '../auth/login.service';
 import {BaseService} from '../services/base.service';
 import {LoadingService} from '../services/loading.service';
+import {UserConfig, UserConfigService} from "../auth/user-config.service";
 
 import {EditAccountPropsDialogComponent} from '../dialogs/edit-account-props-dialog/edit-account-props-dialog.component';
 import {ConfirmApprovalDialogComponent} from '../dialogs/confirm-approval-dialog/confirm-approval-dialog.component';
@@ -16,7 +30,6 @@ import {GenericConfirmDialogComponent} from '../dialogs/generic-confirm-dialog/g
 import {environment} from '@environments/environment';
 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import {ToastrModule, ToastrService} from 'ngx-toastr';
 
 export interface AccountProps {
   first_name: string;
@@ -57,6 +70,7 @@ export class ApprovalListComponent implements OnInit {
   roles: Observable<[]>;
   user_types: Observable<[]>;
   responses: Observable<any[]>;
+  responseMessages: String[];
   searchInput = new FormControl(null);
 
   constructor(public http: HttpClient, loadingService: LoadingService,
@@ -204,9 +218,9 @@ export class ApprovalListComponent implements OnInit {
       tap(response => {
         this.setNeedsEditing(response);
         this.accounts.dataChange.next(this.accounts.data);
-        this.toastr.success('Success updating '+record.username);
+        this.matSnackBar.open('Success', null, {duration: 2000})
       }),
-      catchError(() => of(this.handleErrorResponse(null, ['Error'])))
+      catchError(() => of(this.matSnackBar.open("Error", null, {duration: environment.snackbar_duration})))
     );
   }
 
@@ -316,7 +330,7 @@ export class ApprovalListComponent implements OnInit {
     return dialogRef.afterClosed().pipe(
       filter(results => results.confirmed),
       // switchMap(results => this.createAccounts(results.password)),
-      // catchError(() => of(this.toastr.error('Error')))
+      // catchError(() => of(this.matSnackBar.open('Error')))
     );
   }
 
@@ -335,9 +349,9 @@ export class ApprovalListComponent implements OnInit {
       switchMap(() => this.accounts.delete(selectedRequest.id)),
       switchMap(() => this.accounts.getItems()),
       tap((accountRequests) => {
-        this.toastr.info('Deleted '+selectedRequest.username);
         this.setAccountsListProps(accountRequests);
         this.clearAllSelected();
+        this.matSnackBar.open('Deleted '+selectedRequest.username);
       }),
       catchError((err) => {
         of(this.handleErrorResponse(err));
@@ -356,34 +370,40 @@ export class ApprovalListComponent implements OnInit {
   }
 
   createAccounts(password?) {
-    this.selectedAccountIds.map(account => {
-      return this.http.post('/v1/account/approvals/approve/', {account_id: account, password});
-    }).forEach(x => x.subscribe(response => {
-      this.accounts.getItems().subscribe();
-      if (response.toString().toLowerCase().includes('warning')) {
-        this.toastr.warning(response.toString());
-      } else {
-        this.toastr.success(response.toString());
-      }
-    }, error => {
-      this.accounts.getItems().subscribe();
-      this.handleErrorResponse(error);
-    }));
+    from(this.selectedAccountIds).pipe(
+      mergeMap(id => {
+        return this.http.post('/v1/account/approvals/approve/', {account_id: id, password})
+      }),
+      finalize(() => {
+        this.accounts.getItems().subscribe();
+      })
+    ).subscribe({
+      error: err => this.handleErrorResponse(err),
+      complete: () => this.matSnackBar.open('Success', null, {duration: environment.snackbar_duration})
+    })
   }
 
   handleErrorResponse(err: HttpErrorResponse, customErrorMessages?: string[]) {
     if (err && err.error && err.error.detail) {
-      this.toastr.error(err.error.detail);
-    } else if (err && err.error && err.error.status) {
-      this.toastr.error(err.error.status);
+      this.matSnackBar.open(err.error.detail, null, {
+        duration: environment.snackbar_duration, panelClass: ['snackbar-error']
+      });
     } else if (err && err.error && typeof err.error === 'string') {
-      this.toastr.error(err.error);
+      this.matSnackBar.open(err.error, null, {
+        duration: environment.snackbar_duration, panelClass: ['snackbar-error']
+      });
     } else if (err && err.error && err.error instanceof Array) {
-      this.toastr.error(`Error: ${JSON.stringify(err.error[0])}`);
+      this.matSnackBar.open(`Error: ${JSON.stringify(err.error[0])}`, null, {
+        duration: environment.snackbar_duration, panelClass: ['snackbar-error']
+      });
     } else if (customErrorMessages.length > 0) {
-      this.toastr.error(customErrorMessages.join(', '));
+      this.matSnackBar.open(customErrorMessages.join(', '), null, {
+        duration: environment.snackbar_duration, panelClass: ['snackbar-error']
+      });
     } else {
-      this.toastr.error('Error occurred.');
+      this.matSnackBar.open('Error occurred.', null, {
+        duration: environment.snackbar_duration, panelClass: ['snackbar-error']
+      });
     }
   }
 

@@ -7,7 +7,6 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {CdkTableModule} from '@angular/cdk/table';
 import {RECAPTCHA_SETTINGS, RecaptchaModule, RecaptchaSettings, RecaptchaFormsModule} from 'ng-recaptcha';
 import {CustomMaterialModule} from './core/material.module';
-import { ToastrModule } from 'ngx-toastr';
 
 import {environment} from '@environments/environment';
 import {AppRoutingModule} from './app-routing.module';
@@ -64,11 +63,6 @@ import {CommonModule} from '@angular/common';
         CustomMaterialModule,
         RecaptchaFormsModule,
         HttpClientXsrfModule.withOptions({ cookieName: 'requestcsrftoken', headerName: 'X-CSRFToken' }),
-        ToastrModule.forRoot({
-            timeOut: environment.snackbar_duration,
-            positionClass: 'toast-bottom-center',
-            preventDuplicates: true,
-        }),
     ],
     providers: [{
             provide: RECAPTCHA_SETTINGS,
