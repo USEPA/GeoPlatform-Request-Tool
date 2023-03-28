@@ -109,9 +109,6 @@ class AccountViewSet(ModelViewSet):
         if not account:
             return Response(f"Account not {request.data['account_id']} found", status=404)
 
-        if request.data['account_id'] == 4289:
-            return Response(f"Error creating {account.username} at {account.response.portal.portal_name}.", status=500)
-
         # verify user has permission on each request submitted.
         self.check_object_permissions(request, account)
 
