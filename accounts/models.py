@@ -264,25 +264,43 @@ class AGOL(models.Model):
         return user_request_data
 
     def create_user_account(self, account_request, initial_password=None):
-        token = self.get_token()
+        # fail if the account already exists (don't send an invite)
+        if account_request.agol_id is not None:
+            return False
 
-        url = f'{self.portal_url}/sharing/rest/portals/self/invite/'
+        token = self.get_token()
 
         user_request_data = self.generate_user_request_data(account_request, initial_password)
 
-        # goofy way of encoding data since requests library does not seem to appreciate the nested structure.
-        data = {
-            "invitationList": json.dumps({"invitations": [user_request_data]}),
-            "f": "json",
-            "token": token
-        }
+        # if user has enterprise email address and is using enterprise authentication, account needs to be pre-created
+        if account_request.email.split('@')[1].lower() in settings.ENTERPRISE_USER_DOMAINS \
+                and settings.PRECREATE_ENTERPRISE_USERS:
 
-        if initial_password is None:
-            template = get_template('invitation_email_body.html')
-            data["message"] = template.render({
-                "account_request": account_request,
-                "PORTAL": self
+            url = f'{self.portal_url}/portaladmin/security/users/createUser'
+            user_request_data.update({
+                "provider": "enterprise",
+                "userLicenseTypeId": "creatorUT",
+                "f": "json",
+                "token": token
             })
+            data = user_request_data
+
+        else:  # Invite user
+            url = f'{self.portal_url}/sharing/rest/portals/self/invite/'
+
+            # goofy way of encoding data since requests library does not seem to appreciate the nested structure.
+            data = {
+                "invitationList": json.dumps({"invitations": [user_request_data]}),
+                "f": "json",
+                "token": token
+            }
+
+            if initial_password is None:
+                template = get_template('invitation_email_body.html')
+                data["message"] = template.render({
+                    "account_request": account_request,
+                    "PORTAL": self
+                })
 
         # pre-encode to ensure nested data isn't lost
         data = urlencode(data)
@@ -290,8 +308,8 @@ class AGOL(models.Model):
 
         response_json = response.json()
 
-        if 'success' in response_json and response_json['success'] \
-                and account_request.username not in response_json['notInvited']:
+        if 'success' in response_json and response_json['success'] or response_json['status'] == 'success':
+                # and account_request.username not in response_json['notInvited']:
             user_url = f'{self.portal_url}/sharing/rest/community/users/{account_request.username}'
             user_response = requests.get(user_url, params={'token': token, 'f': 'json'})
             user_response_json = user_response.json()
@@ -301,7 +319,11 @@ class AGOL(models.Model):
                 account_request.agol_id = user_response_json['id']
                 account_request.save(update_fields=['agol_id'])
 
-        return True
+            return True
+        else:
+            # something else went wrong TODO log the error
+            print(response_json)
+            return False
 
     def check_username(self, username):
         token = self.get_token()

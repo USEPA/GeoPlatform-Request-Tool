@@ -1,5 +1,6 @@
 from django.db.models import Q
 from django.utils.timezone import now
+from django.conf import settings
 from .models import AccountRequests, AGOL, GroupMembership, AGOLGroup, Notification
 from uuid import UUID
 import logging
@@ -83,9 +84,16 @@ def enable_account(account_request, password):
         account_request.existing_account_enabled = True
         account_request.save()
 
-    template = "enabled_account_email.html"
+    # default process is assumed to be "invite user",
+    template = "enabled_account_email_invited.html"
 
-    if password is not None:
+    # if user has epa email address and enterprise authentication is enabled, account needs to be pre-created
+    if str(account_request.email.split('@')[1]).lower() in settings.ENTERPRISE_USER_DOMAINS \
+            and settings.PRECREATE_ENTERPRISE_USERS:
+        template = "enabled_account_email_precreated.html"
+
+    # not an enterprise account request and password has been manually set
+    elif password is not None:
         password_update_success = agol.update_user_account(account_request.username, {"password": password})
         if password_update_success:
             template = "enabled_account_email_with_password.html"

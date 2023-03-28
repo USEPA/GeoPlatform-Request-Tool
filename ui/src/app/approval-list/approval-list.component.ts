@@ -44,6 +44,7 @@ export interface Accounts {
   styleUrls: ['./approval-list.component.css']
 })
 export class ApprovalListComponent implements OnInit {
+  userConfig: UserConfig;
   accounts: BaseService;
   displayedColumns = ['selected', 'username', 'first_name', 'last_name', 'email', 'organization', 'groups', 'response',
     'sponsor', 'reason', 'approved', 'created', 'delete'];
@@ -59,8 +60,10 @@ export class ApprovalListComponent implements OnInit {
   searchInput = new FormControl(null);
 
   constructor(public http: HttpClient, loadingService: LoadingService,
-              public dialog: MatDialog = null, public loginService: LoginService = null,
-              private toastr: ToastrService) {
+              public dialog: MatDialog = null,
+              public loginService: LoginService = null,
+              public UserConfigService: UserConfigService,
+              public matSnackBar: MatSnackBar) {
     this.accounts = new BaseService('v1/account/approvals', http, loadingService);
   }
 
@@ -70,6 +73,8 @@ export class ApprovalListComponent implements OnInit {
 
     // set accounts list record properties
     // this.setAccountsListProps();
+
+    this.UserConfigService.config.subscribe(c => this.userConfig = c);
 
     this.accounts.filter = {created: false};
     this.accounts.dataChange.pipe(
@@ -255,28 +260,38 @@ export class ApprovalListComponent implements OnInit {
   }
 
   openApproveOptions() {
-    this.dialog.open(ChooseCreationMethodComponent).afterClosed().pipe(
-      filter(x => x),
-      switchMap(choice => {
-        if (choice === 'password') {
-          return this.openSetPasswordDialog();
-        } else if (choice === 'invitation') {
-          return this.confirmSendInvitation().pipe(map(x => {
-            return {confirmed: x, password: null};
-          }));
-        }
-        return of({confirmed: false});
-      }),
-      filter(x => x.confirmed),
-      tap(r => this.createAccounts(r.password)),
-    ).subscribe();
+    if(this.userConfig.portal.toLowerCase() == 'geoplatform') {
+      this.dialog.open(ChooseCreationMethodComponent).afterClosed().pipe(
+        filter(x => x),
+        switchMap(choice => {
+          if (choice === 'password') {
+            return this.openSetPasswordDialog();
+          } else if (choice === 'invitation') {
+            return this.confirmSendNotification().pipe(map(x => {
+              return {confirmed: x, password: null};
+            }));
+          }
+          return of({confirmed: false});
+        }),
+        filter(x => x.confirmed),
+        tap(r => this.createAccounts(r.password))
+      ).subscribe();
+    } else if(this.userConfig.portal.toLowerCase() == 'geosecure'){
+      this.confirmSendNotification().pipe(
+        map(x => {
+          return {confirmed: x, password: null};
+        }),
+        tap(r => this.createAccounts(null))
+      ).subscribe();
+    }
   }
 
-  confirmSendInvitation(): Observable<boolean> {
+  confirmSendNotification(): Observable<boolean> {
     return this.dialog.open(GenericConfirmDialogComponent, {
       width: '400px',
       data: {
-        message: 'This will send auto-generated emails to the approved accounts. Each user must click the link in their email to finish setting up their account. ' +
+        // message: message
+        message: 'This will send auto-generated emails to the approved accounts. Additional instructions will be included in the email for the end user. ' +
           'Please confirm you want to send emails now.'
       }
     }).afterClosed();

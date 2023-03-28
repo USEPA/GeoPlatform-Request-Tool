@@ -20,8 +20,11 @@ from natsort import natsorted
 
 
 def format_username(data):
-    username_extension = 'EPAEXT' if '@epa.gov' not in data['email'] else 'EPA'
-    username = f'{data["last_name"].capitalize()}.{data["first_name"].capitalize()}_{username_extension}'
+    if data['email'].split('@')[1].lower() in settings.ENTERPRISE_USER_DOMAINS:
+        username = data['email']
+    else:
+        username_extension = 'EPAEXT' if '@epa.gov' not in data['email'] else 'EPA'
+        username = f'{data["last_name"].capitalize()}.{data["first_name"].capitalize()}_{username_extension}'
     return username.replace(' ', '')
 
 
