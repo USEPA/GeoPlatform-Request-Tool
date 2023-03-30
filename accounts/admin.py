@@ -197,6 +197,22 @@ class RequestAdmin(admin.ModelAdmin):
                        'is_existing_account', 'existing_account_enabled', 'approved_by']
     inlines = [GroupAdminInline, PendingNotificationInline]
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if not request.user.is_superuser:
+            if db_field.name == "auth_group":
+                kwargs["queryset"] = AGOLGroup.objects.filter(response__portal_id=request.user.agol_info.portal_id)
+
+            if db_field.name == "role":
+                kwargs["queryset"] = AGOLRole.objects.filter(agol_id=request.user.agol_info.portal_id)
+
+            if db_field.name == "response":
+                kwargs["queryset"] = ResponseProject.objects.filter(portal_id=request.user.agol_info.portal_id)
+
+            if db_field.name == "sponsor":
+                kwargs["queryset"] = User.objects.filter(agol_info__portal_id=request.user.agol_info.portal_id)
+
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         if request.user.is_superuser:
