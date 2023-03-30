@@ -463,7 +463,7 @@ class ResponseProject(models.Model):
     portal = models.ForeignKey(AGOL, models.PROTECT, default=1)
     assignable_groups = models.ManyToManyField('AGOLGroup', related_name='response',
                                                verbose_name='Assignable Groups')
-    role = models.ForeignKey('AGOLRole', on_delete=models.PROTECT, verbose_name='GeoPlatform Role',
+    role = models.ForeignKey('AGOLRole', on_delete=models.PROTECT, verbose_name='Role',
                              limit_choices_to={'is_available': True}, null=True, blank=True,
                              help_text='System default will be used if left blank.')
     authoritative_group = models.ForeignKey('AGOLGroup', on_delete=models.PROTECT,
