@@ -10,8 +10,6 @@ import {
   tap,
   filter,
   map,
-  mergeMap,
-  finalize
 } from 'rxjs/operators';
 import {MatDialog} from '@angular/material/dialog';
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -70,7 +68,6 @@ export class ApprovalListComponent implements OnInit {
   roles: Observable<[]>;
   user_types: Observable<[]>;
   responses: Observable<any[]>;
-  responseMessages: String[];
   searchInput = new FormControl(null);
 
   constructor(public http: HttpClient, loadingService: LoadingService,
@@ -370,17 +367,37 @@ export class ApprovalListComponent implements OnInit {
   }
 
   createAccounts(password?) {
-    from(this.selectedAccountIds).pipe(
-      mergeMap(id => {
-        return this.http.post('/v1/account/approvals/approve/', {account_id: id, password})
-      }),
-      finalize(() => {
-        this.accounts.getItems().subscribe();
-      })
-    ).subscribe({
-      error: err => this.handleErrorResponse(err),
-      complete: () => this.matSnackBar.open('Success', null, {duration: environment.snackbar_duration})
-    })
+
+    const requests = this.selectedAccountIds.map(id => {
+      return this.http.post('/v1/account/approvals/approve/', {account_id: id, password}).pipe(
+        catchError(err => of(err))
+      )
+    });
+
+    forkJoin(requests).subscribe(responses => {
+      if (responses.filter(response => 'error' in response).length > 0) {
+        this.matSnackBar.open(
+          'There was and error with one or more account requests',
+          null,
+          {duration: environment.snackbar_duration, panelClass: ['snackbar-error']}
+        );
+      } else if (responses.filter(response => 'warning' in response).length > 0) {
+        this.matSnackBar.open(
+          'There was an issue added some groups to one or more accounts, please review accordingly',
+          null,
+          {duration: environment.snackbar_duration, panelClass: ['snackbar-warning']}
+        );
+      } else {
+        this.matSnackBar.open(
+          'Success!',
+          null,
+          { duration: environment.snackbar_duration, panelClass: ['snackbar-success'] }
+        );
+      }
+
+      // refresh the list
+      this.accounts.getItems().subscribe();
+    });
   }
 
   handleErrorResponse(err: HttpErrorResponse, customErrorMessages?: string[]) {

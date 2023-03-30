@@ -110,7 +110,10 @@ class AccountViewSet(ModelViewSet):
     def approve(self, request):
         account = AccountRequests.objects.get(pk=request.data['account_id'])
         if not account:
-            return Response(f"Account not {request.data['account_id']} found", status=404)
+            return Response({
+                'id': request.data['account_id'],
+                'error': f"Account not {request.data['account_id']} found"
+            }, status=404)
 
         # verify user has permission on each request submitted.
         self.check_object_permissions(request, account)
@@ -125,27 +128,43 @@ class AccountViewSet(ModelViewSet):
         # create accounts that don't exist
         create_success = create_account(account, password)
         if not create_success:
-            return Response(f"Error creating {account.username} at {account.response.portal.portal_name}.", status=500)
+            return Response({
+                'id': account.pk,
+                'error': f"Error creating {account.username} at {account.response.portal.portal_name}."
+            }, status=500)
 
         # re-enabled disabled accounts
         enabled_success = enable_account(account, password)
         if not enabled_success:
-            return Response(f"Error enabling {account.username} at {account.response.portal.portal_name}.", status=500)
+            return Response({
+                'id': account.pk,
+                'error': f"Error enabling {account.username} at {account.response.portal.portal_name}."
+            }, status=500)
 
         # add account to groups
         if account.groupmembership_set.count() > 0:
             group_success = add_account_to_groups(account)
             if not group_success:
-                return Response(f"Warning, {account.username} created but groups not added at {account.response.portal.portal_name}", status=200)
+                return Response({
+                    'id': account.pk,
+                    'warning': f"Warning, {account.username} created but groups not added at {account.response.portal.portal_name}"
+                }, status=200)
         else:
             #no groups to add
             group_success = True
 
         #success = [x.pk for x in account_requests if x.pk in create_success and x.pk in group_success]
         if create_success and enabled_success and group_success:
-            return Response(f"Successfully approved {account.username} at {account.response.portal.portal_name}", status=200)
+            return Response({
+                'id': account.pk,
+                'success': f"Successfully approved {account.username} at {account.response.portal.portal_name}"
+            }, status=200)
 
-        return Response(f"Unknown error with {account.username} at {account.response.portal.portal_name}", status=400)
+        # return unknown error if for some reason previous error checks didn't return an error but was not successful
+        return Response({
+            'id': account.pk,
+            'error': f"Unknown error with {account.username} at {account.response.portal.portal_name}"
+        }, status=400)
 
     # possible to setup email to request with reason
     @action(['POST'], detail=True)
