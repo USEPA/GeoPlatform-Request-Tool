@@ -31,7 +31,7 @@ node('staging') {
                         bat "$props.NPM_PATH\\npm i"
                     }
                     stage("build frontend") {
-                        bat "$props.NPM_PATH\\npm run build:ngst-staging"
+                        bat "$props.NPM_PATH\\node $props.NPM_PATH\\node_modules\\@angular\\cli\\bin\\ng build -c=ngst-staging"
                     }
                 }
            }
