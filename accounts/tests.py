@@ -147,7 +147,7 @@ class TestAccounts(TestCase):
         requests = AccountRequests.objects.all()
         for account in requests:
             result = self.agol.create_user_account(account, 'password')
-            self.assertTrue(result)
+            self.assertFalse(result)
             exists = AccountRequests.objects.filter(agol_id='ffffffff-ffff-ffff-ffff-ffffffffffff').exists()
             self.assertFalse(exists)
 

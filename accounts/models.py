@@ -308,7 +308,7 @@ class AGOL(models.Model):
 
         response_json = response.json()
 
-        if 'success' in response_json and response_json['success'] or response_json['status'] == 'success':
+        if 'success' in response_json and response_json['success'] or response_json.get('status', False) == 'success':
                 # and account_request.username not in response_json['notInvited']:
             user_url = f'{self.portal_url}/sharing/rest/community/users/{account_request.username}'
             user_response = requests.get(user_url, params={'token': token, 'f': 'json'})
