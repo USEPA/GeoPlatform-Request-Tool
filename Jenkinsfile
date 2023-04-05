@@ -46,6 +46,7 @@ node('staging') {
           teamDomain:'innovateinc', botUser:true, tokenCredentialId:'9de5b95a-9ad8-418a-989e-7ae694f3613f')
           slackSend(channel:props.NOTIFICATION_CHANNEL_ID, message: e.message,
           teamDomain:'innovateinc', botUser:true, tokenCredentialId:'9de5b95a-9ad8-418a-989e-7ae694f3613f')
+          throw(e)
         }
     }
 }
