@@ -12,3 +12,5 @@ social-auth-app-django
 django-rest-framework-social-oauth2==1.1.0
 natsort>=8.0.0,<8.1
 django-debug-toolbar
+django-admin-list-filter-dropdown
+django-admin-rangefilter

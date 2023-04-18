@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'oauth2_provider',
     'social_django',
     # 'rest_framework_social_oauth2',
+    'rangefilter',
+    'django_admin_listfilter_dropdown',
     'accounts'
 ] + local_settings.INSTALLED_APPS
 
