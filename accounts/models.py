@@ -430,7 +430,7 @@ class AGOL(models.Model):
 class AGOLUserFields(models.Model):
     id = models.AutoField(primary_key=True)
     agol_username = models.CharField(max_length=200, null=True, blank=True)
-    portal = models.ForeignKey(AGOL, models.PROTECT, default=1)
+    portal = models.ForeignKey(AGOL, models.PROTECT)
     sponsor = models.BooleanField(default=False)
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='agol_info')
@@ -460,7 +460,7 @@ class ResponseProject(models.Model):
     users = models.ManyToManyField(User, related_name='response', verbose_name='Sponsors',
                                    limit_choices_to={'agol_info__sponsor': True}, blank=True)
     name = models.CharField('Name', max_length=500)
-    portal = models.ForeignKey(AGOL, models.PROTECT, default=1)
+    portal = models.ForeignKey(AGOL, models.PROTECT)
     assignable_groups = models.ManyToManyField('AGOLGroup', related_name='response',
                                                verbose_name='Assignable Groups')
     role = models.ForeignKey('AGOLRole', on_delete=models.PROTECT, verbose_name='Role',
@@ -502,11 +502,8 @@ class ResponseProject(models.Model):
         return not self.requests.filter(approved__isnull=True).exists()
 
     def save(self, *args, **kwargs):
-        # set the portal to same as authoritative group
-        self.portal = self.authoritative_group.agol
-
         if self.role is None:
-            self.role = AGOLRole.objects.get(system_default=True)
+            self.role = self.portal.roles.get(system_default=True)
 
         send_approved_email = not self._approved and self.approved
         send_disabled_email = not self._disabled and self.disabled

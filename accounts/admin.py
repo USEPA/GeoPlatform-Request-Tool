@@ -299,7 +299,7 @@ class ResponseProjectAdmin(admin.ModelAdmin):
                     kwargs["queryset"] = User.objects.filter(agol_info__portal_id=request.user.agol_info.portal_id)
 
             if db_field.name == "authoritative_group":
-                kwargs["queryset"] = AGOLGroup.objects.filter(response__portal_id=request.user.agol_info.portal_id)
+                kwargs["queryset"] = AGOLGroup.objects.filter(agol_id=request.user.agol_info.portal_id)
 
             if db_field.name == "role":
                 kwargs["queryset"] = AGOLRole.objects.filter(agol_id=request.user.agol_info.portal_id)
@@ -380,7 +380,10 @@ class ResponseProjectAdmin(admin.ModelAdmin):
             'site_title': 'Account Request Tool',
         })
 
-
+    def save_model(self, request, obj, form, change):
+        if obj.pk is None:
+            obj.portal = request.user.agol_info.portal
+        super().save_model(request, obj, form, change)
     # def get_readonly_fields(self, request, obj=None):
     #     readonly_fields = super().get_readonly_fields(request, obj)
     #     if obj is None:
