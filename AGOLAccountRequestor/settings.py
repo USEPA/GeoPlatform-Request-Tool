@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'django_filters',
     'social_django',
     # 'drf_social_oauth2',
+    'rangefilter',
+    'django_admin_listfilter_dropdown',
     'accounts'
 ]
 INSTALLED_APPS += os.environ.get('INSTALLED_APPS', '').split(',') if os.environ.get('INSTALLED_APPS') else []

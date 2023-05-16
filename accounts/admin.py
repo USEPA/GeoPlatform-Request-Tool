@@ -10,6 +10,8 @@ from django.utils.safestring import mark_safe
 from django.http.response import HttpResponse, HttpResponseRedirect
 from django.contrib.messages import WARNING
 from django.utils.timezone import now
+from rangefilter.filters import DateRangeFilterBuilder
+from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
 from django.utils.translation import gettext_lazy as _
 
 
@@ -183,13 +185,9 @@ class RequestAdmin(admin.ModelAdmin):
     list_display = ['last_name', 'first_name', 'email', 'username']
     search_fields = list_display
     ordering = ['-submitted']
-    list_filter = (
-        ('response', admin.RelatedOnlyFieldListFilter),
-        'submitted',
-        ('approved_by', admin.RelatedOnlyFieldListFilter),
-        'approved',
-        'created',
-    )
+    list_filter = [('response', RelatedDropdownFilter),('approved_by', RelatedDropdownFilter),
+                   ('submitted', DateRangeFilterBuilder()), ('approved', DateRangeFilterBuilder()),
+                   ('created', DateRangeFilterBuilder())]
     fields = ['first_name', 'last_name', 'email', 'possible_existing_account', 'existing_account_enabled', 'organization', 'username',
               'username_valid', 'user_type', 'role', 'auth_group', 'sponsor', 'sponsor_notified', 'reason',
               'approved', 'approved_by', 'created', 'response', 'is_existing_account']

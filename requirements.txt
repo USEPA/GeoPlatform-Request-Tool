@@ -9,7 +9,6 @@ tqdm>=4.64.1<=4.64.99
 drf-recaptcha>=2.2.2,<2.2.99
 git+https://github.com/Innovate-Inc/django-slack-logging.git#egg=django-slack-logging
 social-auth-app-django>=5.0.0,<=5.0.99
-django-oauth-toolkit>=2.2.0,<=2.2.99
 # drf-social-oauth2
 natsort>=8.2.0,<=8.2.99
 django-debug-toolbar>=3.8.1,<=3.8.99
