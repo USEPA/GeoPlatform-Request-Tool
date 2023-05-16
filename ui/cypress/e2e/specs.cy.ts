@@ -86,6 +86,6 @@ describe('approver workflow', () => {
     cy.get('mat-select[formcontrolname="groups"]').click();
     cy.get('.mat-option-text').contains('R9 Testing').click().type('{esc}');
     cy.get('button').contains('Submit').click();
-    cy.get('.toast-message').should('contain', 'Success updating User.Test_EPA');
+    cy.get('span[class="mat-simple-snack-bar-content"]').should('contain', 'Success');
   })
 })

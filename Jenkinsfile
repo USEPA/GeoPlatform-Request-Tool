@@ -33,6 +33,19 @@ node('staging') {
                     stage("build frontend") {
                         bat "$props.NPM_PATH\\node $props.NPM_PATH\\node_modules\\@angular\\cli\\bin\\ng build -c=ngst-staging"
                     }
+                    stage("run e2e tests") {
+                         try {
+                            configFileProvider([configFile(fileId: 'be366a0d-7ab7-4d10-84c0-9ae3e5442af5', targetLocation: 'cypress.env.json')]) {
+                                config = readJSON file: 'cypress.env.json'
+                                env.CYPRESS_BASE_URL=config['baseUrl']
+                                env.NO_COLOR=1
+                                bat "$props.NPM_PATH\\npm run ng run ui:cypress-run"
+                            }
+                         } catch (e) {
+                            archiveArtifacts artifacts:'cypress/videos/**/*.mp4'
+                            throw e
+                         }
+                    }
                 }
            }
             stage("Approval") {
