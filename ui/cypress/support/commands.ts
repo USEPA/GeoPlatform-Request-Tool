@@ -59,7 +59,7 @@ Cypress.Commands.add('solveGoogleReCAPTCHA', () => {
 });
 
 function loginCreds(username, password) {
-  cy.visit('http://localhost:8000/api/auth/login/');
+  cy.visit('/api/auth/login/');
   cy.get('input[name="username"]').type(username, {
     log: false,
   });

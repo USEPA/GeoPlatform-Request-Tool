@@ -132,7 +132,8 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "ui:build"
+            "browserTarget": "ui:build",
+            "proxyConfig": "proxy.conf.json"
           },
           "configurations": {
             "development": {
@@ -167,15 +168,7 @@
           }
         },
         "cypress-run": {
-          "builder": "@cypress/schematic:cypress",
-          "options": {
-            "devServerTarget": "ui:serve"
-          },
-          "configurations": {
-            "production": {
-              "devServerTarget": "ui:serve:production"
-            }
-          }
+          "builder": "@cypress/schematic:cypress"
         },
         "cypress-open": {
           "builder": "@cypress/schematic:cypress",
