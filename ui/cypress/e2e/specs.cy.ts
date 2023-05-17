@@ -14,7 +14,7 @@ describe('Anonymous submission', () => {
 
     cy.get('input[formcontrolname="email"]').type('@epa.gov')
     cy.get('mat-select[formcontrolname="response"]').click();
-    cy.get('mat-option').contains('R09 Testing').click();
+    cy.get('mat-option', {timeout: 30000}).contains('R09 Testing').click();
     cy.solveGoogleReCAPTCHA();
 
     cy.get('button').contains('Submit').click();
