@@ -18,7 +18,7 @@ describe('Anonymous submission', () => {
     cy.solveGoogleReCAPTCHA();
 
     cy.get('button').contains('Submit').click();
-    cy.get('span[class="mat-simple-snack-bar-content"]').should('contain', 'Request has been successfully submitted')
+    cy.get('span[class="mat-simple-snack-bar-content"]', {timeout: 10000}).should('contain', 'Request has been successfully submitted')
   })
 
     it('block submitting same request ', () => {
@@ -30,7 +30,7 @@ describe('Anonymous submission', () => {
     cy.get('mat-option').contains('R09 Testing').click();
     cy.solveGoogleReCAPTCHA();
     cy.get('button').contains('Submit').click();
-    cy.get('span[class="mat-simple-snack-bar-content"]').should('contain', 'Outstanding request found.')
+    cy.get('span[class="mat-simple-snack-bar-content"]', {timeout: 10000}).should('contain', 'Outstanding request found.')
   })
 
   it('should go to login if trying to submit response form', () => {
