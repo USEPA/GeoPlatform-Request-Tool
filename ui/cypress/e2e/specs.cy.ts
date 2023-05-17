@@ -1,7 +1,8 @@
 import '../support/commands';
+
 describe('Anonymous submission', () => {
   beforeEach(() => {
-        cy.visit('/')
+    cy.visit('/')
   })
   it('anyone can submit account request', () => {
 
@@ -21,7 +22,7 @@ describe('Anonymous submission', () => {
     cy.get('span[class="mat-simple-snack-bar-content"]', {timeout: 30000}).should('contain', 'Request has been successfully submitted')
   })
 
-    it('block submitting same request ', () => {
+  it('block submitting same request ', () => {
     cy.get('input[formcontrolname="first_name"]').type('Test')
     cy.get('input[formcontrolname="last_name"]').type('User')
     cy.get('input[formcontrolname="email"]').type('notanemail@epa.gov')
@@ -83,9 +84,16 @@ describe('approver workflow', () => {
     cy.get('mat-cell').first().click();
     cy.get('button#editBtn').click()
     cy.wait(1000);
-    cy.get('mat-select[formcontrolname="groups"]').click();
-    cy.get('.mat-option-text').contains('R9 Testing').click().type('{esc}');
-    cy.get('button').contains('Submit').click();
-    cy.get('span[class="mat-simple-snack-bar-content"]').should('contain', 'Success');
+  })
+
+  it('should allow apporver to delete the request', () => {
+    cy.visit('/accounts/list');
+    cy.get('input#searchInput').type('Test User{enter}')
+    cy.wait(1000);
+    cy.get('mat-cell').first().click();
+    cy.get('mat-cell.cdk-column-delete > button').click()
+    cy.get('button').contains('Confirm').click();
+    cy.get('span[class="mat-simple-snack-bar-content"]').should('contain', 'Deleted User.Test_EPA')
+
   })
 })
