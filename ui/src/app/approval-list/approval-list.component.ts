@@ -94,7 +94,7 @@ export class ApprovalListComponent implements OnInit {
     this.accounts.getItems().subscribe();
     this.roles = this.http.get<[]>('/v1/account/approvals/roles').pipe(share());
     this.user_types = this.http.get<[]>('/v1/account/approvals/user_types').pipe(share());
-    this.responses = this.http.get<[]>('/v1/responses', {params: {for_approver: true}}).pipe(share());
+    this.responses = this.http.get<[]>('/v1/responses/', {params: {for_approver: true}}).pipe(share());
 
     this.searchInput.valueChanges.pipe(
       startWith(this.searchInput.value),

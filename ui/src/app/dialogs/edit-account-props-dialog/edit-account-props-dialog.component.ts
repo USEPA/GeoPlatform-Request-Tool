@@ -73,7 +73,7 @@ export class EditAccountPropsDialogComponent implements OnInit {
     this.userConfig.config.pipe(
       switchMap(config => {
         return iif(() => config.is_sponsor,
-          this.http.get<Sponsor>(`/v1/sponsors/${config.id}`).pipe(map(s => [s])),
+          this.http.get<Sponsor>(`/v1/sponsors/${config.id}/`).pipe(map(s => [s])),
           this.http.get<Sponsor[]>('/v1/sponsors/',
       {params: new HttpParams().set('agol_info__delegates', config.id.toString())}).pipe(
         map(r => r['results'])
@@ -90,7 +90,7 @@ export class EditAccountPropsDialogComponent implements OnInit {
 
   getGroups(response: number) {
     if (response) {
-      this.http.get<AgolGroup[]>('/v1/agol/groups',
+      this.http.get<AgolGroup[]>('/v1/agol/groups/',
         {params: new HttpParams().set('response', response.toString())}).pipe(
         tap((res) => {
           this.groups.next(res);
