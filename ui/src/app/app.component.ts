@@ -35,7 +35,7 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.admin_url = `${environment.api_url}/admin/`;
+    this.admin_url = `${environment.local_service_endpoint}/admin/`;
     this.config = this.userConfig.config;
   }
 

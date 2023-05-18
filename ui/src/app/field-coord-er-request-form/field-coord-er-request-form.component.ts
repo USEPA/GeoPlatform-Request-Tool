@@ -48,7 +48,7 @@ export class FieldCoordErRequestFormComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.field_coordinators = this.http.get<Response>('/v1/sponsors/').pipe(
+    this.field_coordinators = this.http.get<Response>(`${environment.local_service_endpoint}/v1/sponsors/`).pipe(
       map(response => response.results)
     );
     combineLatest([this.field_coordinators, this.userConfig.config]
@@ -106,7 +106,7 @@ export class FieldCoordErRequestFormComponent implements OnInit {
   }
 
   initAuthGroups() {
-    this.auth_groups = this.http.get<AgolGroup[]>('/v1/agol/groups/all/',
+    this.auth_groups = this.http.get<AgolGroup[]>(`${environment.local_service_endpoint}/v1/agol/groups/all/`,
       {params: {is_auth_group: true}}
     );
   }

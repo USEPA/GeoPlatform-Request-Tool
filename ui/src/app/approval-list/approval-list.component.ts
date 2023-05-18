@@ -92,9 +92,9 @@ export class ApprovalListComponent implements OnInit {
       tap(response => this.setAccountsListProps(response))
     ).subscribe();
     this.accounts.getItems().subscribe();
-    this.roles = this.http.get<[]>('/v1/account/approvals/roles').pipe(share());
-    this.user_types = this.http.get<[]>('/v1/account/approvals/user_types').pipe(share());
-    this.responses = this.http.get<[]>('/v1/responses/', {params: {for_approver: true}}).pipe(share());
+    this.roles = this.http.get<[]>(`${environment.local_service_endpoint}/v1/account/approvals/roles`).pipe(share());
+    this.user_types = this.http.get<[]>(`${environment.local_service_endpoint}/v1/account/approvals/user_types`).pipe(share());
+    this.responses = this.http.get<[]>(`${environment.local_service_endpoint}/v1/responses/`, {params: {for_approver: true}}).pipe(share());
 
     this.searchInput.valueChanges.pipe(
       startWith(this.searchInput.value),
@@ -211,7 +211,7 @@ export class ApprovalListComponent implements OnInit {
   }
 
   updateRecord(record) {
-    return this.http.put(`/v1/account/approvals/${record.id}/`, record).pipe(
+    return this.http.put(`${environment.local_service_endpoint}/v1/account/approvals/${record.id}/`, record).pipe(
       tap(response => {
         this.setNeedsEditing(response);
         this.accounts.dataChange.next(this.accounts.data);
@@ -369,7 +369,7 @@ export class ApprovalListComponent implements OnInit {
   createAccounts(password?) {
 
     const requests = this.selectedAccountIds.map(id => {
-      return this.http.post('/v1/account/approvals/approve/', {account_id: id, password}).pipe(
+      return this.http.post(`${environment.local_service_endpoint}/v1/account/approvals/approve/`, {account_id: id, password}).pipe(
         catchError(err => of(err))
       )
     });

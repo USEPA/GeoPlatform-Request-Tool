@@ -9,6 +9,7 @@ import {RequestFieldCoordDialogComponent} from '../dialogs/request-field-coord-d
 import {LoginService} from '../auth/login.service';
 import {UntypedFormControl} from "@angular/forms";
 import {debounceTime, skip, startWith, tap} from "rxjs/operators";
+import {environment} from "@environments/environment";
 
 export interface FieldCoordinator {
   value: number;
@@ -80,7 +81,7 @@ export class FieldCoordListComponent implements OnInit {
   }
 
   async emailFieldCoordRequest() {
-    const result = await this.http.post('/v1/email_field_coordinator_request/', this.field_coordinator).toPromise();
+      const result = await this.http.post(`${environment.local_service_endpoint}/v1/email_field_coordinator_request/`, this.field_coordinator).toPromise();
     if (result === true) {
       this.snackBar.open('Email sent', null, {duration: 2000});
     } else {

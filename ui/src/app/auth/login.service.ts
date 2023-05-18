@@ -205,7 +205,7 @@ export class LoginService implements CanActivateChild, CanActivate {
   logout() {
     this.configService.clearConfig();
     // this.clearToken();
-    return this.http.post(`/auth/logout/`, '', {responseType: 'text'});
+    return this.http.post(`${environment.local_service_endpoint}/auth/logout/`, '', {responseType: 'text'});
   }
 
 

@@ -5,6 +5,7 @@ import {HttpClient, HttpParams} from '@angular/common/http';
 import {iif, Observable, Subject} from 'rxjs';
 import {map, switchMap, tap} from 'rxjs/operators';
 import {UserConfig, UserConfigService} from '../../auth/user-config.service';
+import {environment} from "@environments/environment";
 
 export interface AgolGroup {
   id: number;
@@ -48,7 +49,7 @@ export class EditAccountPropsDialogComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.responses = this.http.get<Response[]>('/v1/responses/', {
+    this.responses = this.http.get<Response[]>(`${environment.local_service_endpoint}/v1/responses/`, {
       params: new HttpParams().set('for_approver', 'true')});
     this.getSponsors();
   }
@@ -73,8 +74,8 @@ export class EditAccountPropsDialogComponent implements OnInit {
     this.userConfig.config.pipe(
       switchMap(config => {
         return iif(() => config.is_sponsor,
-          this.http.get<Sponsor>(`/v1/sponsors/${config.id}/`).pipe(map(s => [s])),
-          this.http.get<Sponsor[]>('/v1/sponsors/',
+          this.http.get<Sponsor>(`${environment.local_service_endpoint}/v1/sponsors/${config.id}/`).pipe(map(s => [s])),
+          this.http.get<Sponsor[]>(`${environment.local_service_endpoint}/v1/sponsors/`,
       {params: new HttpParams().set('agol_info__delegates', config.id.toString())}).pipe(
         map(r => r['results'])
           ));
@@ -90,7 +91,7 @@ export class EditAccountPropsDialogComponent implements OnInit {
 
   getGroups(response: number) {
     if (response) {
-      this.http.get<AgolGroup[]>('/v1/agol/groups/',
+      this.http.get<AgolGroup[]>(`${environment.local_service_endpoint}/v1/agol/groups/`,
         {params: new HttpParams().set('response', response.toString())}).pipe(
         tap((res) => {
           this.groups.next(res);

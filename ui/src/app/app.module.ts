@@ -70,11 +70,11 @@ import {CommonModule} from '@angular/common';
                 siteKey: environment.recaptcha_siteKey
             } as RecaptchaSettings,
         },
-        {
-            provide: HTTP_INTERCEPTORS,
-            useClass: HttpRequestInterceptor,
-            multi: true
-        },
+        // {
+        //     provide: HTTP_INTERCEPTORS,
+        //     useClass: HttpRequestInterceptor,
+        //     multi: true
+        // },
         LoadingService,
     ],
     bootstrap: [AppComponent]
