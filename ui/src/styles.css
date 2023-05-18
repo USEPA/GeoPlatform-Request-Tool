@@ -127,3 +127,8 @@ mat-table {
   height: 100%;
   overflow-y: auto;
 }
+mat-progress-bar.input-progress-bar {
+  top: 8px;
+  height: 2px;
+  margin-top: -2px;
+}

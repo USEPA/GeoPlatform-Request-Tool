@@ -3,7 +3,7 @@ import {UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {iif, Observable, Subject} from 'rxjs';
-import {map, switchMap, tap} from 'rxjs/operators';
+import {finalize, map, switchMap, tap} from 'rxjs/operators';
 import {UserConfig, UserConfigService} from '../../auth/user-config.service';
 import {environment} from "@environments/environment";
 
@@ -33,6 +33,7 @@ export class EditAccountPropsDialogComponent implements OnInit {
   responses: Observable<Response[]>;
   sponsors: Subject<Sponsor[]> = new Subject<Sponsor[]>();
   current_user: Observable<UserConfig>;
+  groupsLoading = false;
   // Form Group
   editAccountPropsForm: UntypedFormGroup = new UntypedFormGroup({
     username: new UntypedFormControl(null),
@@ -41,6 +42,7 @@ export class EditAccountPropsDialogComponent implements OnInit {
     response: new UntypedFormControl(null, [Validators.required]),
     reason: new UntypedFormControl(null, [Validators.required]),
   });
+
   customerFormError: string = null;
 
   constructor(private http: HttpClient,
@@ -48,10 +50,11 @@ export class EditAccountPropsDialogComponent implements OnInit {
               @Inject(MAT_DIALOG_DATA) public data, private userConfig: UserConfigService) {
   }
 
-  async ngOnInit() {
+  ngOnInit() {
     this.responses = this.http.get<Response[]>(`${environment.local_service_endpoint}/v1/responses/`, {
       params: new HttpParams().set('for_approver', 'true')});
     this.getSponsors();
+    this.editAccountPropsForm.controls.groups.disable();
   }
 
   submit() {
@@ -95,7 +98,8 @@ export class EditAccountPropsDialogComponent implements OnInit {
         {params: new HttpParams().set('response', response.toString())}).pipe(
         tap((res) => {
           this.groups.next(res);
-        })
+        }),
+        finalize(() => this.editAccountPropsForm.controls.groups.enable())
       ).subscribe();
     }
   }
