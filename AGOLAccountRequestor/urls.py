@@ -20,7 +20,7 @@ from django.conf import settings
 
 from accounts import views as account_views
 from django.contrib.auth import views as auth_views
-from .views import current_user
+from .views import current_user, error_test
 from .views import email_field_coordinator_request
 import debug_toolbar
 
@@ -44,6 +44,7 @@ urlpatterns = [
     path(f'{settings.URL_PREFIX}api/admin/', admin.site.urls),
     # path('api/oauth2/', include('rest_framework_social_oauth2.urls')),
     path(f'{settings.URL_PREFIX}api/v1/', include(router.urls)),
+    path(f'{settings.URL_PREFIX}api/v1/error_test/', error_test),
     path(f'{settings.URL_PREFIX}api/v1/email_field_coordinator_request/', email_field_coordinator_request),
     # path('api/rest-auth/', include('rest_auth.urls')),
     path(f'{settings.URL_PREFIX}api/oauth2/', include('social_django.urls', namespace='social_django')),

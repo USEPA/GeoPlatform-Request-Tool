@@ -67,3 +67,7 @@ def email_field_coordinator_request(request):
     except Exception as e:
         logger.error('Email Error: There was an error emailing the Field Coordinator Request.')
         return Response(False)
+
+
+def error_test(request):
+    raise Exception("this should log")
