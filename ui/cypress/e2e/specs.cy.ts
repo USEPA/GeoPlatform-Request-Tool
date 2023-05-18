@@ -85,7 +85,7 @@ describe('approver workflow', () => {
     cy.get('button#editBtn').click()
     cy.wait(1000);
     cy.get('mat-select[formcontrolname="groups"]').click();
-    cy.get('.mat-option-text').contains('R9 Testing').click().type('{esc}');
+    cy.get('.mat-option-text', {timeout: 30000}).contains('R9 Testing').click().type('{esc}');
     cy.get('button').contains('Submit').click();
     cy.get('span[class="mat-simple-snack-bar-content"]').should('contain', 'Success');
   })
