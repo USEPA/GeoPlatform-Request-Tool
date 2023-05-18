@@ -345,16 +345,16 @@ class AGOLRoleViewSet(ReadOnlyModelViewSet):
         # filter role options based on currently logged in user association
         return self.queryset.filter(Q(agol=self.request.user.agol_info.portal))
 
-class PendingNotificationViewSet(ReadOnlyModelViewSet):
-    queryset = Notification.objects.filter(sent__isnull=True)
-    serializer_class = PendingNotificationSerializer
-
-    @action(['PUT'], detail=True)
-    def mark_sent(self, request, pk=None):
-        notification = get_object_or_404(Notification, pk=pk)
-        notification.sent = now()
-        notification.save()
-        return Response('')
+# class PendingNotificationViewSet(ReadOnlyModelViewSet):
+#     queryset = Notification.objects.filter(sent__isnull=True)
+#     serializer_class = PendingNotificationSerializer
+#
+#     @action(['PUT'], detail=True)
+#     def mark_sent(self, request, pk=None):
+#         notification = get_object_or_404(Notification, pk=pk)
+#         notification.sent = now()
+#         notification.save()
+#         return Response('')
 
 class PortalsViewSet(ReadOnlyModelViewSet):
     queryset = AGOL.objects.all()

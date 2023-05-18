@@ -178,7 +178,7 @@ CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if 
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'localhost')
 
-PRECREATE_ENTERPRISE_USERS =  os.environ.get('PRECREATE_ENTERPRISE_USERS', '').split(',') if os.environ.get('PRECREATE_ENTERPRISE_USERS') else []
+PRECREATE_ENTERPRISE_USERS = os.environ.get('PRECREATE_ENTERPRISE_USERS', '').split(',') if os.environ.get('PRECREATE_ENTERPRISE_USERS') else []
 # email domains which will trigger account pre creation
 ENTERPRISE_USER_DOMAINS = os.environ.get('ENTERPRISE_USER_DOMAINS', [])
 

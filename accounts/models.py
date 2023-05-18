@@ -1,3 +1,4 @@
+from django.core.mail import send_mail
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.template.loader import get_template
@@ -612,3 +613,16 @@ class Notification(models.Model):
             raise ValueError('Must provide content or template and context')
 
         return n
+
+    def send(self):
+        results = send_mail(
+            self.subject,
+            self.content,
+            'GIS_Team@epa.gov',
+            list(set(self.to_emails)),
+            fail_silently=False,
+            html_message=self.content,
+        )
+        if results == 1:
+            self.sent = datetime.now()
+            self.save()
