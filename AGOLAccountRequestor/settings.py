@@ -203,10 +203,7 @@ LOGGING['loggers']['django'] = {
     'handlers': ['console', 'slack', 'file'],
     'level': 'INFO',
 }
-LOGGING['loggers']['R9DMT'] = {
-    'handlers': ['console', 'slack', 'file'],
-    'level': 'ERROR',
-}
+
 
 
 USE_X_FORWARDED_HOST = os.environ.get('USE_X_FORWARDED_HOST', False)
