@@ -14,7 +14,8 @@
   <span *ngIf="c.is_delegate && c.delegate_for.length === 1">
     The sponsor for which you are a delegate was automatically included as a team coordinator.
   </span>
-
+  <br/><br/>
+  This request will be for the {{c.portal}}.  If that is incorrect login with the preferred system.
 </h4>
 <form novalidate [formGroup]="fieldTeamCoordErForm">
   <!--Emergency Response Name-->

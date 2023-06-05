@@ -33,7 +33,8 @@ export class FieldCoordErRequestFormComponent implements OnInit {
     requester: new FormControl(null, Validators.required),
     authoritative_group: new FormControl(null, Validators.required),
     default_reason: new FormControl(null, Validators.required),
-    role: new FormControl(null, Validators.required)
+    role: new FormControl(null, Validators.required),
+    portal: new FormControl()
   });
   responseService: BaseService;
   roleService: BaseService;
@@ -56,7 +57,8 @@ export class FieldCoordErRequestFormComponent implements OnInit {
       tap(r => {
         this.fieldTeamCoordErForm.patchValue({
           requester: r[1].id,
-          requester_phone_number: r[1].phone_number
+          requester_phone_number: r[1].phone_number,
+          portal: r[1].portal_id
         });
         if (r[1].is_sponsor) {
           const known_coord = r[0].find(x => x.id === r[1].id);

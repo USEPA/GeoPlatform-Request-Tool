@@ -150,22 +150,19 @@ class AGOL(models.Model):
                                                                                   ('geoplatform', 'GeoPlatform')])
     portal_url = models.URLField()
     org_id = models.CharField(max_length=50, blank=True, null=True)
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    user = models.ForeignKey(User, on_delete=models.PROTECT, null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        if not self.org_id:
-            self.org_id = self.get_org_id()
-
-        if not self.pk:
-            super().save(*args, **kwargs)
-            if self.groups.count() == 0:
-                self.get_all_groups()
-
-            if self.roles.count() == 0:
-                self.get_all_roles()
-
         super().save(*args, **kwargs)
 
+        if self.user:
+            if not self.org_id:
+                self.org_id = self.get_org_id()
+                super().save(*args, **kwargs)
+            if self.groups.count() == 0:
+                self.get_all_groups()
+            if self.roles.count() == 0:
+                self.get_all_roles()
     def __str__(self):
         return self.get_portal_name_display()
 
