@@ -171,7 +171,7 @@
       "username": "gapproved_EPAEXT",
       "username_valid": false,
       "user_type": "creatorUT",
-      "role": "iBBBBBBBBBBBBBBB",
+      "role": 2,
       "auth_group": "ff6c119c-27f5-4870-b8cb-4a36253b6bb9",
       "sponsor": 1,
       "reason": "Emergency Response",
@@ -197,7 +197,7 @@
       "username": "test.user",
       "username_valid": false,
       "user_type": "creatorUT",
-      "role": "iBBBBBBBBBBBBBBB",
+      "role": 2,
       "auth_group": "ff6c119c-27f5-4870-b8cb-4a36253b6bb9",
       "sponsor": 1,
       "reason": "Emergency Response",
@@ -223,7 +223,7 @@
       "username": "samwise_gamgee",
       "username_valid": true,
       "user_type": "creatorUT",
-      "role": "iBBBBBBBBBBBBBBB",
+      "role": 2,
       "auth_group": "ff6c119c-27f5-4870-b8cb-4a36253b6bb9",
       "sponsor": 1,
       "reason": "Emergency Response",
@@ -249,7 +249,7 @@
       "username": "geosecure_approved",
       "username_valid": true,
       "user_type": "creatorUT",
-      "role": "iBBBBBBBBBBBBBBB",
+      "role": 5,
       "auth_group": "ad16a6c3-be08-4939-a23d-38d8e9f7b962",
       "sponsor": 4,
       "reason": "Long Term GIS Support",
@@ -275,7 +275,7 @@
       "username": "User.Test4_EPAEXT",
       "username_valid": true,
       "user_type": "creatorUT",
-      "role": "iBBBBBBBBBBBBBBB",
+      "role": 5,
       "auth_group": "ad16a6c3-be08-4939-a23d-38d8e9f7b962",
       "sponsor": 3,
       "reason": "Long Term GIS Support",
@@ -301,7 +301,7 @@
       "username": "ptook_EPAEXT",
       "username_valid": true,
       "user_type": "creatorUT",
-      "role": "iBBBBBBBBBBBBBBB",
+      "role": 5,
       "auth_group": "ad16a6c3-be08-4939-a23d-38d8e9f7b962",
       "sponsor": 3,
       "reason": "Long Term GIS Support",
@@ -404,7 +404,7 @@
 
   {
     "model": "accounts.agolrole",
-    "pk": "iAAAAAAAAAAAAAAA",
+    "pk": 1,
     "fields": {
       "name": "Viewer",
       "description": "Viewer",
@@ -414,7 +414,7 @@
     }
   }, {
     "model": "accounts.agolrole",
-    "pk": "iBBBBBBBBBBBBBBB",
+    "pk": 2,
     "fields": {
       "name": "Data Editor",
       "description": "Data Editor",
@@ -424,7 +424,7 @@
     }
   }, {
     "model": "accounts.agolrole",
-    "pk": "iCCCCCCCCCCCCCCC",
+    "pk": 3,
     "fields": {
       "name": "Facilitator",
       "description": "Facilitator",
@@ -434,7 +434,7 @@
     }
   }, {
     "model": "accounts.agolrole",
-    "pk": "iAAAAAAAAAAAAAAA",
+    "pk": 4,
     "fields": {
       "name": "Viewer",
       "description": "Viewer",
@@ -444,7 +444,7 @@
     }
   }, {
     "model": "accounts.agolrole",
-    "pk": "iBBBBBBBBBBBBBBB",
+    "pk": 5,
     "fields": {
       "name": "Data Editor",
       "description": "Data Editor",
@@ -454,7 +454,7 @@
     }
   }, {
     "model": "accounts.agolrole",
-    "pk": "iCCCCCCCCCCCCCCC",
+    "pk": 6,
     "fields": {
       "name": "Facilitator",
       "description": "Facilitator",
@@ -490,7 +490,7 @@
     "fields": {
       "name": "geoportal test response",
       "portal": 1,
-      "role": "iBBBBBBBBBBBBBBB",
+      "role": 2,
       "authoritative_group": "ff6c119c-27f5-4870-b8cb-4a36253b6bb9",
       "disabled": null,
       "disabled_by": null,
@@ -507,7 +507,7 @@
     "fields": {
       "name": "geoportal test response unapproved",
       "portal": 1,
-      "role": "iBBBBBBBBBBBBBBB",
+      "role": 2,
       "authoritative_group": "ff6c119c-27f5-4870-b8cb-4a36253b6bb9",
       "disabled": null,
       "disabled_by": null,
@@ -524,7 +524,7 @@
     "fields": {
       "name": "geoportal test response disabled",
       "portal": 1,
-      "role": "iBBBBBBBBBBBBBBB",
+      "role": 2,
       "authoritative_group": "ff6c119c-27f5-4870-b8cb-4a36253b6bb9",
       "disabled": "2021-12-10T17:06:40.527Z",
       "disabled_by": 1,
@@ -541,7 +541,7 @@
     "fields": {
       "name": "geosecure test response",
       "portal": 36,
-      "role": "iBBBBBBBBBBBBBBB",
+      "role": 5,
       "authoritative_group": "ad16a6c3-be08-4939-a23d-38d8e9f7b962",
       "disabled": null,
       "disabled_by": null,
@@ -558,7 +558,7 @@
     "fields": {
       "name": "geosecure test response unapproved",
       "portal": 36,
-      "role": "iBBBBBBBBBBBBBBB",
+      "role": 5,
       "authoritative_group": "ad16a6c3-be08-4939-a23d-38d8e9f7b962",
       "disabled": null,
       "disabled_by": null,
@@ -575,7 +575,7 @@
     "fields": {
       "name": "geosecure test response disabled",
       "portal": 36,
-      "role": "iBBBBBBBBBBBBBBB",
+      "role": 5,
       "authoritative_group": "ad16a6c3-be08-4939-a23d-38d8e9f7b962",
       "disabled": "2023-03-16T20:58:21.089Z",
       "disabled_by": 3,
