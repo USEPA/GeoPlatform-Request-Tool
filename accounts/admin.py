@@ -94,6 +94,7 @@ class AGOLGroupAdmin(admin.ModelAdmin):
     ordering = ['-is_auth_group', 'title']
     search_fields = ['title']
     list_display = ['title', 'agol', 'is_auth_group']
+    list_filter = ['agol']
     fields = ['title', 'agol', 'is_auth_group']
     readonly_fields = ['title', 'agol']
 

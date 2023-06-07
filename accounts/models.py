@@ -48,7 +48,7 @@ class AccountRequests(models.Model):
     username = models.CharField(max_length=200)
     username_valid = models.BooleanField(default=False)
     user_type = models.CharField(max_length=200, choices=USER_TYPE_CHOICES, default='creatorUT')
-    role = models.ForeignKey('AGOLRole', on_delete=models.DO_NOTHING, blank=True, null=True)
+    role = models.ForeignKey('AGOLRole', on_delete=models.DO_NOTHING, blank=True, null=True, related_name='account_requests')
     groups = models.ManyToManyField('AGOLGroup', blank=True, related_name='account_requests', through='GroupMembership')
     auth_group = models.ForeignKey('AGOLGroup', on_delete=models.DO_NOTHING, blank=True, null=True)
     sponsor = models.ForeignKey(User, on_delete=models.PROTECT, blank=True, null=True)
@@ -73,7 +73,7 @@ class AccountRequests(models.Model):
         Notification.create_new_notification(
             subject=f'New {self.response.portal} Account Request',
             context={
-                "REQUEST_ADDRESS": settings.HOST_ADDRESS+"/accounts/list#"+self.response.portal.portal_name,
+                "REQUEST_ADDRESS": settings.HOST_ADDRESS + "/accounts/list#" + self.response.portal.portal_name,
                 "PORTAL": self.response.portal
             },
             template="new_account_request_email.html",
@@ -127,7 +127,7 @@ class GroupMembership(models.Model):
 
 
 class AGOLRole(models.Model):
-    id = models.CharField(primary_key=True, max_length=16)
+    role_id = models.CharField(max_length=16)
     name = models.CharField(max_length=200)
     description = models.TextField()
     is_available = models.BooleanField(default=False)
@@ -139,7 +139,8 @@ class AGOLRole(models.Model):
 
     def clean(self):
         if self.system_default:
-            if (self.pk and AGOLRole.objects.filter(system_default=True, agol=self.agol).exclude(pk=self.pk).exists()) or \
+            if (self.pk and AGOLRole.objects.filter(system_default=True, agol=self.agol).exclude(
+                    pk=self.pk).exists()) or \
                     AGOLRole.objects.filter(system_default=True, agol=self.agol).exists():
                 raise ValidationError({'system_default': 'You cannot have more than one system default.'})
 
@@ -163,6 +164,7 @@ class AGOL(models.Model):
                 self.get_all_groups()
             if self.roles.count() == 0:
                 self.get_all_roles()
+
     def __str__(self):
         return self.get_portal_name_display()
 
@@ -230,9 +232,10 @@ class AGOL(models.Model):
         all_roles = self.get_list('portals/self/roles', 'roles')
         sys.stdout.write(f'\nCreating/updating roles from {self.portal_url}...\n')
         for role in all_roles:
-            AGOLRole.objects.update_or_create(id=role['id'], defaults={'name': role['name'],
-                                                                       'description': role['description'],
-                                                                       'agol': self})
+            AGOLRole.objects.update_or_create(role_id=role['id'], agol=self,
+                                              defaults={
+                                                  'name': role['name'],
+                                                  'description': role['description']})
 
     def get_group(self, group_id):
         r = requests.get(f'{self.portal_url}/sharing/rest/community/groups/{group_id}',
@@ -307,7 +310,7 @@ class AGOL(models.Model):
         response_json = response.json()
 
         if 'success' in response_json and response_json['success'] or response_json.get('status', False) == 'success':
-                # and account_request.username not in response_json['notInvited']:
+            # and account_request.username not in response_json['notInvited']:
             user_url = f'{self.portal_url}/sharing/rest/community/users/{account_request.username}'
             user_response = requests.get(user_url, params={'token': token, 'f': 'json'})
             user_response_json = user_response.json()
@@ -359,7 +362,8 @@ class AGOL(models.Model):
                     group_ids = list(x['id'] for x in user_response_json.get('groups', []))
                     for group_id in (x for x in group_ids if not AGOLGroup.objects.filter(id=x).exists()):
                         self.get_group(group_id)
-                    return False, user_response_json['id'], group_ids, not user_response_json['disabled'], datetime.utcfromtimestamp(
+                    return False, user_response_json['id'], group_ids, not user_response_json[
+                        'disabled'], datetime.utcfromtimestamp(
                         user_response_json['created'] / 1000)
 
     def add_to_group(self, user, group):
@@ -463,7 +467,7 @@ class ResponseProject(models.Model):
                                                verbose_name='Assignable Groups')
     role = models.ForeignKey('AGOLRole', on_delete=models.PROTECT, verbose_name='Role',
                              limit_choices_to={'is_available': True}, null=True, blank=True,
-                             help_text='System default will be used if left blank.')
+                             help_text='System default will be used if left blank.', related_name='responses')
     authoritative_group = models.ForeignKey('AGOLGroup', on_delete=models.PROTECT,
                                             verbose_name='Authoritative Group',
                                             limit_choices_to={'is_auth_group': True})

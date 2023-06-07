@@ -39,7 +39,7 @@ node('staging') {
                                 config = readJSON file: 'cypress.env.json'
                                 env.CYPRESS_BASE_URL=config['baseUrl']
                                 env.NO_COLOR=1
-                                bat "$props.NPM_PATH\\npm run ng run ui:cypress-run"
+                                bat "$props.NPM_PATH\\node $props.NPM_PATH\\node_modules\\@angular\\cli\\bin\\ng run ui:cypress-run"
                             }
                          } catch (e) {
                             archiveArtifacts artifacts:'cypress/videos/**/*.mp4'

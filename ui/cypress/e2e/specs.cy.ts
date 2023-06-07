@@ -46,6 +46,20 @@ describe('approver workflow', () => {
     cy.loginWithCredentials(Cypress.env('approver_username'), Cypress.env('approver_password'));
     cy.visit('/');
   })
+
+  it('should allow logged in user to submit response form', () => {
+    cy.get('button').contains('Configure New Response / Project').click();
+    cy.get('input[formcontrolname="name"]').type('Test')
+    cy.get('mat-select[formcontrolname="default_reason"]').click();
+    cy.get('mat-option').contains('Emergency Response').click();
+    cy.get('app-tag-input').type('test');
+    cy.get('mat-option').first().click();
+    cy.get('mat-select[formcontrolname="authoritative_group"]').click();
+    cy.get('mat-option').contains('Test').click();
+    cy.get('mat-dialog-content button').contains('Submit').scrollIntoView().click();
+    cy.get('span[class="mat-simple-snack-bar-content"]').should('contain', 'Request has been successfully submitted');
+  })
+
   it('should allow approver to go to approval list', () => {
     cy.get('button#userName').click();
     cy.get('button').contains('Approval List').click();
@@ -86,7 +100,7 @@ describe('approver workflow', () => {
     cy.wait(1000);
     cy.get('mat-select[formcontrolname="groups"].mat-select-disabled').should('not.exist')
     cy.get('mat-select[formcontrolname="groups"]').click();
-    cy.get('.mat-option-text').contains('R9 Testing').click().type('{esc}');
+    cy.get('.mat-option-text').contains('Test').click().type('{esc}');
     cy.get('button').contains('Submit').click();
     cy.get('span[class="mat-simple-snack-bar-content"]').should('contain', 'Success');
   })
