@@ -55,7 +55,7 @@ describe('approver workflow', () => {
     cy.get('app-tag-input').type('test');
     cy.get('mat-option').first().click();
     cy.get('mat-select[formcontrolname="authoritative_group"]').click();
-    cy.get('mat-option').contains('Test').click();
+    cy.get('mat-option').first().click();
     cy.get('mat-dialog-content button').contains('Submit').scrollIntoView().click();
     cy.get('span[class="mat-simple-snack-bar-content"]').should('contain', 'Request has been successfully submitted');
   })
