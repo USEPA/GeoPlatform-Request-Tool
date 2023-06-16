@@ -1,7 +1,6 @@
-from django.db.models import Q
+import re
 from django.utils.timezone import now
-from django.conf import settings
-from .models import AccountRequests, AGOL, GroupMembership, AGOLGroup, Notification
+from .models import AccountRequests, AGOL, GroupMembership, AGOLGroup, Notification, ResponseProject
 from uuid import UUID
 import logging
 
@@ -67,10 +66,17 @@ def update_requests_groups(account_request: AccountRequests, existing_groups: [s
 
 
 def has_outstanding_request(request_data):
-    print(request_data)
     return AccountRequests.objects.filter(email=request_data['email'],
                                           response=request_data['response'],
                                           approved__isnull=True).exists()
+
+
+def email_allowed_for_portal(request_data):
+    portal = request_data['response'].portal
+    if portal.allow_external_accounts:
+        return True
+    email_domain = request_data['email'].split('@')[1]
+    return email_domain in portal.enterprise_precreate_domains_list
 
 
 def enable_account(account_request, password):
@@ -88,8 +94,7 @@ def enable_account(account_request, password):
     template = "enabled_account_email_invited.html"
 
     # if user has epa email address and enterprise authentication is enabled, account needs to be pre-created
-    if str(account_request.email.split('@')[1]).lower() in settings.ENTERPRISE_USER_DOMAINS \
-            and settings.PRECREATE_ENTERPRISE_USERS:
+    if account_request.is_enterprise_account():
         template = "enabled_account_email_precreated.html"
 
     # not an enterprise account request and password has been manually set
@@ -110,3 +115,11 @@ def enable_account(account_request, password):
                                          to=[account_request.email],
                                          content_object=account_request)
     return True
+
+
+def get_response_from_request(request):
+    referrer = request.META.get('HTTP_REFERER')
+    host = request.META.get('HTTP_HOST')
+    r = re.search(r'http(s)?://{0}(.*)/gi'.format(host), referrer)
+    object_id = r.group(2)
+    return ResponseProject.objects.get(id=object_id)

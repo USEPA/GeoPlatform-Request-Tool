@@ -60,9 +60,28 @@ def mock_get_user(*args, **kwargs):
 
 
 def mock_create_user(url, data, headers, *args, **kwargs):
-    json_data = parse_qs(data)
-    email_address = [x['email'] for x in json.loads(json_data['invitationList'][0])['invitations']]
-    response = {"success": email_address, "notInvited": []}
+    if url.endswith('portaladmin/security/users/createUser'):
+        response = {"status": "success"}
+    else:
+        json_data = parse_qs(data)
+        email_address = [x['email'] for x in json.loads(json_data['invitationList'][0])['invitations']]
+        response = {"success": email_address, "notInvited": []}
+
+    class MockRequest:
+        body = 'nothing'
+
+    class MockResponse:
+        text = ''
+        request = MockRequest()
+
+        def json(self):
+            return response
+
+    return MockResponse()
+
+
+def mock_precreate_user(url, data, headers, *args, **kwargs):
+    response = {"status": "success"}
 
     class MockRequest:
         body = 'nothing'
@@ -78,9 +97,12 @@ def mock_create_user(url, data, headers, *args, **kwargs):
 
 
 def mock_fail_create_user(url, data, headers, *args, **kwargs):
-    json_data = parse_qs(data)
-    email_address = [x['email'] for x in json.loads(json_data['invitationList'][0])['invitations']]
-    response = {"account_request": None, "notInvited": email_address}
+    if url.endswith('portaladmin/security/users/createUser'):
+        response = {"status": "failed"}
+    else:
+        json_data = parse_qs(data)
+        email_address = [x['email'] for x in json.loads(json_data['invitationList'][0])['invitations']]
+        response = {"account_request": None, "notInvited": email_address}
 
     class MockRequest:
         body = 'nothing'
@@ -146,10 +168,16 @@ class TestAccounts(TestCase):
     def test_account_rejection(self, mock_post, mock_get):
         requests = AccountRequests.objects.all()
         for account in requests:
-            result = self.agol.create_user_account(account, 'password')
-            self.assertFalse(result)
-            exists = AccountRequests.objects.filter(agol_id='ffffffff-ffff-ffff-ffff-ffffffffffff').exists()
-            self.assertFalse(exists)
+            if not account.is_enterprise_account() and not account.response.portal.allow_external_accounts:
+                try:
+                    self.agol.create_user_account(account, 'password')
+                except Exception as e:
+                    self.assertEqual(str(e), 'Portal does not allow external accounts and request email does not have a preapproved domain')
+            else:
+                result = self.agol.create_user_account(account, 'password')
+                self.assertFalse(result)
+                exists = AccountRequests.objects.filter(agol_id='ffffffff-ffff-ffff-ffff-ffffffffffff').exists()
+                self.assertFalse(exists)
 
     @patch('accounts.models.requests.post', side_effect=mock_create_user)
     @patch('accounts.models.requests.get', side_effect=mock_get_user)
@@ -157,7 +185,26 @@ class TestAccounts(TestCase):
         # only test with non existing accounts, there should be account requests which already created
         requests = AccountRequests.objects.filter(agol_id=None)
         for account in requests:
-            self.assertTrue(self.agol.create_user_account(account, 'password'))
+            if not account.is_enterprise_account() and account.response.portal.allow_external_accounts:
+                self.assertTrue(self.agol.create_user_account(account, 'password'))
+        # Any non-existing account requests should have been created with all fs GUID
+        self.assertTrue(AccountRequests.objects.filter(agol_id='ffffffff-ffff-ffff-ffff-ffffffffffff').exists())
+
+        # This is our already approved account GUID, which should have already been created
+        self.assertTrue(AccountRequests.objects.filter(agol_id='ed5b2bae-7e53-4efe-a8fa-15e5dc230d79').exists())
+
+    @patch('accounts.models.requests.post', side_effect=mock_precreate_user)
+    @patch('accounts.models.requests.get', side_effect=mock_get_user)
+    def test_create_enterprise_accounts(self, mock_post, mock_get):
+        # only test with non existing accounts, there should be account requests which already created
+        requests = AccountRequests.objects.filter(agol_id=None)
+        for account in requests:
+            if account.is_enterprise_account():
+                try:
+                    self.agol.create_user_account(account, 'password')
+                except Exception as e:
+                    self.assertEqual(str(e),
+                                     'Portal does not allow external accounts and request email does not have a preapproved domain')
 
         # Any non-existing account requests should have been created with all fs GUID
         self.assertTrue(AccountRequests.objects.filter(agol_id='ffffffff-ffff-ffff-ffff-ffffffffffff').exists())
@@ -171,7 +218,8 @@ class TestAccounts(TestCase):
         # only test with non existing accounts, there should be account requests which already created
         requests = AccountRequests.objects.filter(agol_id=None)
         for account in requests:
-            self.assertTrue(self.agol.create_user_account(account))
+            if account.is_enterprise_account() or (not account.is_enterprise_account() and account.response.portal.allow_external_accounts):
+                self.assertTrue(self.agol.create_user_account(account))
 
         # Any non-existing account requests should have been created with all fs GUID
         self.assertTrue(AccountRequests.objects.filter(agol_id='ffffffff-ffff-ffff-ffff-ffffffffffff').exists())

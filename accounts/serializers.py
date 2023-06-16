@@ -2,7 +2,7 @@ from rest_framework.serializers import ModelSerializer, CharField, PrimaryKeyRel
     JSONField, BooleanField
 from .models import *
 from drf_recaptcha.fields import ReCaptchaV2Field
-from .func import has_outstanding_request
+from .func import has_outstanding_request, email_allowed_for_portal
 
 
 class AccountRequestSerializer(ModelSerializer):
@@ -13,6 +13,9 @@ class AccountRequestSerializer(ModelSerializer):
         # check for outstanding requests and reject if so
         if has_outstanding_request(attrs):
             raise ValidationError({'details': 'Outstanding request found.'})
+
+        if not email_allowed_for_portal(attrs):
+            raise ValidationError({'details': 'Request can not be accepted at this time.'})
 
         return super().validate(attrs)
 

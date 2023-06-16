@@ -69,6 +69,9 @@ class AccountRequests(models.Model):
     def sponsor_notified(self):
         return self.notifications.count() > 0
 
+    def is_enterprise_account(self):
+        return str(self.email.split('@')[1]).lower() in self.response.portal.enterprise_precreate_domains_list
+
     def create_new_notification(self):
         Notification.create_new_notification(
             subject=f'New {self.response.portal} Account Request',
@@ -152,6 +155,16 @@ class AGOL(models.Model):
     portal_url = models.URLField()
     org_id = models.CharField(max_length=50, blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.PROTECT, null=True, blank=True)
+    allow_external_accounts = models.BooleanField(default=False, help_text='Allow external (non-enterprise) accounts to be created.')
+    enterprise_precreate_domains = models.TextField(null=True, blank=True, verbose_name='Email domains for enterprise accounts',
+                                                    help_text='Separate email domains with comma (e.g. gmail.com,hotmail.com). Value required if external account creation is not allowed')
+
+    @property
+    def enterprise_precreate_domains_list(self):
+        if self.enterprise_precreate_domains:
+            return self.enterprise_precreate_domains.split(',')
+        return []
+
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -274,9 +287,7 @@ class AGOL(models.Model):
         user_request_data = self.generate_user_request_data(account_request, initial_password)
 
         # if user has enterprise email address and is using enterprise authentication, account needs to be pre-created
-        if account_request.email.split('@')[1].lower() in settings.ENTERPRISE_USER_DOMAINS \
-                and settings.PRECREATE_ENTERPRISE_USERS:
-
+        if account_request.is_enterprise_account():
             url = f'{self.portal_url}/portaladmin/security/users/createUser'
             user_request_data.update({
                 "provider": "enterprise",
@@ -286,7 +297,7 @@ class AGOL(models.Model):
             })
             data = user_request_data
 
-        else:  # Invite user
+        elif account_request.response.portal.allow_external_accounts:  # Invite user
             url = f'{self.portal_url}/sharing/rest/portals/self/invite/'
 
             # goofy way of encoding data since requests library does not seem to appreciate the nested structure.
@@ -302,6 +313,10 @@ class AGOL(models.Model):
                     "account_request": account_request,
                     "PORTAL": self
                 })
+
+        else:
+            # should not get here
+            raise Exception('Portal does not allow external accounts and request email does not have a preapproved domain')
 
         # pre-encode to ensure nested data isn't lost
         data = urlencode(data)
@@ -322,8 +337,7 @@ class AGOL(models.Model):
 
             return True
         else:
-            # something else went wrong TODO log the error
-            print(response_json)
+            logger.error(response_json)
             return False
 
     def check_username(self, username):

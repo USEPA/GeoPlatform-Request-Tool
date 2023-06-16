@@ -13,7 +13,11 @@ from django.utils.timezone import now
 from rangefilter.filters import DateRangeFilterBuilder
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
 from django.utils.translation import gettext_lazy as _
+import re
 
+from .func import get_response_from_request
+
+email_domain_regex = re.compile(r"(^[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)")
 
 from .models import *
 
@@ -27,10 +31,29 @@ from .models import *
 
 # User.get_short_name = _get_short_name_
 
+class AGOLAdminForm(ModelForm):
+    def clean_enterprise_precreate_domains(self):
+        valid_emails = []
+        for email in self.cleaned_data['enterprise_precreate_domains'].split(','):
+            stripped_email = email.strip()
+            if email_domain_regex.fullmatch(stripped_email):
+                valid_emails.append(stripped_email)
+
+        if not self.cleaned_data['allow_external_accounts'] and len(valid_emails) == 0:
+            raise ValidationError("Email domain required if external account creation is disabled.")
+
+        return ",".join(valid_emails)
+
+    class Meta:
+        model = AGOL
+        fields = ['portal_name', 'portal_url', 'user', 'allow_external_accounts',
+                  'enterprise_precreate_domains']
+
+
 @admin.register(AGOL)
 class AGOLAdmin(admin.ModelAdmin):
-    fields = ['portal_name', 'portal_url', 'user']
     list_display = ['portal_name', 'portal_url']
+    form = AGOLAdminForm
 
 
 admin.site.unregister(User)
@@ -109,6 +132,13 @@ class AGOLGroupAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def get_search_results(self, request, queryset, search_term):
+        referrer = request.META.get('HTTP_REFERER', '')
+        if 'responseproject' in referrer:
+            r = get_response_from_request(request)
+            queryset = queryset.filter(agol=r.portal)
+        return super().get_search_results(request, queryset, search_term)
 
 
 class GroupAdminInline(admin.TabularInline):

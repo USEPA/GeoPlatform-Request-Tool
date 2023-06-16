@@ -19,8 +19,10 @@ from .func import create_account, add_account_to_groups, update_requests_groups,
 from natsort import natsorted
 
 
-def format_username(data):
-    if data['email'].split('@')[1].lower() in settings.ENTERPRISE_USER_DOMAINS:
+def format_username(data, enterprise_domains=None):
+    if enterprise_domains is None:
+        enterprise_domains = []
+    if data['email'].split('@')[1].lower() in enterprise_domains:
         username = data['email']
     else:
         username_extension = 'EPAEXT' if '@epa.gov' not in data['email'] else 'EPA'
@@ -36,7 +38,7 @@ class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
 
     def perform_create(self, serializer):
         agol = ResponseProject.objects.get(id=self.request.data['response']).portal
-        username = format_username(self.request.data)
+        username = format_username(self.request.data, agol.enterprise_precreate_domains_list)
         username_valid, agol_id, groups, existing_account_enabled, created = agol.check_username(username)
         possible_accounts = agol.find_accounts_by_email(self.request.data['email'])
         is_existing_account = True if agol_id is not None else False
