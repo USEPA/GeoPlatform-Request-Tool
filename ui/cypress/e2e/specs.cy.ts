@@ -38,6 +38,24 @@ describe('Anonymous submission', () => {
     cy.get('button').contains('Configure New Response / Project').click();
     cy.url().should('contain', '/login');
   })
+
+  it('should not allow requests if not in approve domain list for enterprise', () => {
+    cy.get('input[formcontrolname="first_name"]').type('Test')
+    cy.get('input[formcontrolname="last_name"]').type('User')
+    cy.get('input[formcontrolname="email"]').type('notanemail')
+    cy.get('input[formcontrolname="organization"]').type('some org')
+
+    cy.get('mat-error').first().should('contain', 'Not a valid email')
+
+    cy.get('input[formcontrolname="email"]').type('@whoknows.gov')
+    cy.get('mat-select[formcontrolname="response"]').click();
+    cy.get('mat-option', {timeout: 30000}).contains('Geosecure test').click();
+    cy.solveGoogleReCAPTCHA();
+
+    cy.get('button').contains('Submit').click();
+    cy.get('span[class="mat-simple-snack-bar-content"]', {timeout: 30000}).should('contain', 'Request can not be accepted at this time.')
+
+  })
 })
 
 
