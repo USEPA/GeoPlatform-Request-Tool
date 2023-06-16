@@ -121,5 +121,7 @@ def get_response_from_request(request):
     referrer = request.META.get('HTTP_REFERER')
     host = request.META.get('HTTP_HOST')
     r = re.search(r'http(s)?://{0}(.*)/gi'.format(host), referrer)
-    object_id = r.group(2)
-    return ResponseProject.objects.get(id=object_id)
+    if r:
+        object_id = r.group(2)
+        return ResponseProject.objects.get(id=object_id)
+    return None

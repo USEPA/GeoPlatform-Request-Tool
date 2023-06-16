@@ -68,6 +68,9 @@ class ResponseProjectSerializer(ModelSerializer):
 
 
 class FullResponseProjectSerializer(ModelSerializer):
+    authoritative_group = PrimaryKeyRelatedField(required=True, queryset=AGOLGroup.objects.filter(is_auth_group=True))
+    requester = PrimaryKeyRelatedField(required=True, queryset=User.objects.all())
+
     class Meta:
         model = ResponseProject
         fields = ['id', 'users', 'name', 'portal', 'assignable_groups', 'authoritative_group', 'default_reason', 'role', 'requester']

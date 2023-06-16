@@ -137,7 +137,8 @@ class AGOLGroupAdmin(admin.ModelAdmin):
         referrer = request.META.get('HTTP_REFERER', '')
         if 'responseproject' in referrer:
             r = get_response_from_request(request)
-            queryset = queryset.filter(agol=r.portal)
+            if r:
+                queryset = queryset.filter(agol=r.portal)
         return super().get_search_results(request, queryset, search_term)
 
 
@@ -291,7 +292,10 @@ class AccountRequestsInline(admin.TabularInline):
 class ResponseProjectForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['users'].required = True
+        if kwargs.get('instance', False):
+            self.fields['users'].required = True
+            self.fields['requester'].required = True
+            self.fields['authoritative_group'].required = True
 
     class Meta:
         model = ResponseProject
@@ -318,8 +322,10 @@ class ResponseProjectAdmin(admin.ModelAdmin):
         return queryset.filter(portal=request.user.agol_info.portal_id)
 
     def get_fields(self, request, obj=None):
-        if request.user.is_superuser:
+        if obj and request.user.is_superuser:
             return ['portal'] + self.fields
+        if obj is None:
+            return ['portal', 'name']
         return self.fields
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -422,6 +428,12 @@ class ResponseProjectAdmin(admin.ModelAdmin):
     #         field = [f for f in obj._meta.fields if f.name == 'is_disabled'][0]
     #         field.help_text = 'Can not disable response/project while there are pending account requests.'
     #     return readonly_fields
+
+    def get_inlines(self, request, obj):
+        if not obj:
+            return []
+        return self.inlines
+
 
 @admin.register(Notification)
 class PendingNotificationAdmin(admin.ModelAdmin):

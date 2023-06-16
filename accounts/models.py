@@ -483,7 +483,7 @@ class ResponseProject(models.Model):
                              limit_choices_to={'is_available': True}, null=True, blank=True,
                              help_text='System default will be used if left blank.', related_name='responses')
     authoritative_group = models.ForeignKey('AGOLGroup', on_delete=models.PROTECT,
-                                            verbose_name='Authoritative Group',
+                                            verbose_name='Authoritative Group', blank=True, null=True,
                                             limit_choices_to={'is_auth_group': True})
     disabled = models.DateTimeField(null=True, blank=True)
     disabled_by = models.ForeignKey(User, models.PROTECT, 'disabled_responses', null=True, blank=True)
@@ -491,7 +491,7 @@ class ResponseProject(models.Model):
                                       verbose_name='Default Reason / Affiliation')
     approved = models.DateTimeField(null=True, blank=True)
     approved_by = models.ForeignKey(User, models.PROTECT, 'approved_responses', null=True, blank=True)
-    requester = models.ForeignKey(User, models.PROTECT, 'requested_responses')
+    requester = models.ForeignKey(User, models.PROTECT, 'requested_responses', null=True, blank=True)
     notifications = GenericRelation('Notification')
 
     def __str__(self):
