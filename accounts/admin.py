@@ -329,15 +329,15 @@ class ResponseProjectAdmin(admin.ModelAdmin):
         return self.fields
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if not request.user.is_superuser:
-            if db_field.name == "requester":
-                    kwargs["queryset"] = User.objects.filter(agol_info__portal_id=request.user.agol_info.portal_id)
+        response_id = request.resolver_match.kwargs.get('object_id', None)
+        if db_field.name == "requester":
+            kwargs["queryset"] = User.objects.filter(agol_info__portal__responses=response_id)
 
-            if db_field.name == "authoritative_group":
-                kwargs["queryset"] = AGOLGroup.objects.filter(agol_id=request.user.agol_info.portal_id)
+        if db_field.name == "authoritative_group":
+            kwargs["queryset"] = AGOLGroup.objects.filter(agol__responses=response_id, is_auth_group=True)
 
-            if db_field.name == "role":
-                kwargs["queryset"] = AGOLRole.objects.filter(agol_id=request.user.agol_info.portal_id)
+        if db_field.name == "role":
+            kwargs["queryset"] = AGOLRole.objects.filter(agol__responses=response_id, is_available=True)
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
