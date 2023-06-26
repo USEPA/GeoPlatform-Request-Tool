@@ -330,6 +330,7 @@ class AGOL(models.Model):
             user_response = requests.get(user_url, params={'token': token, 'f': 'json'})
             user_response_json = user_response.json()
             if 'error' in user_response_json:
+                logger.error(response_json)
                 return False
             else:
                 account_request.agol_id = user_response_json['id']
