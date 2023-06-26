@@ -4,7 +4,7 @@ from .models import AccountRequests, AGOL, GroupMembership, AGOLGroup, Notificat
 from uuid import UUID
 import logging
 
-logger = logging.getLogger('AGOLAccountRequestor')
+logger = logging.getLogger(__name__)
 
 
 def create_account(account_request, password: str = None):

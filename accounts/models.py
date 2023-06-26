@@ -19,7 +19,7 @@ import json
 
 import logging
 
-logger = logging.getLogger('AGOLAccountRequestor')
+logger = logging.getLogger(__name__)
 
 REASON_CHOICES = (('Emergency Response', 'Emergency Response'),
                   ('Other Federal Agency', 'Other Federal Agency'),
