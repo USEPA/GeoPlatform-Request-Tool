@@ -266,7 +266,7 @@ class AGOL(models.Model):
             "firstname": account_request.first_name,
             "lastname": account_request.last_name,
             "username": account_request.username,
-            "role": account_request.role.id,
+            "role": account_request.role.role_id,
             "userLicenseType": account_request.user_type,
             "fullname": f"{account_request.first_name} {account_request.last_name}",
             "userType": "creatorUT",
@@ -293,7 +293,7 @@ class AGOL(models.Model):
                 "provider": "enterprise",
                 "userLicenseTypeId": "creatorUT",
                 "f": "json",
-                "token": token
+                "token": token,
             })
             data = user_request_data
 
