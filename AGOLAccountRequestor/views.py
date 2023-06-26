@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from django.conf import settings
 from django.views.decorators.csrf import ensure_csrf_cookie
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('django')
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

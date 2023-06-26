@@ -4,8 +4,7 @@ from .models import AccountRequests, AGOL, GroupMembership, AGOLGroup, Notificat
 from uuid import UUID
 import logging
 
-logger = logging.getLogger(__name__)
-
+logger = logging.getLogger('django')
 
 def create_account(account_request, password: str = None):
     agol = account_request.response.portal
