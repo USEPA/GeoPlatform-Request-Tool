@@ -183,7 +183,7 @@ class ResponseProjectAdmin(admin.ModelAdmin):
               'disabled', 'disabled_by', 'disable_users_link']
     readonly_fields = ['approved', 'approved_by', 'disabled', 'disabled_by', 'disable_users_link']
     autocomplete_fields = ['users', 'assignable_groups']
-    inlines = [AccountRequestsInline, PendingNotificationInline]
+    inlines = [PendingNotificationInline]
     list_filter = ['disabled', 'approved']
     form = ResponseProjectForm
 
