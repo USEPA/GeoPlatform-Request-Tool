@@ -477,7 +477,7 @@ class ResponseProject(models.Model):
     users = models.ManyToManyField(User, related_name='response', verbose_name='Sponsors',
                                    limit_choices_to={'agol_info__sponsor': True}, blank=True)
     name = models.CharField('Name', max_length=500)
-    portal = models.ForeignKey(AGOL, models.PROTECT, related_name='responses')
+    portal = models.ForeignKey(AGOL, models.PROTECT, related_name='responses', verbose_name='Portal/AGOL')
     assignable_groups = models.ManyToManyField('AGOLGroup', related_name='response',
                                                verbose_name='Assignable Groups')
     role = models.ForeignKey('AGOLRole', on_delete=models.PROTECT, verbose_name='Role',

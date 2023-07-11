@@ -308,7 +308,7 @@ class ResponseProjectAdmin(admin.ModelAdmin):
     search_fields = ['name']
     ordering = ['name']
     fields = ['name', 'requester', 'users', 'assignable_groups', 'role', 'authoritative_group', 'default_reason',
-              'approved', 'approved_by', 'disabled', 'disabled_by', 'disable_users_link']
+              'approved', 'approved_by', 'disabled', 'disabled_by', 'disable_users_link', 'portal']
     readonly_fields = ['approved', 'approved_by', 'disabled', 'disabled_by', 'disable_users_link']
     autocomplete_fields = ['users', 'assignable_groups']
     inlines = [AccountRequestsInline, PendingNotificationInline]
@@ -325,8 +325,13 @@ class ResponseProjectAdmin(admin.ModelAdmin):
         if obj and request.user.is_superuser:
             return ['portal'] + self.fields
         if obj is None:
-            return ['portal', 'name']
+            return ['name']
         return self.fields
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj and not request.user.is_superuser:
+            return self.readonly_fields + ['portal']
+        return self.readonly_fields
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         response_id = request.resolver_match.kwargs.get('object_id', None)
