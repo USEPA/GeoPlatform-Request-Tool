@@ -127,13 +127,17 @@ class AccountViewSet(ModelViewSet):
 
         password = request.data.get('password', None)
 
+
         # create accounts that don't exist
-        create_success = create_account(account, password)
-        if not create_success:
-            return Response({
-                'id': account.pk,
-                'error': f"Error creating {account.username} at {account.response.portal.portal_name}."
-            }, status=500)
+        if account.agol_id is None:
+            create_success = create_account(account, password)
+            if not create_success:
+                return Response({
+                    'id': account.pk,
+                    'error': f"Error creating {account.username} at {account.response.portal.portal_name}."
+                }, status=500)
+        else:
+            create_success = True # fake it for existing accounts
 
         # re-enabled disabled accounts
         enabled_success = enable_account(account, password)
@@ -152,11 +156,13 @@ class AccountViewSet(ModelViewSet):
                     'warning': f"Warning, {account.username} created but groups not added at {account.response.portal.portal_name}"
                 }, status=200)
         else:
-            #no groups to add
+            # no groups to add
             group_success = True
 
         #success = [x.pk for x in account_requests if x.pk in create_success and x.pk in group_success]
         if create_success and enabled_success and group_success:
+            account.created = now() # mark created once created or enabled and added to groups
+            account.save()
             return Response({
                 'id': account.pk,
                 'success': f"Successfully approved {account.username} at {account.response.portal.portal_name}"

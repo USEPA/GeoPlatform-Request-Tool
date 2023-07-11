@@ -15,7 +15,6 @@ def create_account(account_request, password: str = None):
         if agol_id:
             account_request.agol_id = agol_id
             account_request.existing_account_enabled = existing_account_enabled
-            account_request.created=created
             account_request.save()
 
             # account already exists since we already grabbed their user id from agol
@@ -23,9 +22,6 @@ def create_account(account_request, password: str = None):
 
     # invite user since they don't exist yet
     if agol.create_user_account(account_request, password):
-        # account was created successfully
-        account_request.created=now()
-        account_request.save()
         return True
 
     # account creation failed, return false
