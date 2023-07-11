@@ -322,8 +322,6 @@ class ResponseProjectAdmin(admin.ModelAdmin):
         return queryset.filter(portal=request.user.agol_info.portal_id)
 
     def get_fields(self, request, obj=None):
-        if obj and request.user.is_superuser:
-            return ['portal'] + self.fields
         if obj is None:
             return ['name']
         return self.fields
