@@ -43,6 +43,7 @@ export interface AccountProps {
   created: boolean;
   isChecked: boolean;
   needsEditing: boolean;
+  is_existing_account: boolean;
 }
 
 export interface Accounts {
@@ -140,7 +141,8 @@ export class ApprovalListComponent implements OnInit {
         approved: account.approved,
         created: account.created,
         isChecked: false,
-        needsEditing: null
+        needsEditing: null,
+        is_existing_account: account.is_existing_account
       };
       this.accountsListProps[account.id] = acctProps;
       this.setNeedsEditing(account);
@@ -271,8 +273,9 @@ export class ApprovalListComponent implements OnInit {
   }
 
   openApproveOptions() {
+    const new_account_request = this.checkForNewAccounts();
     if(this.userConfig.portal.toLowerCase() == 'geoplatform') {
-      this.dialog.open(ChooseCreationMethodComponent).afterClosed().pipe(
+      this.dialog.open(ChooseCreationMethodComponent, {data: {existing_only: !new_account_request}}).afterClosed().pipe(
         filter(x => x),
         switchMap(choice => {
           if (choice === 'password') {
@@ -428,4 +431,9 @@ export class ApprovalListComponent implements OnInit {
     this.accounts.getPage(e);
     this.clearAllSelected();
   }
+
+  checkForNewAccounts() {
+    return this.selectedAccountIds.find(id => !this.accountsListProps[id].is_existing_account) !== undefined;
+  }
+
 }
