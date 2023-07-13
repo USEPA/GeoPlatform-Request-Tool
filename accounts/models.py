@@ -6,6 +6,7 @@ from django.template.loader import render_to_string
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
+from django.urls import reverse
 
 import sys
 import requests
@@ -83,6 +84,10 @@ class AccountRequests(models.Model):
             content_object=self,
             to=self.response.get_email_recipients()
         )
+
+    def disable_account(self):
+        if not self.is_enterprise_account() and not self.is_existing_account:
+            self.response.portal.disable_user_account(self.username)
 
     def save(self, *args, **kwargs):
         # this resets role and auth_group if the response changes
@@ -341,6 +346,14 @@ class AGOL(models.Model):
             logger.error(response_json)
             return False
 
+    def disable_user_account(self, username):
+        url = f"{self.portal_url}/sharing/rest/community/users/{username}/disable"
+        token = self.get_token()
+        r = requests.post(url, data={'token': token, 'f': 'json'})
+        r_json = r.json()
+        if 'error' in r_json:
+            raise Exception(r_json)
+
     def check_username(self, username):
         token = self.get_token()
         url = f'{self.portal_url}/sharing/rest/community/checkUsernames'
@@ -504,16 +517,19 @@ class ResponseProject(models.Model):
 
     @property
     def disable_users_link(self):
-        # define link to relevant user accounts using AGOL/portal of response/project being modified
-        agol = self.portal
-        url = f'{agol.portal_url}/home/organization.html?'
-        query_params = {'showFilters': 'false', 'view': 'table', 'sortOrder': 'asc', 'sortField': 'fullname'}
-        # get account request AGOL IDs to define in link
-        agol_ids = list(
-            str(acct.agol_id).replace('-', '') for acct in self.requests.filter(agol_id__isnull=False,
-                                                                                is_existing_account=False))
-        agol_ids_param = '&searchTerm=' + '%20OR%20'.join(agol_ids)
-        return f'{url}{urlencode(query_params)}{agol_ids_param}#members'
+        # # define link to relevant user accounts using AGOL/portal of response/project being modified
+        # agol = self.portal
+        # url = f'{agol.portal_url}/home/organization.html?'
+        # query_params = {'showFilters': 'false', 'view': 'table', 'sortOrder': 'asc', 'sortField': 'fullname'}
+        # # get account request AGOL IDs to define in link
+        # agol_ids = list(
+        #     str(acct.agol_id).replace('-', '') for acct in self.requests.filter(agol_id__isnull=False,
+        #                                                                         is_existing_account=False))
+        # agol_ids_param = '&searchTerm=' + '%20OR%20'.join(agol_ids)
+        # return f'{url}{urlencode(query_params)}{agol_ids_param}#members'
+        # above links to agol/portal but with longer lists this fails b/c the url is too long
+        url = f"{reverse('admin:accounts_accountrequests_changelist')}?response__id__exact={self.pk}"
+        return url
 
     def can_be_disabled(self):
         return not self.requests.filter(approved__isnull=True).exists()

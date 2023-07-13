@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.contenttypes.admin import GenericTabularInline
 from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm
@@ -14,13 +14,14 @@ from rangefilter.filters import DateRangeFilterBuilder
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
 from django.utils.translation import gettext_lazy as _
 import re
-
+import logging
 from .func import get_response_from_request
 
 email_domain_regex = re.compile(r"(^[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)")
 
 from .models import *
 
+logger = logging.getLogger('django')
 
 # hack to make full name show up in autocomplete b/c nothing else worked
 # User.__str__ = lambda x: f"{x.first_name} {x.last_name} ({x.agol_info.portal.portal_name if hasattr(x, 'agol_info') and x.agol_info.portal is not None else ''})"
@@ -226,6 +227,19 @@ class RequestAdmin(admin.ModelAdmin):
     readonly_fields = ['possible_existing_account', 'username_valid', 'sponsor_notified', 'approved', 'created',
                        'is_existing_account', 'existing_account_enabled', 'approved_by']
     inlines = [GroupAdminInline, PendingNotificationInline]
+    actions = ['disable_account_action']
+
+    @admin.action(description="Disable selected accounts")
+    def disable_account_action(modeladmin, request, queryset):
+        if not request.user.has_perm('accounts.change_accountrequests'):
+            raise PermissionError('You do not have permission to modify accounts')
+        try:
+            for a in queryset:
+                a.disable_account()
+            messages.success(request, "If selected accounts were non-enterprise and new it has been disabled")
+        except Exception as e:
+            messages.error(request, "Error occurred when attempting to disable accounts.")
+            logger.error('Error disabling accounts', e)
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if not request.user.is_superuser:

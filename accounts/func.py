@@ -6,6 +6,7 @@ import logging
 
 logger = logging.getLogger('django')
 
+
 def create_account(account_request, password: str = None):
     agol = account_request.response.portal
 
@@ -120,3 +121,5 @@ def get_response_from_request(request):
         object_id = r.group(2)
         return ResponseProject.objects.get(id=object_id)
     return None
+
+
