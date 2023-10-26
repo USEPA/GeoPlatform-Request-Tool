@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {LoginService} from '../auth/login.service';
-import {MatDialog} from '@angular/material/dialog';
+import {MatLegacyDialog as MatDialog} from '@angular/material/legacy-dialog';
 import {ResponseProjectRequestDialogComponent} from '../dialogs/response-project-request-dialog/response-project-request-dialog.component';
 import {Observable, take} from 'rxjs';
 import {filter, map, tap} from 'rxjs/operators';

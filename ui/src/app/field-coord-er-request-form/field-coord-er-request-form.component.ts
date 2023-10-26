@@ -2,7 +2,7 @@ import {Component, EventEmitter, OnInit, Output} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {BehaviorSubject, combineLatest, forkJoin, Observable, of} from 'rxjs';
 import {HttpClient, HttpParams} from '@angular/common/http';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-bar';
 import {catchError, finalize, map, switchMap, tap} from 'rxjs/operators';
 
 import {BaseService, Choice, Response} from '@services/base.service';
