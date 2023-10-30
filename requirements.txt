@@ -17,3 +17,4 @@ psycopg2-binary>2.8.4,<2.8.99
 python-dotenv
 django-admin-list-filter-dropdown
 django-admin-rangefilter
+django-autocomplete-light

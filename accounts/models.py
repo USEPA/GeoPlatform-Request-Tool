@@ -126,6 +126,10 @@ class AGOLGroup(models.Model):
     def __str__(self):
         return self.title
 
+    @property
+    def name(self):
+        return self.title
+
 
 class GroupMembership(models.Model):
     id = models.AutoField(primary_key=True)
@@ -141,6 +145,8 @@ class AGOLRole(models.Model):
     is_available = models.BooleanField(default=False)
     agol = models.ForeignKey('AGOL', on_delete=models.CASCADE, related_name='roles')
     system_default = models.BooleanField(default=False)
+    auth_groups = models.ManyToManyField(AGOLGroup, verbose_name='Allowed Authoritative Groups',
+                                         related_name='roles', limit_choices_to={'is_auth_group': True})
 
     def __str__(self):
         return self.name
@@ -534,6 +540,11 @@ class ResponseProject(models.Model):
     def can_be_disabled(self):
         return not self.requests.filter(approved__isnull=True).exists()
 
+    def clean(self):
+        if not self.role.auth_groups.filter(id=self.authoritative_group_id).exists():
+            raise ValidationError({"authoritative_group": "The Authoritative Group must be available under the selected Role. "
+                                  "Check the Role's allowed Authoritative Groups."})
+
     def save(self, *args, **kwargs):
         if self.role is None:
             self.role = self.portal.roles.get(system_default=True)
@@ -602,6 +613,7 @@ class ResponseProject(models.Model):
             logger.error(
                 "Email Error: There was an error emailing the disabled Response Project's assigned sponsors and their delegates.")
             raise e
+
 
     class Meta:
         verbose_name_plural = 'Responses/Projects'

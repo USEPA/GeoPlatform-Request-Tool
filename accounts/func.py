@@ -1,6 +1,5 @@
-import re
-from django.utils.timezone import now
-from .models import AccountRequests, AGOL, GroupMembership, AGOLGroup, Notification, ResponseProject
+from django.urls import resolve
+from .models import AccountRequests, AGOL, GroupMembership, AGOLGroup, Notification, ResponseProject, AGOLRole
 from uuid import UUID
 import logging
 
@@ -113,13 +112,20 @@ def enable_account(account_request, password):
     return True
 
 
-def get_response_from_request(request):
+def get_object_id_from_request(request):
     referrer = request.META.get('HTTP_REFERER')
     host = request.META.get('HTTP_HOST')
-    r = re.search(r'http(s)?://{0}(.*)/gi'.format(host), referrer)
-    if r:
-        object_id = r.group(2)
-        return ResponseProject.objects.get(id=object_id)
-    return None
+    path = referrer.split(host)[1]
+    r = resolve(path)
+    return r.kwargs.get('object_id', None)
 
+
+def get_response_from_request(request):
+    object_id = get_object_id_from_request(request)
+    return ResponseProject.objects.get(id=object_id) if object_id else None
+
+
+def get_role_from_request(request):
+    object_id = get_object_id_from_request(request)
+    return AGOLRole.objects.get(id=object_id) if object_id else None
 

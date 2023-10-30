@@ -1,3 +1,4 @@
+from dal_select2.widgets import ModelSelect2
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.contenttypes.admin import GenericTabularInline
@@ -15,8 +16,8 @@ from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
 from django.utils.translation import gettext_lazy as _
 import re
 import logging
-from .func import get_response_from_request
-
+from .func import get_response_from_request, get_role_from_request
+from dal import autocomplete
 email_domain_regex = re.compile(r"(^[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)")
 
 from .models import *
@@ -140,6 +141,10 @@ class AGOLGroupAdmin(admin.ModelAdmin):
             r = get_response_from_request(request)
             if r:
                 queryset = queryset.filter(agol=r.portal)
+        if 'agolrole' in referrer:
+            r = get_role_from_request(request)
+            if r:
+                queryset = queryset.filter(agol=r.agol)
         return super().get_search_results(request, queryset, search_term)
 
 
@@ -277,8 +282,9 @@ class AGOLRoleAdmin(admin.ModelAdmin):
     search_fields = ['name', 'description']
     ordering = ['-is_available', 'agol', 'name']
     list_filter = ['is_available', 'agol']
-    fields = ['name', 'id', 'description', 'agol', 'is_available', 'system_default']
+    fields = ['name', 'id', 'description', 'agol', 'is_available', 'system_default', 'auth_groups']
     readonly_fields = ['name', 'id', 'description', 'agol']
+    autocomplete_fields = ['auth_groups']
     # actions = [set_system_default] removed b/c its more complicated with multiple agols
 
     def has_add_permission(self, request):
@@ -314,7 +320,13 @@ class ResponseProjectForm(ModelForm):
     class Meta:
         model = ResponseProject
         fields = '__all__'
+        widgets = {
+            'authoritative_group': autocomplete.ModelSelect2(url='agolgroup-autocomplete',
+                                                             forward=['role'])
+        }
 
+    class Media:
+        js = ['admin/js/jquery.init.js', 'autocomplete.js']
 
 @admin.register(ResponseProject)
 class ResponseProjectAdmin(admin.ModelAdmin):
@@ -350,9 +362,6 @@ class ResponseProjectAdmin(admin.ModelAdmin):
         if db_field.name == "requester":
             kwargs["queryset"] = User.objects.filter(agol_info__portal__responses=response_id)
 
-        if db_field.name == "authoritative_group":
-            kwargs["queryset"] = AGOLGroup.objects.filter(agol__responses=response_id, is_auth_group=True)
-
         if db_field.name == "role":
             kwargs["queryset"] = AGOLRole.objects.filter(agol__responses=response_id, is_available=True)
 
@@ -360,6 +369,7 @@ class ResponseProjectAdmin(admin.ModelAdmin):
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         response = super(ResponseProjectAdmin, self).change_view(request, object_id, form_url, extra_context)
+
         if type(response) == HttpResponseRedirect:
             if 'approve' in request.POST:
                 return redirect('../approve/')

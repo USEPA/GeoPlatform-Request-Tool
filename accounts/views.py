@@ -7,17 +7,19 @@ from rest_framework.filters import BaseFilterBackend
 
 from django.shortcuts import get_list_or_404, get_object_or_404, Http404
 from django_filters.rest_framework import FilterSet, BooleanFilter, DateFilter, NumberFilter, BaseCSVFilter
-from django.db.models import Q, Count
+from django.db.models import Q, Count, F
 from django.template.response import TemplateResponse
 from django.utils.timezone import now
 from django.core.exceptions import ObjectDoesNotExist
 
+from .filters import AGOLGroupFilterSet
 from .models import *
 from .serializers import *
 from .permissions import IsSponsor
 from .func import create_account, add_account_to_groups, update_requests_groups, enable_account
 from natsort import natsorted
 
+from dal import autocomplete
 
 def format_username(data, enterprise_domains=None):
     if enterprise_domains is None:
@@ -256,7 +258,7 @@ class AGOLGroupViewSet(ReadOnlyModelViewSet):
     ordering = ['title']
     permission_classes = [IsAuthenticated]
     pagination_class = None
-    filterset_fields = ['response', 'is_auth_group']
+    filterset_class = AGOLGroupFilterSet
     search_fields = ['title']
 
     # only show groups for which the user has access per agol group fields assignable groups
@@ -280,6 +282,18 @@ class AGOLGroupViewSet(ReadOnlyModelViewSet):
             })
         sorted_group_list = natsorted(groups_list, key=lambda x: x['title'])
         return Response(sorted_group_list)
+
+    @action(['get'], detail=False)
+    def autocomplete(self, request):
+        if 'q' in self.request.query_params:
+            self.request.query_params._mutable = True
+            self.request.query_params['search'] = self.request.query_params.pop('q')[0]
+        roles = json.loads(self.request.query_params.get('forward', '{}')).get('role', None)
+        groups_qs = self.filter_queryset(self.get_queryset()).filter(roles=roles).annotate(text=F('title'))
+        results = []
+        for g in groups_qs:
+            results.append({'id': g.id, 'text': str(g)})
+        return Response({'results': results})
 
 
 class ResponseProjectFilterSet(FilterSet):

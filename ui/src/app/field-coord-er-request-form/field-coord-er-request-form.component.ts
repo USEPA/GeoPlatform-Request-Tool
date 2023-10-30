@@ -1,9 +1,9 @@
 import {Component, EventEmitter, OnInit, Output} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
-import {BehaviorSubject, combineLatest, forkJoin, Observable, of} from 'rxjs';
+import {BehaviorSubject, combineLatest, forkJoin, Observable, of, Subject} from 'rxjs';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-bar';
-import {catchError, finalize, map, switchMap, tap} from 'rxjs/operators';
+import {catchError, filter, finalize, map, switchMap, tap} from 'rxjs/operators';
 
 import {BaseService, Choice, Response} from '@services/base.service';
 import {FieldCoordinator} from '../field-coord-list/field-coord-list.component';
@@ -23,7 +23,7 @@ export class FieldCoordErRequestFormComponent implements OnInit {
   @Output() saved: EventEmitter<any> = new EventEmitter<any>();
   isLoading: Boolean;
   field_coordinators: Observable<FieldCoordinator[]>;
-  auth_groups: Observable<AgolGroup[]>;
+  auth_groups: BehaviorSubject<AgolGroup[]> = new BehaviorSubject<AgolGroup[]>([]);
   tags = [];
   submitting: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   fieldTeamCoordErForm: FormGroup = new FormGroup({
@@ -39,7 +39,7 @@ export class FieldCoordErRequestFormComponent implements OnInit {
   responseService: BaseService;
   roleService: BaseService;
   reasons: Observable<Choice[]>;
-  roles: Observable<AGOLRole[]>;
+  roles: BehaviorSubject<AGOLRole[]> = new BehaviorSubject<AGOLRole[]>([]);
 
   constructor(public http: HttpClient, public matSnackBar: MatSnackBar, public userConfig: UserConfigService,
               loadingService: LoadingService) {
@@ -79,9 +79,14 @@ export class FieldCoordErRequestFormComponent implements OnInit {
         }
       })
     ).subscribe();
-    this.initAuthGroups();
+
     this.initReasons();
     this.initRoles();
+
+    // this.fieldTeamCoordErForm.controls.role.valueChanges.pipe(
+    //   switchMap(v => this.getAuthGroups(v)),
+    //   tap(g => this.auth_groups.next(g))
+    // ).subscribe();
   }
 
   submit() {
@@ -107,10 +112,17 @@ export class FieldCoordErRequestFormComponent implements OnInit {
     ).subscribe();
   }
 
-  initAuthGroups() {
-    this.auth_groups = this.http.get<AgolGroup[]>(`${environment.local_service_endpoint}/v1/agol/groups/all/`,
-      {params: {is_auth_group: true}}
-    );
+  getAuthGroups(role: number) {
+    this.http.get<AgolGroup[]>(`${environment.local_service_endpoint}/v1/agol/groups/all/`,
+      {params: {is_auth_group: true, role_in: role}}
+    ).pipe(
+      tap(groups => {
+        this.auth_groups.next(groups)
+        if (!groups.find(g => this.fieldTeamCoordErForm.controls.authoritative_group.value === g.id)) {
+          this.fieldTeamCoordErForm.controls.authoritative_group.setValue(null);
+        }
+      })
+    ).subscribe();
   }
 
   initReasons() {
@@ -120,15 +132,17 @@ export class FieldCoordErRequestFormComponent implements OnInit {
   }
 
   initRoles() {
-    this.roles = this.roleService.getList<AGOLRole>({is_available: true}).pipe(
+    this.roleService.getList<AGOLRole>({is_available: true}).pipe(
       map(r => r.results),
       tap(r => {
+        this.roles.next(r);
         const default_role = r.find(x => x.system_default);
         if (default_role) {
           this.fieldTeamCoordErForm.patchValue({role: default_role.id});
+          this.getAuthGroups(default_role.id);
         }
       })
-    );
+    ).subscribe();
   }
 
 }
