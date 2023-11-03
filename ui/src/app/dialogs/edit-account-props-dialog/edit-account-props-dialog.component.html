@@ -8,6 +8,9 @@
     <!--username-->
     <mat-form-field *ngIf="!data.isBulkEdit">
       <input matInput required [(ngModel)]="data.username" type="text" formControlName="username" placeholder="Username">
+      <mat-error *ngIf="editAccountPropsForm.controls.username.errors?.username">
+        {{editAccountPropsForm.controls.username.errors.username}}
+      </mat-error>
     </mat-form-field>
     <!--group-->
     <!--response-->
