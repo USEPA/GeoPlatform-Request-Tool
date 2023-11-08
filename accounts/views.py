@@ -15,19 +15,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from .models import *
 from .serializers import *
 from .permissions import IsSponsor
-from .func import create_account, add_account_to_groups, update_requests_groups, enable_account
+from .func import create_account, add_account_to_groups, update_requests_groups, enable_account, format_username
 from natsort import natsorted
-
-
-def format_username(data, enterprise_domains=None):
-    if enterprise_domains is None:
-        enterprise_domains = []
-    if data['email'].split('@')[1].lower() in enterprise_domains:
-        username = data['email']
-    else:
-        username_extension = 'EPAEXT' if '@epa.gov' not in data['email'] else 'EPA'
-        username = f'{data["last_name"].capitalize()}.{data["first_name"].capitalize()}_{username_extension}'
-    return username.replace(' ', '')
 
 
 class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
