@@ -69,7 +69,7 @@ describe('approver workflow', () => {
     cy.get('button').contains('Configure New Response / Project').click();
     cy.get('input[formcontrolname="name"]').type('Test')
     cy.get('mat-select[formcontrolname="default_reason"]').click();
-    cy.get('mat-option').contains('Emergency Response', {timeout: 30000}).click();
+    cy.get('mat-option', {timeout: 30000}).contains('Emergency Response').click();
     cy.get('app-tag-input').type('test');
     cy.get('mat-option').first().click();
     cy.get('mat-select[formcontrolname="authoritative_group"]').click();
