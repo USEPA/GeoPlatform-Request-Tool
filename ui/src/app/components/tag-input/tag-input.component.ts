@@ -44,7 +44,7 @@ export class TagInputComponent implements OnInit {
 
   constructor(public http: HttpClient, public loadingService: LoadingService) {
     this.tagsService = new BaseService('v1/agol/groups/all', this.http, this.loadingService);
-    this.allTags = this.tagsService.getList({all: true});
+    this.allTags = this.tagsService.getList();
   }
 
   ngOnInit() {
