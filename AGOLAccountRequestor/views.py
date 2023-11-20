@@ -10,8 +10,7 @@ from rest_framework.response import Response
 from django.conf import settings
 from django.views.decorators.csrf import ensure_csrf_cookie
 
-logger = logging.getLogger('AGOLAccountRequestor')
-
+logger = logging.getLogger('django')
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -26,6 +25,8 @@ def current_user(request):
     delegate_for = request.user.delegate_for.values_list('id', flat=True)
     current_user = {
         'id': request.user.id,
+        'portal': request.user.agol_info.portal.get_portal_name_display(),
+        'portal_id': request.user.agol_info.portal.id,
         'name': '{} {}'.format(request.user.first_name, request.user.last_name) if request.user.first_name else request.user.username,
         'permissions': set(permissions),
         'is_superuser': request.user.is_superuser,
@@ -50,10 +51,10 @@ def email_field_coordinator_request(request):
             email_context = request.data
         if 'emergency_response_name' in email_context:
             html_msg = render_to_string('../templates/field_coord_er_request_email.html', email_context)
-            email_subject = "Response/Project Request for Review in GeoPlatform Account Request Tool"
+            email_subject = "Response/Project Request for Review in Account Request Tool"
         else:
             html_msg = render_to_string('../templates/field_coord_request_email.html', email_context)
-            email_subject = "Coordinator Request for Review in GeoPlatform Account Request Tool"
+            email_subject = "Coordinator Request for Review in Account Request Tool"
         plain_msg = strip_tags(html_msg)
         result = send_mail(
             subject=email_subject,
@@ -66,3 +67,7 @@ def email_field_coordinator_request(request):
     except Exception as e:
         logger.error('Email Error: There was an error emailing the Field Coordinator Request.')
         return Response(False)
+
+
+def error_test(request):
+    raise Exception("this should log")

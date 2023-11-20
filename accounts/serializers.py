@@ -1,19 +1,21 @@
 from rest_framework.serializers import ModelSerializer, CharField, PrimaryKeyRelatedField, ChoiceField, \
     JSONField, BooleanField
 from .models import *
-from rest_framework.decorators import api_view
-from rest_framework_recaptcha.fields import ReCaptchaField
-from .func import has_outstanding_request
+from drf_recaptcha.fields import ReCaptchaV2Field
+from .func import has_outstanding_request, email_allowed_for_portal
 
 
 class AccountRequestSerializer(ModelSerializer):
-    recaptcha = ReCaptchaField()
+    recaptcha = ReCaptchaV2Field()
     response = PrimaryKeyRelatedField(required=True, queryset=ResponseProject.objects.all())
 
     def validate(self, attrs):
         # check for outstanding requests and reject if so
         if has_outstanding_request(attrs):
             raise ValidationError({'details': 'Outstanding request found.'})
+
+        if not email_allowed_for_portal(attrs):
+            raise ValidationError({'details': 'Request can not be accepted at this time.'})
 
         return super().validate(attrs)
 
@@ -66,9 +68,12 @@ class ResponseProjectSerializer(ModelSerializer):
 
 
 class FullResponseProjectSerializer(ModelSerializer):
+    authoritative_group = PrimaryKeyRelatedField(required=True, queryset=AGOLGroup.objects.filter(is_auth_group=True))
+    requester = PrimaryKeyRelatedField(required=True, queryset=User.objects.all())
+
     class Meta:
         model = ResponseProject
-        fields = ['id', 'users', 'name', 'assignable_groups', 'authoritative_group', 'default_reason', 'role', 'requester']
+        fields = ['id', 'users', 'name', 'portal', 'assignable_groups', 'authoritative_group', 'default_reason', 'role', 'requester']
 
 
 class AccountWithNestedDataSerializer(AccountSerializer):
@@ -91,3 +96,8 @@ class PendingNotificationSerializer(ModelSerializer):
     class Meta:
         model = Notification
         fields = ['id', 'subject', 'content', 'to_emails']
+
+class PortalsSerializer(ModelSerializer):
+    class Meta:
+        model = AGOL
+        fields = ['id', 'portal_name', 'portal_url']

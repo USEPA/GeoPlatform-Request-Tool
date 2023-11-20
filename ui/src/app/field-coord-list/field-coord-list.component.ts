@@ -2,13 +2,14 @@ import {Component, OnInit} from '@angular/core';
 import {BaseService} from '../services/base.service';
 import {HttpClient} from '@angular/common/http';
 import {LoadingService} from '../services/loading.service';
-import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import {Observable} from 'rxjs';
 import {RequestFieldCoordDialogComponent} from '../dialogs/request-field-coord-dialog/request-field-coord-dialog.component';
 import {LoginService} from '../auth/login.service';
-import {FormControl} from "@angular/forms";
+import {UntypedFormControl} from "@angular/forms";
 import {debounceTime, skip, startWith, tap} from "rxjs/operators";
+import {environment} from "@environments/environment";
 
 export interface FieldCoordinator {
   value: number;
@@ -33,7 +34,7 @@ export class FieldCoordListComponent implements OnInit {
   // sponsors: Observable<[]>;
   displayedColumns = ['first_name', 'last_name', 'email', 'phone_number'];
   field_coordinator: FieldCoordinator;
-  searchInput = new FormControl(null);
+  searchInput = new UntypedFormControl(null);
 
   constructor(public http: HttpClient, loadingService: LoadingService, public snackBar: MatSnackBar,
               public dialog: MatDialog, public loginService: LoginService) {
@@ -80,7 +81,7 @@ export class FieldCoordListComponent implements OnInit {
   }
 
   async emailFieldCoordRequest() {
-    const result = await this.http.post('/v1/email_field_coordinator_request/', this.field_coordinator).toPromise();
+      const result = await this.http.post(`${environment.local_service_endpoint}/v1/email_field_coordinator_request/`, this.field_coordinator).toPromise();
     if (result === true) {
       this.snackBar.open('Email sent', null, {duration: 2000});
     } else {

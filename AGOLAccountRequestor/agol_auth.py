@@ -1,11 +1,11 @@
 from social_core.backends.oauth import BaseOAuth2
 from django.contrib.auth.models import User
 from social_core.exceptions import AuthException
-from accounts.models import AGOLUserFields
+from accounts.models import AGOL, AGOLUserFields
 
 
-class AGOLOAuth2(BaseOAuth2):
-    name = 'agol'
+class AGOLOAuth2Geoplatform(BaseOAuth2):
+    name = 'geoplatform'
     ID_KEY = 'username'
     _AUTHORIZATION_URL = 'https://{}/sharing/rest/oauth2/authorize'
     _ACCESS_TOKEN_URL = 'https://{}/sharing/rest/oauth2/token'
@@ -37,10 +37,73 @@ class AGOLOAuth2(BaseOAuth2):
         return {
             'username': response.get('username'),
             'email': response.get('email'),
-            'fullname': response.get('fullName'),
-            'first_name': response.get('firstName'),
-            'last_name': response.get('lastName'),
-            'agol_groups': [x.get('id') for x in response.get('groups')] # get list of group ids user is a member of
+            'fullname': response.get('fullName', ''),
+            'first_name': response.get('firstName', ''),
+            'last_name': response.get('lastName', ''),
+            'agol_groups': [x.get('id') for x in response.get('groups')]  # get list of group ids user is a member of
+        }
+
+    def user_data(self, access_token, *args, **kwargs):
+        return self.get_json(
+            'https://{}/sharing/rest/community/self'.format(self._base_url()),
+            params={
+                'token': access_token,
+                'f': 'json'
+            }
+        )
+    # # api does support state... need to remove this and test
+    # def validate_state(self):
+    #     return None
+    #
+    # # added so we can verify redirect_uri without having to actually redirect there
+    # # a slight hack to allow us to redirect to frontend oauthcallback page
+    # def get_redirect_uri(self, state=None):
+    #     return self.setting('REDIRECT_URI')
+class AGOLOAuth2Geosecure(BaseOAuth2):
+    name = 'geosecure'
+    ID_KEY = 'username'
+    _AUTHORIZATION_URL = 'https://{}/sharing/rest/oauth2/authorize'
+    _ACCESS_TOKEN_URL = 'https://{}/sharing/rest/oauth2/token'
+    REQUIRES_EMAIL_VALIDATION = False
+    ACCESS_TOKEN_METHOD = 'POST'
+    REDIRECT_STATE = False
+    EXTRA_DATA = [
+        ('refresh_token', 'refresh_token'),
+        ('expires_in', 'expires'),
+        ('username', 'username'),
+        ('email', 'email')
+    ]
+
+    def _base_url(self):
+        _domain = self.setting('DOMAIN')
+        domain = _domain if _domain else 'www.arcgis.com'
+        return domain
+
+    def authorization_url(self):
+        return self._AUTHORIZATION_URL.format(self._base_url())
+
+    def access_token_url(self):
+        return self._ACCESS_TOKEN_URL.format(self._base_url())
+
+    def get_user_details(self, response):
+        if 'error' in response:
+            return {}
+
+        first_name = response.get('firstName', '')
+        last_name = response.get('lastName', '')
+        full_name = response.get('fullName', '')
+        if full_name != '' and first_name == '' and last_name == '':
+            full_name = full_name.split(' ')
+            first_name = full_name[0]
+            last_name = ' '.join(full_name[1:])
+
+        return {
+            'username': response.get('username'),
+            'email': response.get('email'),
+            'fullname': response.get('fullName', ''),
+            'first_name': first_name,
+            'last_name': last_name,
+            'agol_groups': [x.get('id') for x in response.get('groups')]  # get list of group ids user is a member of
         }
 
     def user_data(self, access_token, *args, **kwargs):
@@ -93,10 +156,12 @@ def create_accounts_for_preapproved_domains(backend, details, user=None, *args, 
             username=details.get('username'),
             email=details.get('email'),
             first_name=details.get('first_name'),
-            last_name=details.get('last_name'),
+            last_name=details.get('last_name')
         )
         AGOLUserFields.objects.create(user=user,
-                                      agol_username=user.username)
+                                      agol_username=user.username,
+                                      portal_id=AGOL.objects.get(portal_name=backend.name).pk,
+                                      )
         # any authenticated user needs to be able to create
         user.groups.add(backend.setting('UNKNOWN_REQUESTER_GROUP_ID'))
 

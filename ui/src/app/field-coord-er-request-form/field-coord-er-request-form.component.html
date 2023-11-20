@@ -14,7 +14,8 @@
   <span *ngIf="c.is_delegate && c.delegate_for.length === 1">
     The sponsor for which you are a delegate was automatically included as a team coordinator.
   </span>
-
+  <br/><br/>
+  This request will be for the {{c.portal}}.  If that is incorrect login with the preferred system.
 </h4>
 <form novalidate [formGroup]="fieldTeamCoordErForm">
   <!--Emergency Response Name-->
@@ -24,6 +25,7 @@
   </mat-form-field>
   <!-- reason -->
   <mat-form-field>
+    <mat-label>Reason / Affiliation</mat-label>
     <mat-select required formControlName="default_reason" placeholder="Reason / Affiliation">
       <mat-option *ngFor="let r of reasons | async" [value]="r.value">
         {{r.display_name}}
@@ -37,18 +39,20 @@
       <mat-option *ngFor="let field_coordinator of field_coordinators | async"
                   [value]="field_coordinator.id">
             <span>
-              {{field_coordinator.first_name + ' ' + field_coordinator.last_name}}
+              <ng-container *ngIf="field_coordinator.last_name && field_coordinator.first_name; then nameBlock else emailBlock"></ng-container>
+              <ng-template #nameBlock>{{field_coordinator.first_name + ' ' + field_coordinator.last_name}}</ng-template>
+              <ng-template #emailBlock>{{field_coordinator.email}}</ng-template>
             </span>
       </mat-option>
     </mat-select>
   </mat-form-field>
-  <!-- GeoPlatform groups -->
-  <app-tag-input label="GeoPlatform Groups" [formControl]="fieldTeamCoordErForm.controls.assignable_groups"
+  <!-- groups -->
+  <app-tag-input label="Groups" [formControl]="fieldTeamCoordErForm.controls.assignable_groups"
                  [tags]="this.tags" hint="Select all applicable groups.">
   </app-tag-input>
     <!-- role -->
   <mat-form-field>
-    <mat-select required formControlName="role" placeholder="Geoplatform Role">
+    <mat-select required formControlName="role" placeholder="Role">
       <mat-option *ngFor="let r of roles | async" [value]="r.id">
         {{r.name}}
       </mat-option>

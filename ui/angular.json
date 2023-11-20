@@ -94,13 +94,46 @@
                   "maximumError": "5mb"
                 }
               ]
+            },
+            "ngst-staging": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.ngst-staging.ts"
+                }
+              ],
+              "assets": [
+                {
+                  "input": "src/ngst-staging/",
+                  "output": "/",
+                  "glob": "web.config"
+                },
+                "src/assets"
+              ],
+              "baseHref": "/request/",
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": true,
+              "namedChunks": false,
+              "aot": true,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true,
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "2mb",
+                  "maximumError": "5mb"
+                }
+              ]
             }
           }
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "ui:build"
+            "browserTarget": "ui:build",
+            "proxyConfig": "proxy.conf.json"
           },
           "configurations": {
             "development": {
@@ -134,16 +167,41 @@
             ]
           }
         },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+        "cypress-run": {
+          "builder": "@cypress/schematic:cypress"
+        },
+        "cypress-open": {
+          "builder": "@cypress/schematic:cypress",
           "options": {
-            "tsConfig": [
-              "src/tsconfig.app.json",
-              "src/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
+            "watch": true,
+            "headless": false
+          }
+        },
+        "ct": {
+          "builder": "@cypress/schematic:cypress",
+          "options": {
+            "devServerTarget": "ui:serve",
+            "watch": true,
+            "headless": false,
+            "testingType": "component"
+          },
+          "configurations": {
+            "development": {
+              "devServerTarget": "ui:serve:development"
+            }
+          }
+        },
+        "e2e": {
+          "builder": "@cypress/schematic:cypress",
+          "options": {
+            "devServerTarget": "ui:serve",
+            "watch": true,
+            "headless": false
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "ui:serve:production"
+            }
           }
         }
       }
@@ -154,28 +212,68 @@
       "prefix": "",
       "architect": {
         "e2e": {
-          "builder": "@angular-devkit/build-angular:protractor",
+          "builder": "@cypress/schematic:cypress",
           "options": {
-            "protractorConfig": "e2e/protractor.conf.js",
-            "devServerTarget": "ui:serve"
+            "devServerTarget": "ui-e2e:serve",
+            "watch": true,
+            "headless": false
           },
           "configurations": {
             "production": {
-              "devServerTarget": "ui:serve:production"
+              "devServerTarget": "ui-e2e:serve:production"
             }
           }
         },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+        "cypress-run": {
+          "builder": "@cypress/schematic:cypress",
           "options": {
-            "tsConfig": "e2e/tsconfig.e2e.json",
-            "exclude": [
-              "**/node_modules/**"
-            ]
+            "devServerTarget": "ui-e2e:serve",
+            "configFile": "e2e//cypress.config.js"
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "ui-e2e:serve:production"
+            }
+          }
+        },
+        "cypress-open": {
+          "builder": "@cypress/schematic:cypress",
+          "options": {
+            "watch": true,
+            "headless": false,
+            "configFile": "e2e//cypress.config.js"
+          }
+        },
+        "ct": {
+          "builder": "@cypress/schematic:cypress",
+          "options": {
+            "devServerTarget": "ui-e2e:serve",
+            "watch": true,
+            "headless": false,
+            "testingType": "component"
+          },
+          "configurations": {
+            "development": {
+              "devServerTarget": "ui-e2e:serve:development"
+            }
           }
         }
       }
     }
   },
-  "defaultProject": "ui"
+  "cli": {
+    "analytics": false,
+    "schematicCollections": [
+      "@cypress/schematic",
+      "@schematics/angular"
+    ]
+  },
+  "schematics": {
+    "@angular-eslint/schematics:application": {
+      "setParserOptionsProject": true
+    },
+    "@angular-eslint/schematics:library": {
+      "setParserOptionsProject": true
+    }
+  }
 }

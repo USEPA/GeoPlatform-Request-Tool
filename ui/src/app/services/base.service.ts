@@ -4,6 +4,7 @@ import {Observable, BehaviorSubject, ReplaySubject} from "rxjs";
 import {LoadingService} from "./loading.service";
 import {DataSource} from "@angular/cdk/collections";
 import {map, tap} from 'rxjs/operators';
+import {environment} from "@environments/environment";
 
 export interface SearchObject {
   search?: string;
@@ -39,6 +40,7 @@ export class BaseService {
   content_type = new ReplaySubject();
 
   constructor(public base_url: string, public http: HttpClient, public loadingService: LoadingService) {
+    this.base_url = `${environment.local_service_endpoint}/${base_url}`
     this.datasource = new BaseDataSource(this);
     this.filter = {};
   }
@@ -48,7 +50,7 @@ export class BaseService {
   }
 
   getList<Any>(search_object: SearchObject = {}): Observable<Response> {
-    let url = `/${this.base_url}/`;
+    let url = `${this.base_url}/`;
     return this.http.get<Response>(url,
       {
         params: Object.entries(search_object).reduce((params, [key, value]) => params.set(key, value), new HttpParams())
@@ -65,15 +67,15 @@ export class BaseService {
   }
 
   get(id: string | number) {
-    return this.http.get<any>(`/${this.base_url}/${id}/`);
+    return this.http.get<any>(`${this.base_url}/${id}/`);
   }
 
   put(id: string | number, item: object) {
-    return this.http.put(`/${this.base_url}/${id}/`, item);
+    return this.http.put(`${this.base_url}/${id}/`, item);
   }
 
   post(item: object, httpOptions = {}): any {
-    return this.http.post(`/${this.base_url}/`, item, httpOptions).pipe(
+    return this.http.post(`${this.base_url}/`, item, httpOptions).pipe(
       map(item => {
         const copiedData = this.data.slice();
         copiedData.push(item);
@@ -84,7 +86,7 @@ export class BaseService {
   }
 
   options() {
-    return this.http.options<any>(`/${this.base_url}/`);
+    return this.http.options<any>(`${this.base_url}/`);
   }
 
   getItems(): Observable<any[]> {
@@ -144,7 +146,7 @@ export class BaseService {
   }
 
   delete(id: string | number) {
-    return this.http.delete(`/${this.base_url}/${id}/`)
+    return this.http.delete(`${this.base_url}/${id}/`)
       .pipe(
         map(() => {
           const copiedData = this.data.slice();

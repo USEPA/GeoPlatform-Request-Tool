@@ -4,4 +4,10 @@ div.mat-dialog-content {
   justify-content: space-between;
   min-height: 130px;
   padding-bottom: 5px;
+  align-items: center;
+}
+
+button {
+  width: 50%;
+  margin: 5px;
 }

@@ -40,28 +40,6 @@
 {% endblocktrans %}
 </p>
 {% endif %}
-
-<form action="{{ app_path }}" method="post" id="login-form">{% csrf_token %}
-  <div class="form-row">
-    {{ form.username.errors }}
-    {{ form.username.label_tag }} {{ form.username }}
-  </div>
-  <div class="form-row">
-    {{ form.password.errors }}
-    {{ form.password.label_tag }} {{ form.password }}
-    <input type="hidden" name="next" value="{{ next }}">
-  </div>
-  {% url 'admin_password_reset' as password_reset_url %}
-  {% if password_reset_url %}
-  <div class="password-reset-link">
-    <a href="{{ password_reset_url }}">{% trans 'Forgotten your password or username?' %}</a>
-  </div>
-  {% endif %}
-  <div class="submit-row"
-       style="display: flex; flex-direction: row; justify-content: space-around; align-items: center; padding: 0;">
-    <input type="submit" value="{% trans 'Log in' %}">
-
-    <div>OR</div>
 <style>
   .esriSignIn {
     background: #0079c1;
@@ -95,10 +73,36 @@
     text-decoration: none;
 }
 </style>
-    <a href="{% url 'social:begin' 'agol' %}" style="cursor: pointer">
-      <span class="esriSignIn">Login using EPA GeoPlatform</span>
-    </a><br>
+<form action="{{ app_path }}" method="post" id="login-form">{% csrf_token %}
+  {% url 'admin_password_reset' as password_reset_url %}
+  {% if password_reset_url %}
+  <div class="password-reset-link">
+    <a href="{{ password_reset_url }}">{% trans 'Forgotten your password or username?' %}</a>
   </div>
+  {% endif %}
+  {% if not 'geosecure' in REDIRECT_FIELD_VALUE|lower and 'geoplatorm' not in REDIRECT_FIELD_VALUE|lower %}
+  <div style="padding-bottom: 1em">Please select the environment in which you will be creating a response / project or approving requests</div>
+  {% endif %}
+  {% if not 'geosecure' in REDIRECT_FIELD_VALUE|lower %}
+  <div class="submit-row"
+       style="display: flex; flex-direction: row; justify-content: space-around; align-items: center; padding: 0;">
+      <div class="form-row" style="text-align: center">
+        <a href="{% url 'social:begin' 'geoplatform' %}" style="cursor: pointer">
+          <span class="esriSignIn">Login using EPA GeoPlatform</span>
+        </a>
+      </div>
+  </div>
+  {% endif %}
+  {% if not 'geoplatform' in REDIRECT_FIELD_VALUE|lower %}
+  <div class="submit-row"
+       style="display: flex; flex-direction: row; justify-content: space-around; align-items: center; padding: 0;">
+      <div class="form-row" style="text-align: center">
+        <a href="{% url 'social:begin' 'geosecure' %}" style="cursor: pointer">
+          <span class="esriSignIn">Login using EPA GeoSecure</span>
+        </a>
+      </div>
+  </div>
+{% endif %}
 </form>
 
 </div>

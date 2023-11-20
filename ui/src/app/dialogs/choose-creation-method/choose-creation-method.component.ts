@@ -1,5 +1,10 @@
-import { Component, OnInit } from '@angular/core';
-import {MatDialogRef} from '@angular/material/dialog';
+import {Component, Inject, OnInit} from '@angular/core';
+import {MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogRef as MatDialogRef} from '@angular/material/legacy-dialog';
+import {ConfirmDialogData} from "../confirm-approval-dialog/confirm-approval-dialog.component";
+
+interface ChooseCreationMethodData {
+  existing_only: boolean;
+}
 
 @Component({
   selector: 'app-choose-creation-method',
@@ -8,9 +13,11 @@ import {MatDialogRef} from '@angular/material/dialog';
 })
 export class ChooseCreationMethodComponent implements OnInit {
 
-  constructor(public dialogRef: MatDialogRef<ChooseCreationMethodComponent>) { }
+  constructor(public dialogRef: MatDialogRef<ChooseCreationMethodComponent>,
+              @Inject(MAT_DIALOG_DATA) public data: ChooseCreationMethodData) { }
 
   ngOnInit() {
+
   }
 
 }

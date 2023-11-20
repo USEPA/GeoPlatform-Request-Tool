@@ -1,15 +1,15 @@
 import {Component, ElementRef, Input, OnInit, ViewChild} from '@angular/core';
-import {FormControl, FormGroup} from '@angular/forms';
+import {FormGroup, FormControl} from '@angular/forms';
 import {HttpClient} from '@angular/common/http';
 import {COMMA, ENTER} from '@angular/cdk/keycodes';
 import {Observable} from 'rxjs';
 import {debounceTime, map, startWith, switchMap} from 'rxjs/operators';
-import {isArray} from 'rxjs/internal-compatibility';
+// import {isArray} from 'rxjs/internal-compatibility';
 
 import {BaseService, Response} from '@services/base.service';
 import {LoadingService} from '@services/loading.service';
-import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
-import {MatChipInputEvent} from '@angular/material/chips';
+import {MatLegacyAutocompleteSelectedEvent as MatAutocompleteSelectedEvent} from '@angular/material/legacy-autocomplete';
+import {MatLegacyChipInputEvent as MatChipInputEvent} from '@angular/material/legacy-chips';
 
 export interface TagItem {
   id: number;
@@ -27,8 +27,8 @@ export class TagInputComponent implements OnInit {
   @Input() label: '';
   @Input() hint: '';
 
-  tagsCtrl = new FormControl();
-  filteredTags: Observable<TagItem[]>;
+  tagsCtrl = new FormControl([]);
+  filteredTags: Observable<Response>;
   tagsService: BaseService;
   allTags: Observable<Response>;
   // for tag autocomplete... all may not be needed
@@ -56,19 +56,19 @@ export class TagInputComponent implements OnInit {
           return this.allTags;
         }
       }),
-      map((response) => {
-        if (isArray(response)) {
-          if (this.tags && this.tags.length > 0) {
-            return response.filter(result => this.tags.indexOf(result.title) === -1);
-          }
-          return response;
-        }
-      }),
+      // map((response) => {
+      //   if (isArray(response)) {
+      //     if (this.tags && this.tags.length > 0) {
+      //       return response.filter(result => this.tags.indexOf(result.title) === -1);
+      //     }
+      //     return response;
+      //   }
+      // }),
     );
   }
 
   add(event: MatChipInputEvent): void {
-    const input = event.input;
+    const input = event.chipInput.inputElement;
     const value = event.value;
 
     if ((value || '').trim()) {

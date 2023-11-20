@@ -1,10 +1,11 @@
 import {Component, Inject, OnInit} from '@angular/core';
-import {FormControl, FormGroup, Validators} from '@angular/forms';
-import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
+import {UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
+import {MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogRef as MatDialogRef} from '@angular/material/legacy-dialog';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {iif, Observable, Subject} from 'rxjs';
-import {map, switchMap, tap} from 'rxjs/operators';
+import {finalize, map, switchMap, tap} from 'rxjs/operators';
 import {UserConfig, UserConfigService} from '../../auth/user-config.service';
+import {environment} from "@environments/environment";
 
 export interface AgolGroup {
   id: number;
@@ -32,14 +33,16 @@ export class EditAccountPropsDialogComponent implements OnInit {
   responses: Observable<Response[]>;
   sponsors: Subject<Sponsor[]> = new Subject<Sponsor[]>();
   current_user: Observable<UserConfig>;
+  groupsLoading = false;
   // Form Group
-  editAccountPropsForm: FormGroup = new FormGroup({
-    username: new FormControl(null),
-    groups: new FormControl([]),
-    sponsor: new FormControl(null, [Validators.required]),
-    response: new FormControl(null, [Validators.required]),
-    reason: new FormControl(null, [Validators.required]),
+  editAccountPropsForm: UntypedFormGroup = new UntypedFormGroup({
+    username: new UntypedFormControl(null),
+    groups: new UntypedFormControl([]),
+    sponsor: new UntypedFormControl(null, [Validators.required]),
+    response: new UntypedFormControl(null, [Validators.required]),
+    reason: new UntypedFormControl(null, [Validators.required]),
   });
+
   customerFormError: string = null;
 
   constructor(private http: HttpClient,
@@ -47,10 +50,11 @@ export class EditAccountPropsDialogComponent implements OnInit {
               @Inject(MAT_DIALOG_DATA) public data, private userConfig: UserConfigService) {
   }
 
-  async ngOnInit() {
-    this.responses = this.http.get<Response[]>('/v1/responses/', {
+  ngOnInit() {
+    this.responses = this.http.get<Response[]>(`${environment.local_service_endpoint}/v1/responses/`, {
       params: new HttpParams().set('for_approver', 'true')});
     this.getSponsors();
+    this.editAccountPropsForm.controls.groups.disable();
   }
 
   submit() {
@@ -73,8 +77,8 @@ export class EditAccountPropsDialogComponent implements OnInit {
     this.userConfig.config.pipe(
       switchMap(config => {
         return iif(() => config.is_sponsor,
-          this.http.get<Sponsor>(`/v1/sponsors/${config.id}`).pipe(map(s => [s])),
-          this.http.get<Sponsor[]>('/v1/sponsors/',
+          this.http.get<Sponsor>(`${environment.local_service_endpoint}/v1/sponsors/${config.id}/`).pipe(map(s => [s])),
+          this.http.get<Sponsor[]>(`${environment.local_service_endpoint}/v1/sponsors/`,
       {params: new HttpParams().set('agol_info__delegates', config.id.toString())}).pipe(
         map(r => r['results'])
           ));
@@ -90,11 +94,12 @@ export class EditAccountPropsDialogComponent implements OnInit {
 
   getGroups(response: number) {
     if (response) {
-      this.http.get<AgolGroup[]>('/v1/agol/groups',
+      this.http.get<AgolGroup[]>(`${environment.local_service_endpoint}/v1/agol/groups/`,
         {params: new HttpParams().set('response', response.toString())}).pipe(
         tap((res) => {
           this.groups.next(res);
-        })
+        }),
+        finalize(() => this.editAccountPropsForm.controls.groups.enable())
       ).subscribe();
     }
   }

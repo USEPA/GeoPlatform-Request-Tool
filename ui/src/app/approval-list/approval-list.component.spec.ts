@@ -3,7 +3,7 @@ import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {ApprovalListComponent} from './approval-list.component';
 import {MatTableModule} from '@angular/material';
 import {Observable, of} from 'rxjs';
-import {MatDialog} from '@angular/material/dialog';
+import {MatLegacyDialog as MatDialog} from '@angular/material/legacy-dialog';
 import {FilterInputComponent} from '../filter-input/filter-input.component';
 import {CustomMaterialModule} from '../core/material.module';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
@@ -13,7 +13,7 @@ import {HttpClientTestingModule, HttpTestingController} from '@angular/common/ht
 import {LoadingService} from '@services/loading.service';
 import {LoginService} from '../auth/login.service';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-bar';
 
 import {environment} from '@environments/environment';
 // @ts-ignore

@@ -1,8 +1,8 @@
 import {Component, EventEmitter, OnInit, Output} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {BehaviorSubject, combineLatest, forkJoin, Observable, of} from 'rxjs';
-import {HttpClient} from '@angular/common/http';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import {HttpClient, HttpParams} from '@angular/common/http';
+import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-bar';
 import {catchError, finalize, map, switchMap, tap} from 'rxjs/operators';
 
 import {BaseService, Choice, Response} from '@services/base.service';
@@ -33,7 +33,8 @@ export class FieldCoordErRequestFormComponent implements OnInit {
     requester: new FormControl(null, Validators.required),
     authoritative_group: new FormControl(null, Validators.required),
     default_reason: new FormControl(null, Validators.required),
-    role: new FormControl(null, Validators.required)
+    role: new FormControl(null, Validators.required),
+    portal: new FormControl()
   });
   responseService: BaseService;
   roleService: BaseService;
@@ -48,7 +49,7 @@ export class FieldCoordErRequestFormComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.field_coordinators = this.http.get<Response>('/v1/sponsors/').pipe(
+    this.field_coordinators = this.http.get<Response>(`${environment.local_service_endpoint}/v1/sponsors/`).pipe(
       map(response => response.results)
     );
     combineLatest([this.field_coordinators, this.userConfig.config]
@@ -56,7 +57,8 @@ export class FieldCoordErRequestFormComponent implements OnInit {
       tap(r => {
         this.fieldTeamCoordErForm.patchValue({
           requester: r[1].id,
-          requester_phone_number: r[1].phone_number
+          requester_phone_number: r[1].phone_number,
+          portal: r[1].portal_id
         });
         if (r[1].is_sponsor) {
           const known_coord = r[0].find(x => x.id === r[1].id);
@@ -106,7 +108,7 @@ export class FieldCoordErRequestFormComponent implements OnInit {
   }
 
   initAuthGroups() {
-    this.auth_groups = this.http.get<AgolGroup[]>('/v1/agol/groups/all/',
+    this.auth_groups = this.http.get<AgolGroup[]>(`${environment.local_service_endpoint}/v1/agol/groups/all/`,
       {params: {is_auth_group: true}}
     );
   }

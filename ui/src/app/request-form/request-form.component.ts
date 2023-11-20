@@ -3,7 +3,7 @@ import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {HttpClient, HttpErrorResponse, HttpParams} from '@angular/common/http';
 import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, finalize, map, share, tap} from 'rxjs/operators';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-bar';
 import {environment} from '../../environments/environment';
 import {ActivatedRoute} from '@angular/router';
 

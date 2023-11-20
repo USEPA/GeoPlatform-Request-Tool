@@ -2,10 +2,12 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable, ReplaySubject} from 'rxjs';
 import {map, share, tap} from 'rxjs/operators';
-import {environment} from '../../environments/environment';
+import {environment} from "@environments/environment";
 
 export interface UserConfig {
   id: number;
+  portal: string;
+  portal_id: number;
   name: string;
   permissions: string[];
   is_superuser: boolean;
@@ -29,14 +31,14 @@ export class UserConfigService {
   }
 
   loadConfig(): Observable<any> {
-    return this.http.get<any>(`/current_user/`).pipe(
+    return this.http.get<any>(`${environment.local_service_endpoint}/current_user/`).pipe(
       tap(() => this.authenticated = true),
       tap(config => this.config.next(config))
     );
   }
 
   clearConfig() {
-    this.config.next();
+    this.config.next(null);
     this.authenticated = false;
   }
 

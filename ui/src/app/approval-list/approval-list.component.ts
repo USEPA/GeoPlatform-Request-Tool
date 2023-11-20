@@ -1,20 +1,33 @@
 import {Component, OnInit} from '@angular/core';
 import {HttpClient, HttpErrorResponse} from '@angular/common/http';
-import {catchError, debounceTime, share, skip, startWith, switchMap, tap, filter, map} from 'rxjs/operators';
-import {MatDialog} from '@angular/material/dialog';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import {
+  catchError,
+  debounceTime,
+  share,
+  skip,
+  startWith,
+  switchMap,
+  tap,
+  filter,
+  map,
+} from 'rxjs/operators';
+import {MatLegacyDialog as MatDialog} from '@angular/material/legacy-dialog';
+import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-bar';
 import {FormControl} from '@angular/forms';
-import {forkJoin, iif, Observable, of, throwError} from 'rxjs';
+import {forkJoin, from, iif, Observable, of, throwError} from 'rxjs';
 
 import {LoginService} from '../auth/login.service';
 import {BaseService} from '../services/base.service';
 import {LoadingService} from '../services/loading.service';
+import {UserConfig, UserConfigService} from "../auth/user-config.service";
 
 import {EditAccountPropsDialogComponent} from '../dialogs/edit-account-props-dialog/edit-account-props-dialog.component';
 import {ConfirmApprovalDialogComponent} from '../dialogs/confirm-approval-dialog/confirm-approval-dialog.component';
 import {ChooseCreationMethodComponent} from '../dialogs/choose-creation-method/choose-creation-method.component';
 import {GenericConfirmDialogComponent} from '../dialogs/generic-confirm-dialog/generic-confirm-dialog.component';
 import {environment} from '@environments/environment';
+
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 export interface AccountProps {
   first_name: string;
@@ -30,6 +43,7 @@ export interface AccountProps {
   created: boolean;
   isChecked: boolean;
   needsEditing: boolean;
+  is_existing_account: boolean;
 }
 
 export interface Accounts {
@@ -42,8 +56,9 @@ export interface Accounts {
   styleUrls: ['./approval-list.component.css']
 })
 export class ApprovalListComponent implements OnInit {
+  userConfig: UserConfig;
   accounts: BaseService;
-  displayedColumns = ['selected', 'first_name', 'last_name', 'email', 'username', 'organization', 'groups', 'response',
+  displayedColumns = ['selected', 'username', 'first_name', 'last_name', 'email', 'organization', 'groups', 'response',
     'sponsor', 'reason', 'approved', 'created', 'delete'];
   // took out "roll" and "user_type"
   selectedAccountIds = [];
@@ -56,8 +71,11 @@ export class ApprovalListComponent implements OnInit {
   responses: Observable<any[]>;
   searchInput = new FormControl(null);
 
-  constructor(public http: HttpClient, loadingService: LoadingService, public snackBar: MatSnackBar = null,
-              public dialog: MatDialog = null, public loginService: LoginService = null) {
+  constructor(public http: HttpClient, loadingService: LoadingService,
+              public dialog: MatDialog = null,
+              public loginService: LoginService = null,
+              public UserConfigService: UserConfigService,
+              public matSnackBar: MatSnackBar) {
     this.accounts = new BaseService('v1/account/approvals', http, loadingService);
   }
 
@@ -68,14 +86,16 @@ export class ApprovalListComponent implements OnInit {
     // set accounts list record properties
     // this.setAccountsListProps();
 
+    this.UserConfigService.config.subscribe(c => this.userConfig = c);
+
     this.accounts.filter = {created: false};
     this.accounts.dataChange.pipe(
       tap(response => this.setAccountsListProps(response))
     ).subscribe();
     this.accounts.getItems().subscribe();
-    this.roles = this.http.get<[]>('/v1/account/approvals/roles').pipe(share());
-    this.user_types = this.http.get<[]>('/v1/account/approvals/user_types').pipe(share());
-    this.responses = this.http.get<[]>('/v1/responses', {params: {for_approver: true}}).pipe(share());
+    this.roles = this.http.get<[]>(`${environment.local_service_endpoint}/v1/account/approvals/roles`).pipe(share());
+    this.user_types = this.http.get<[]>(`${environment.local_service_endpoint}/v1/account/approvals/user_types`).pipe(share());
+    this.responses = this.http.get<[]>(`${environment.local_service_endpoint}/v1/responses/`, {params: {for_approver: true}}).pipe(share());
 
     this.searchInput.valueChanges.pipe(
       startWith(this.searchInput.value),
@@ -121,7 +141,8 @@ export class ApprovalListComponent implements OnInit {
         approved: account.approved,
         created: account.created,
         isChecked: false,
-        needsEditing: null
+        needsEditing: null,
+        is_existing_account: account.is_existing_account
       };
       this.accountsListProps[account.id] = acctProps;
       this.setNeedsEditing(account);
@@ -192,13 +213,13 @@ export class ApprovalListComponent implements OnInit {
   }
 
   updateRecord(record) {
-    return this.http.put(`/v1/account/approvals/${record.id}/`, record).pipe(
+    return this.http.put(`${environment.local_service_endpoint}/v1/account/approvals/${record.id}/`, record).pipe(
       tap(response => {
         this.setNeedsEditing(response);
         this.accounts.dataChange.next(this.accounts.data);
-        this.snackBar.open('Success', null, {duration: 2000});
+        this.matSnackBar.open('Success', null, {duration: 2000})
       }),
-      catchError(() => of(this.snackBar.open('Error', null, {duration: 3000})))
+      catchError(() => of(this.matSnackBar.open("Error", null, {duration: environment.snackbar_duration})))
     );
   }
 
@@ -252,31 +273,39 @@ export class ApprovalListComponent implements OnInit {
   }
 
   openApproveOptions() {
-    this.dialog.open(ChooseCreationMethodComponent).afterClosed().pipe(
-      filter(x => x),
-      switchMap(choice => {
-        if (choice === 'password') {
-          return this.openSetPasswordDialog();
-        } else if (choice === 'invitation') {
-          return this.confirmSendInvitation().pipe(map(x => {
-            return {confirmed: x, password: null};
-          }));
-        }
-        return of({confirmed: false});
-      }),
-      filter(x => x.confirmed),
-      switchMap(r => iif(() => r.password,
-        this.createAccounts(r.password),
-        this.createAccounts())
-      )
-    ).subscribe();
+    const new_account_request = this.checkForNewAccounts();
+    if(this.userConfig.portal.toLowerCase() == 'geoplatform') {
+      this.dialog.open(ChooseCreationMethodComponent, {data: {existing_only: !new_account_request}}).afterClosed().pipe(
+        filter(x => x),
+        switchMap(choice => {
+          if (choice === 'password') {
+            return this.openSetPasswordDialog();
+          } else if (choice === 'invitation') {
+            return this.confirmSendNotification().pipe(map(x => {
+              return {confirmed: x, password: null};
+            }));
+          }
+          return of({confirmed: false});
+        }),
+        filter(x => x.confirmed),
+        tap(r => this.createAccounts(r.password))
+      ).subscribe();
+    } else if(this.userConfig.portal.toLowerCase() == 'geosecure'){
+      this.confirmSendNotification().pipe(
+        map(x => {
+          return {confirmed: x, password: null};
+        }),
+        tap(r => this.createAccounts(null))
+      ).subscribe();
+    }
   }
 
-  confirmSendInvitation(): Observable<boolean> {
+  confirmSendNotification(): Observable<boolean> {
     return this.dialog.open(GenericConfirmDialogComponent, {
       width: '400px',
       data: {
-        message: 'This will send auto-generated emails to the approved accounts. Each user must click the link in their email to finish setting up their account. ' +
+        // message: message
+        message: 'This will send auto-generated emails to the approved accounts. Additional instructions will be included in the email for the end user. ' +
           'Please confirm you want to send emails now.'
       }
     }).afterClosed();
@@ -301,7 +330,7 @@ export class ApprovalListComponent implements OnInit {
     return dialogRef.afterClosed().pipe(
       filter(results => results.confirmed),
       // switchMap(results => this.createAccounts(results.password)),
-      // catchError(() => of(this.snackBar.open('Error', null, {duration: 3000})))
+      // catchError(() => of(this.matSnackBar.open('Error')))
     );
   }
 
@@ -320,9 +349,9 @@ export class ApprovalListComponent implements OnInit {
       switchMap(() => this.accounts.delete(selectedRequest.id)),
       switchMap(() => this.accounts.getItems()),
       tap((accountRequests) => {
-        this.snackBar.open('Deleted', null, {duration: 2000});
         this.setAccountsListProps(accountRequests);
         this.clearAllSelected();
+        this.matSnackBar.open('Deleted '+selectedRequest.username);
       }),
       catchError((err) => {
         of(this.handleErrorResponse(err));
@@ -341,40 +370,58 @@ export class ApprovalListComponent implements OnInit {
   }
 
   createAccounts(password?) {
-    return this.http.post('/v1/account/approvals/approve/', {accounts: this.selectedAccountIds, password})
-      .pipe(
-        tap(r => {
-          if (typeof r === 'string') {
-            this.snackBar.open(r, null, {duration: 2000});
-          } else {
-            this.snackBar.open('Success', null, {duration: 2000});
-          }
-          // clear selected accounts after approval issue #33
-          this.clearAllSelected();
-        }),
-        switchMap(() => this.accounts.getItems())
-      );
+
+    const requests = this.selectedAccountIds.map(id => {
+      return this.http.post(`${environment.local_service_endpoint}/v1/account/approvals/approve/`, {account_id: id, password}).pipe(
+        catchError(err => of(err))
+      )
+    });
+
+    forkJoin(requests).subscribe(responses => {
+      if (responses.filter(response => 'error' in response).length > 0) {
+        this.matSnackBar.open(
+          'There was and error with one or more account requests',
+          null,
+          {duration: environment.snackbar_duration, panelClass: ['snackbar-error']}
+        );
+      } else if (responses.filter(response => 'warning' in response).length > 0) {
+        this.matSnackBar.open(
+          'There was an issue added some groups to one or more accounts, please review accordingly',
+          null,
+          {duration: environment.snackbar_duration, panelClass: ['snackbar-warning']}
+        );
+      } else {
+        this.matSnackBar.open(
+          'Success!',
+          null,
+          { duration: environment.snackbar_duration, panelClass: ['snackbar-success'] }
+        );
+      }
+
+      // refresh the list
+      this.accounts.getItems().subscribe();
+    });
   }
 
   handleErrorResponse(err: HttpErrorResponse, customErrorMessages?: string[]) {
     if (err && err.error && err.error.detail) {
-      this.snackBar.open(err.error.detail, null, {
+      this.matSnackBar.open(err.error.detail, null, {
         duration: environment.snackbar_duration, panelClass: ['snackbar-error']
       });
     } else if (err && err.error && typeof err.error === 'string') {
-      this.snackBar.open(err.error, null, {
+      this.matSnackBar.open(err.error, null, {
         duration: environment.snackbar_duration, panelClass: ['snackbar-error']
       });
     } else if (err && err.error && err.error instanceof Array) {
-      this.snackBar.open(`Error: ${JSON.stringify(err.error[0])}`, null, {
+      this.matSnackBar.open(`Error: ${JSON.stringify(err.error[0])}`, null, {
         duration: environment.snackbar_duration, panelClass: ['snackbar-error']
       });
     } else if (customErrorMessages.length > 0) {
-      this.snackBar.open(customErrorMessages.join(', '), null, {
+      this.matSnackBar.open(customErrorMessages.join(', '), null, {
         duration: environment.snackbar_duration, panelClass: ['snackbar-error']
       });
     } else {
-      this.snackBar.open('Error occurred.', null, {
+      this.matSnackBar.open('Error occurred.', null, {
         duration: environment.snackbar_duration, panelClass: ['snackbar-error']
       });
     }
@@ -384,4 +431,9 @@ export class ApprovalListComponent implements OnInit {
     this.accounts.getPage(e);
     this.clearAllSelected();
   }
+
+  checkForNewAccounts() {
+    return this.selectedAccountIds.find(id => !this.accountsListProps[id].is_existing_account) !== undefined;
+  }
+
 }

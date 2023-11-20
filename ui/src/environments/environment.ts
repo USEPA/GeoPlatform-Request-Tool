@@ -5,11 +5,10 @@
 
 export const environment = {
   production: true,
-  oauth_url: 'http://localhost:8000/api/oauth2',
-  local_service_endpoint: 'http://localhost:8000/api',
+  oauth_url: 'http://localhost:4200/api/oauth2',
+  local_service_endpoint: '/api',
   local_test_service_endpoint: 'http://localhost:9876/api',
-  api_url: 'http://localhost:8000/api',
-  recaptcha_siteKey: '6LeXQboUAAAAAANBXP4FTZ3Pp9MOazFhXaF5CzQN',
+  recaptcha_siteKey: '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI',
   snackbar_duration: 6000
 };
 

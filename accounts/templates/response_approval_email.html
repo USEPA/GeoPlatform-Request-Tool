@@ -1,8 +1,12 @@
-The GeoPlatform Account Request Tool Response/Project <b>{{ response_project.name }}</b> has been approved.
+The Account Request Tool Response/Project <b>{{ response_project.name }}</b> has been approved.
 <p>
-    You can now start accepting and approving requests.<br/>
-    Account requests can be submitted here: <a href="{{ request_url }}">{{ request_url }}</a><br/>
-    Requests can be reviewed and approved here: <a href="{{ approval_url }}">{{ approval_url }}</a><br/>
+    <ul>
+        <li>You can now start accepting and approving requests.</li>
+        <li>Account requests can be submitted here: <a href="{{ request_url }}">{{ request_url }}</a></li>
+        <li>Requests can be reviewed and approved here: <a href="{{ approval_url }}">{{ approval_url }}</a></li>
+        <li>One or more "Delegates" can be designated to review and approve account requests on behalf of the Sponsor. Sponsors must be EPA staff; Delegates can be contractors.
+            If you'd like to set any Delegates or add extra Sponsors, please reply to this email with a list of users and their email addresses.</li>
+    </ul>
 </p>
 
 {% include "signature_line.html" %}

@@ -32,57 +32,52 @@ import {CommonModule} from '@angular/common';
 
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    HomeComponent,
-    RequestFormComponent,
-    ApprovalListComponent,
-    ConfirmApprovalDialogComponent,
-    EditAccountPropsDialogComponent,
-    RequestFieldCoordDialogComponent,
-    FilterInputComponent,
-    TagInputComponent,
-    FieldCoordListComponent,
-    FieldCoordErRequestFormComponent,
-    ChooseCreationMethodComponent,
-    GenericConfirmDialogComponent,
-    ResponseProjectRequestDialogComponent
-  ],
-  imports: [
-    CommonModule,
-    BrowserModule,
-    AuthModule,
-    AppRoutingModule,
-    CdkTableModule,
-    HttpClientModule,
-    BrowserAnimationsModule,
-    // RestangularModule.forRoot([LoginService], RestangularConfigFactory),
-    FormsModule,
-    ReactiveFormsModule,
-    RecaptchaModule,
-    CustomMaterialModule,
-    RecaptchaFormsModule,
-    HttpClientXsrfModule.withOptions({ cookieName: 'requestcsrftoken', headerName: 'X-CSRFToken' }),
-  ],
-  providers: [{
-    provide: RECAPTCHA_SETTINGS,
-    useValue: {
-      siteKey: environment.recaptcha_siteKey
-    } as RecaptchaSettings,
-    },
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: HttpRequestInterceptor,
-      multi: true
-    },
-    LoadingService,
-  ],
-  bootstrap: [AppComponent],
-  entryComponents: [
-    ConfirmApprovalDialogComponent,
-    EditAccountPropsDialogComponent,
-    RequestFieldCoordDialogComponent
-  ]
+    declarations: [
+        AppComponent,
+        HomeComponent,
+        RequestFormComponent,
+        ApprovalListComponent,
+        ConfirmApprovalDialogComponent,
+        EditAccountPropsDialogComponent,
+        RequestFieldCoordDialogComponent,
+        FilterInputComponent,
+        TagInputComponent,
+        FieldCoordListComponent,
+        FieldCoordErRequestFormComponent,
+        ChooseCreationMethodComponent,
+        GenericConfirmDialogComponent,
+        ResponseProjectRequestDialogComponent
+    ],
+    imports: [
+        CommonModule,
+        BrowserModule,
+        AuthModule,
+        AppRoutingModule,
+        CdkTableModule,
+        HttpClientModule,
+        BrowserAnimationsModule,
+        // RestangularModule.forRoot([LoginService], RestangularConfigFactory),
+        FormsModule,
+        ReactiveFormsModule,
+        RecaptchaModule,
+        CustomMaterialModule,
+        RecaptchaFormsModule,
+        HttpClientXsrfModule.withOptions({ cookieName: 'requestcsrftoken', headerName: 'X-CSRFToken' }),
+    ],
+    providers: [{
+            provide: RECAPTCHA_SETTINGS,
+            useValue: {
+                siteKey: environment.recaptcha_siteKey
+            } as RecaptchaSettings,
+        },
+        // {
+        //     provide: HTTP_INTERCEPTORS,
+        //     useClass: HttpRequestInterceptor,
+        //     multi: true
+        // },
+        LoadingService,
+    ],
+    bootstrap: [AppComponent]
 })
 export class AppModule {
 }

@@ -1,6 +1,6 @@
 import {Component, Inject, OnInit} from '@angular/core';
-import {FormControl, FormGroup, Validators} from '@angular/forms';
-import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
+import {UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
+import {MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogRef as MatDialogRef} from '@angular/material/legacy-dialog';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {ReplaySubject} from 'rxjs';
 import {map, tap} from 'rxjs/operators';
@@ -18,14 +18,14 @@ import {AgolGroup} from '../edit-account-props-dialog/edit-account-props-dialog.
   styleUrls: ['./request-field-coord-dialog.component.css']
 })
 export class RequestFieldCoordDialogComponent implements OnInit {
-  requestFieldCoordForm: FormGroup = new FormGroup({
-    first_name: new FormControl(null, [Validators.required]),
-    last_name: new FormControl(null, [Validators.required]),
-    phone_number: new FormControl(null, [Validators.required,
+  requestFieldCoordForm: UntypedFormGroup = new UntypedFormGroup({
+    first_name: new UntypedFormControl(null, [Validators.required]),
+    last_name: new UntypedFormControl(null, [Validators.required]),
+    phone_number: new UntypedFormControl(null, [Validators.required,
       Validators.pattern('[2-9]\\d{9}')]),
-    email: new FormControl(null, [Validators.required, Validators.email]),
-    agol_user: new FormControl(null, [Validators.required]),
-    emergency_response: new FormControl(null)
+    email: new UntypedFormControl(null, [Validators.required, Validators.email]),
+    agol_user: new UntypedFormControl(null, [Validators.required]),
+    emergency_response: new UntypedFormControl(null)
   });
 
   constructor(public dialogRef: MatDialogRef<RequestFieldCoordDialogComponent>,
