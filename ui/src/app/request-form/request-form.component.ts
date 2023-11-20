@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {HttpClient, HttpErrorResponse, HttpParams} from '@angular/common/http';
-import {BehaviorSubject, Observable, of} from 'rxjs';
+import {BehaviorSubject, iif, Observable, of, switchMap} from 'rxjs';
 import {catchError, finalize, map, share, tap} from 'rxjs/operators';
 import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-bar';
 import {environment} from '../../environments/environment';
@@ -33,20 +33,32 @@ export class RequestFormComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.setResponses()
+  }
+
+  setResponses() {
     const queryParams = this.activatedRoute.snapshot.queryParamMap;
     const params = {
       is_disabled: false,
       id_in: queryParams.has('response') ? queryParams.get('response') : ''
     };
-    this.responses = this.http.get<Response[]>(
-      `${environment.local_service_endpoint}/v1/responses/`,
-      {params}
-    ).pipe(
+    this.responses = this.getResponseChoices(params).pipe(
       tap(r => {
         if (r.length === 1) {
           this.requestForm.patchValue({response: r[0].id});
         }
       })
+    );
+  }
+
+  getResponseChoices(params: any = {}): Observable<Response[]> {
+    return this.http.get<Response[]>(
+      `${environment.local_service_endpoint}/v1/responses/`,
+      {params}
+    ).pipe(
+      switchMap(r => iif(() => r.length === 0,
+        this.getResponseChoices(),
+        of(r)))
     );
   }
 

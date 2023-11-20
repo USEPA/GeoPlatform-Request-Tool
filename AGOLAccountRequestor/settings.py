@@ -182,7 +182,7 @@ LOGGING = DEFAULT_LOGGING
 
 LOGGING['handlers']['slack'] = {
     'level': 'ERROR',
-    # 'filters': ['require_debug_false'],
+    'filters': ['require_debug_false'],
     'class': 'slack_logging.SlackExceptionHandler',
     'bot_token': os.environ.get('SLACK_BOT_TOKEN', ''),
     'channel_id': os.environ.get('SLACK_CHANNEL', '')

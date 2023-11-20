@@ -322,8 +322,8 @@ class ResponseProjectAdmin(admin.ModelAdmin):
     search_fields = ['name']
     ordering = ['name']
     fields = ['name', 'requester', 'users', 'assignable_groups', 'role', 'authoritative_group', 'default_reason',
-              'approved', 'approved_by', 'disabled', 'disabled_by', 'disable_users_link', 'portal']
-    readonly_fields = ['approved', 'approved_by', 'disabled', 'disabled_by', 'disable_users_link']
+              'approved', 'approved_by', 'disabled', 'disabled_by', 'request_url_link', 'disable_users_link', 'portal']
+    readonly_fields = ['approved', 'approved_by', 'disabled', 'disabled_by', 'request_url_link', 'disable_users_link']
     autocomplete_fields = ['users', 'assignable_groups']
     inlines = [AccountRequestsInline, PendingNotificationInline]
     list_filter = ['disabled', 'approved']
@@ -369,6 +369,11 @@ class ResponseProjectAdmin(admin.ModelAdmin):
 
     def disable_users_link(self, obj):
         return mark_safe(f'<a target=_blank href="{obj.disable_users_link}">Relevant Response/Project Accounts List</a>')
+
+    def request_url_link(self, obj):
+        if obj.disabled:
+            return None
+        return mark_safe(f'<a target=_blank href="{obj.request_url}">Account Request Shortcut Link</a>')
 
     def get_urls(self):
         from django.urls import path
