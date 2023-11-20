@@ -31,7 +31,7 @@ x-common-variables: &common-variables
 
 services:
   db:
-    image: postgres:11
+    image: postgres:14
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
   api:
