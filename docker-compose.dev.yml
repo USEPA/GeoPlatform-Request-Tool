@@ -3,7 +3,7 @@ version: '3.7'
 services:
   db:
     volumes:
-      - requesttool_db12:/var/lib/postgresql/data
+      - requesttool_db14:/var/lib/postgresql/data
     ports:
       - "5432:5432"
   api:
@@ -15,4 +15,4 @@ services:
       - db
 
 volumes:
-  requesttool_db12:
+  requesttool_db14:
