@@ -154,9 +154,8 @@ class AGOLRole(models.Model):
     def clean(self):
         if self.system_default:
             if (self.pk and AGOLRole.objects.filter(system_default=True, agol=self.agol).exclude(
-                    pk=self.pk).exists()) or \
-                    AGOLRole.objects.filter(system_default=True, agol=self.agol).exists():
-                raise ValidationError({'system_default': 'You cannot have more than one system default.'})
+                    pk=self.pk).exists()):
+                raise ValidationError({'system_default': 'You cannot have more than one system default. Remove current default to select a new one.'})
 
 
 class AGOL(models.Model):

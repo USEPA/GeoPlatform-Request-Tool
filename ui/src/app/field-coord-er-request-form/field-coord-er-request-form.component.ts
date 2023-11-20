@@ -38,7 +38,7 @@ export class FieldCoordErRequestFormComponent implements OnInit {
   });
   responseService: BaseService;
   roleService: BaseService;
-  reasons: Observable<Choice[]>;
+  reasons: BehaviorSubject<Choice[]> = new BehaviorSubject<Choice[]>([]);
   roles: BehaviorSubject<AGOLRole[]> = new BehaviorSubject<AGOLRole[]>([]);
 
   constructor(public http: HttpClient, public matSnackBar: MatSnackBar, public userConfig: UserConfigService,
@@ -126,9 +126,10 @@ export class FieldCoordErRequestFormComponent implements OnInit {
   }
 
   initReasons() {
-    this.reasons = this.responseService.options().pipe(
-      map(r => r.actions.POST.default_reason.choices)
-    );
+    this.responseService.options().pipe(
+      map(r => r.actions.POST.default_reason.choices),
+      tap(r => this.reasons.next(r))
+    ).subscribe();
   }
 
   initRoles() {
