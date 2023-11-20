@@ -69,7 +69,7 @@ describe('approver workflow', () => {
     cy.get('button').contains('Configure New Response / Project').click();
     cy.get('input[formcontrolname="name"]').type('Test')
     cy.get('mat-select[formcontrolname="default_reason"]').click();
-    cy.get('mat-option', {timeout: 30000}).contains('Emergency Response').click();
+    cy.get('mat-option').contains('Emergency Response').click();
     cy.get('app-tag-input').type('test');
     cy.get('mat-option').first().click();
     cy.get('mat-select[formcontrolname="authoritative_group"]').click();
@@ -118,7 +118,8 @@ describe('approver workflow', () => {
     cy.wait(1000);
     cy.get('mat-select[formcontrolname="groups"].mat-select-disabled').should('not.exist')
     cy.get('mat-select[formcontrolname="groups"]').click();
-    cy.get('.mat-option-text').contains('Test').click().type('{esc}');
+    cy.get('.mat-option-text').contains('Test').click();
+    cy.get('body').click()
     cy.get('button').contains('Submit').click();
     cy.get('span[class="mat-simple-snack-bar-content"]').should('contain', 'Success');
   })
