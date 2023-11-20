@@ -516,6 +516,10 @@ class ResponseProject(models.Model):
         return ','.join([f'{u.first_name} {u.last_name}' for u in self.users.all()])
 
     @property
+    def request_url(self):
+        return f"{settings.HOST_ADDRESS}?response={self.pk}"
+
+    @property
     def disable_users_link(self):
         # # define link to relevant user accounts using AGOL/portal of response/project being modified
         # agol = self.portal
@@ -574,7 +578,7 @@ class ResponseProject(models.Model):
     def generate_approval_email(self):
         try:
             recipients = self.get_email_recipients()
-            request_url = f"{settings.HOST_ADDRESS}?response={self.pk}"
+            request_url = self.request_url
             approval_url = f"{settings.HOST_ADDRESS}/accounts/list?{self.portal}"
             email_subject = f"{self.portal} Account Response/Project {self.name} has been approved"
             msg = render_to_string('response_approval_email.html', {
