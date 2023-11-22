@@ -17,7 +17,8 @@ from django.utils.translation import gettext_lazy as _
 import re
 import logging
 from .func import get_response_from_request, get_role_from_request
-from dal import autocomplete
+from dal import autocomplete, forward
+
 email_domain_regex = re.compile(r"(^[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)")
 
 from .models import *
@@ -25,13 +26,12 @@ from .models import *
 logger = logging.getLogger('django')
 
 # hack to make full name show up in autocomplete b/c nothing else worked
-# User.__str__ = lambda x: f"{x.first_name} {x.last_name} ({x.agol_info.portal.portal_name if hasattr(x, 'agol_info') and x.agol_info.portal is not None else ''})"
+User.__str__ = lambda x: f"{x.first_name} {x.last_name} ({x.agol_info.portal.portal_name if hasattr(x, 'agol_info') and x.agol_info.portal is not None else ''})"
 # # make admin panel show full name and portal of currently logged in user
-# def _get_short_name_(user_instance):
-#     return f"{user_instance.first_name} {user_instance.last_name} ({user_instance.agol_info.portal if hasattr(user_instance, 'agol_info') and user_instance.agol_info.portal is not None else ''})"
+def _get_short_name_(user_instance):
+    return f"{user_instance.first_name} {user_instance.last_name} ({user_instance.agol_info.portal if hasattr(user_instance, 'agol_info') and user_instance.agol_info.portal is not None else ''})"
 
-
-# User.get_short_name = _get_short_name_
+User.get_short_name = _get_short_name_
 
 class AGOLAdminForm(ModelForm):
     def clean_enterprise_precreate_domains(self):
@@ -276,6 +276,7 @@ class RequestAdmin(admin.ModelAdmin):
 #         queryset.update(system_default=True)
 
 
+
 @admin.register(AGOLRole)
 class AGOLRoleAdmin(admin.ModelAdmin):
     list_display = ['name', 'is_available', 'system_default', 'agol']
@@ -316,13 +317,25 @@ class ResponseProjectForm(ModelForm):
             self.fields['users'].required = True
             self.fields['requester'].required = True
             self.fields['authoritative_group'].required = True
+            self.fields['role'].required = True
 
     class Meta:
         model = ResponseProject
         fields = '__all__'
         widgets = {
             'authoritative_group': autocomplete.ModelSelect2(url='agolgroup-autocomplete',
-                                                             forward=['role'])
+                                                             forward=['role']),
+            'requester': autocomplete.ModelSelect2(url='user-autocomplete',
+                                                   forward=['portal']),
+            'users': autocomplete.ModelSelect2Multiple(url='user-autocomplete',
+                                                  forward=[
+                                                      'portal',
+                                                      forward.Const(True, 'agol_info__sponsor')
+                                                  ]),
+            'assignable_groups': autocomplete.ModelSelect2Multiple(url='agolgroup-autocomplete',
+                                                                forward=['portal']),
+            'role': autocomplete.ModelSelect2(url='agolrole-autocomplete',
+                                              forward=['portal'])
         }
 
     class Media:
@@ -357,15 +370,15 @@ class ResponseProjectAdmin(admin.ModelAdmin):
             return self.readonly_fields + ['portal']
         return self.readonly_fields
 
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        response_id = request.resolver_match.kwargs.get('object_id', None)
-        if db_field.name == "requester":
-            kwargs["queryset"] = User.objects.filter(agol_info__portal__responses=response_id)
-
-        if db_field.name == "role":
-            kwargs["queryset"] = AGOLRole.objects.filter(agol__responses=response_id, is_available=True)
-
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+    # def formfield_for_foreignkey(self, db_field, request, **kwargs):
+    #     response_id = request.resolver_match.kwargs.get('object_id', None)
+    #     if db_field.name == "requester":
+    #         kwargs["queryset"] = User.objects.filter(agol_info__portal__responses=response_id)
+    #
+    #     if db_field.name == "role":
+    #         kwargs["queryset"] = AGOLRole.objects.filter(agol__responses=response_id, is_available=True)
+    #
+    #     return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         response = super(ResponseProjectAdmin, self).change_view(request, object_id, form_url, extra_context)

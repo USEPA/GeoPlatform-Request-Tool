@@ -1,19 +1,23 @@
 (function ($) {
 
     $(document).ready(function () {
-        let skip = true;
-        // Bind on continent field change
+        let skip = {role: true, portal: true};
         $(':input[name$=role]').on('change', function () {
-            if (!skip) {
-
-
-                // Get the field prefix, ie. if this comes from a formset form
-                // var prefix = $(this).getFormPrefix();
-
-                // Clear the autocomplete with the same prefix
+            if (!skip.role) {
                 $(':input[name=authoritative_group]').val(null).trigger('change');
             } else {
-                skip = false;
+                skip.role = false;
+            }
+        });
+        $(':input[name$=portal]').on('change', function () {
+            if (!skip.portal) {
+                $(':input[name=requester]').val(null).trigger('change');
+                $(':input[name=users]').val(null).trigger('change');
+                $(':input[name=assignable_groups]').val(null).trigger('change');
+                $(':input[name=authoritative_group]').val(null).trigger('change');
+                $(':input[name=role]').val(null).trigger('change');
+            } else {
+                skip.portal = false;
             }
         });
     });

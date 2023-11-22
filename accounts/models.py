@@ -498,8 +498,7 @@ class ResponseProject(models.Model):
     assignable_groups = models.ManyToManyField('AGOLGroup', related_name='response',
                                                verbose_name='Assignable Groups')
     role = models.ForeignKey('AGOLRole', on_delete=models.PROTECT, verbose_name='Role',
-                             limit_choices_to={'is_available': True}, null=True, blank=True,
-                             help_text='System default will be used if left blank.', related_name='responses')
+                             limit_choices_to={'is_available': True}, related_name='responses')
     authoritative_group = models.ForeignKey('AGOLGroup', on_delete=models.PROTECT,
                                             verbose_name='Authoritative Group', blank=True, null=True,
                                             limit_choices_to={'is_auth_group': True})

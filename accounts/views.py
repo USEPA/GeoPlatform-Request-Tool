@@ -1,3 +1,5 @@
+from django.db.models.functions import Concat
+from django.db.models import Value
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.mixins import CreateModelMixin
 from rest_framework.permissions import AllowAny, BasePermission, IsAuthenticated, IsAuthenticatedOrReadOnly
@@ -11,6 +13,7 @@ from django.db.models import Q, Count, F
 from django.template.response import TemplateResponse
 from django.utils.timezone import now
 from django.core.exceptions import ObjectDoesNotExist
+from django.urls import resolve
 
 from .filters import AGOLGroupFilterSet
 from .models import *
@@ -30,6 +33,30 @@ def format_username(data, enterprise_domains=None):
         username_extension = 'EPAEXT' if '@epa.gov' not in data['email'] else 'EPA'
         username = f'{data["last_name"].capitalize()}.{data["first_name"].capitalize()}_{username_extension}'
     return username.replace(' ', '')
+
+
+class DALAutocompleteMixin:
+    @action(['get'], detail=False)
+    def autocomplete(self, request):
+        if 'q' in self.request.query_params:
+            self.request.query_params._mutable = True
+            self.request.query_params['search'] = self.request.query_params.pop('q')[0]
+        forwarded = json.loads(self.request.query_params.get('forward', '{}'))
+
+        # covert incoming fields to target filters
+        for f, t in self.autocomplete_config.get('field_walk', {}).items():
+            if f in forwarded:
+                forwarded[t] = forwarded.pop(f)
+        try:
+            groups_qs = self.filter_queryset(self.get_queryset()).filter(**forwarded)
+            if 'display_field' in self.autocomplete_config:
+                groups_qs = groups_qs.annotate(text=self.autocomplete_config['display_field'])
+        except ValueError:
+            return Response({'results': [{'id': None, 'text': 'Could not locate matching record'}]})
+        results = []
+        for g in groups_qs:
+            results.append({'id': g.id, 'text': g.text if 'display_field' in self.autocomplete_config else str(g)})
+        return Response({'results': results})
 
 
 class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
@@ -252,7 +279,7 @@ class AccountViewSet(ModelViewSet):
         return TemplateResponse(request, 'invitation_email_body.html', {"account_request": account_request, "PORTAL": account_request.response.portal})
 
 
-class AGOLGroupViewSet(ReadOnlyModelViewSet):
+class AGOLGroupViewSet(DALAutocompleteMixin, ReadOnlyModelViewSet):
     queryset = AGOLGroup.objects.none()
     serializer_class = AGOLGroupSerializer
     ordering = ['title']
@@ -260,11 +287,15 @@ class AGOLGroupViewSet(ReadOnlyModelViewSet):
     pagination_class = None
     filterset_class = AGOLGroupFilterSet
     search_fields = ['title']
+    autocomplete_config = {'field_walk': {'role': 'roles', 'portal': 'agol'}, 'display_field': F('title')}
 
     # only show groups for which the user has access per agol group fields assignable groups
     def get_queryset(self):
+        if self.request.user.is_superuser:
+            return AGOLGroup.objects.all()
         sponsors = User.objects.filter(agol_info__delegates=self.request.user)
-        return AGOLGroup.objects.filter(Q(agol_id=self.request.user.agol_info.portal_id) &  Q(response__users=self.request.user) | Q(response__users__in=sponsors))
+        return AGOLGroup.objects.filter(Q(agol_id=self.request.user.agol_info.portal_id) &
+                                        Q(response__users=self.request.user) | Q(response__users__in=sponsors))
 
     def get_permissions(self):
         if self.action == 'all':
@@ -282,18 +313,6 @@ class AGOLGroupViewSet(ReadOnlyModelViewSet):
             })
         sorted_group_list = natsorted(groups_list, key=lambda x: x['title'])
         return Response(sorted_group_list)
-
-    @action(['get'], detail=False)
-    def autocomplete(self, request):
-        if 'q' in self.request.query_params:
-            self.request.query_params._mutable = True
-            self.request.query_params['search'] = self.request.query_params.pop('q')[0]
-        roles = json.loads(self.request.query_params.get('forward', '{}')).get('role', None)
-        groups_qs = self.filter_queryset(self.get_queryset()).filter(roles=roles).annotate(text=F('title'))
-        results = []
-        for g in groups_qs:
-            results.append({'id': g.id, 'text': str(g)})
-        return Response({'results': results})
 
 
 class ResponseProjectFilterSet(FilterSet):
@@ -343,29 +362,42 @@ class ResponseProjectViewSet(ModelViewSet):
             return self.queryset.filter(portal_id=user_portal)
         return self.queryset
 
-class SponsorsViewSet(ReadOnlyModelViewSet):
+class SponsorsViewSet(DALAutocompleteMixin, ReadOnlyModelViewSet):
     queryset = User.objects.filter(agol_info__sponsor=True)
     serializer_class = SponsorSerializer
     ordering = ['last_name']
     permission_classes = [IsAuthenticated]
     search_fields = ['last_name', 'first_name', 'email']
-    filterset_fields = ['response', 'agol_info__delegates', 'agol_info__portal__user']
+    filterset_fields = ['response', 'agol_info__delegates', 'agol_info__portal__user', 'agol_info__sponsor']
+    autocomplete_config = {'field_walk': {'portal': 'agol'}}
 
+    # superuser can change portal so need broader access
     def get_queryset(self):
+        if resolve(self.request.path_info).url_name == 'user-autocomplete':
+            if self.request.user.is_superuser:
+                return User.objects.all()
+
+            if self.request.user.has_perm('auth.view_user'):
+                return User.objects.all().filter(agol_info__portal=self.request.user.agol_info.portal)
+
         return self.queryset.filter(agol_info__portal=self.request.user.agol_info.portal)
 
 
-class AGOLRoleViewSet(ReadOnlyModelViewSet):
-    queryset = AGOLRole.objects.all()
+class AGOLRoleViewSet(DALAutocompleteMixin, ReadOnlyModelViewSet):
+    queryset = AGOLRole.objects.filter(is_available=True)
     serializer_class = AGOLRoleSerializer
     ordering = ['system_default', 'name']
     permission_classes = [IsAuthenticated] # todo: can we remove this adn just assign read permission now?
     search_fields = ['name', 'description']
     filterset_fields = ['system_default', 'is_available']
+    autocomplete_config = {'display_field': F('name'), 'field_walk': {'portal': 'agol'}}
 
     def get_queryset(self):
+        if self.request.user.is_superuser:
+            return super().get_queryset()
+
         # filter role options based on currently logged in user association
-        return self.queryset.filter(Q(agol=self.request.user.agol_info.portal))
+        return super().get_queryset().filter(Q(agol=self.request.user.agol_info.portal))
 
 # class PendingNotificationViewSet(ReadOnlyModelViewSet):
 #     queryset = Notification.objects.filter(sent__isnull=True)
