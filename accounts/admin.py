@@ -275,6 +275,7 @@ class RequestAdmin(admin.ModelAdmin):
 #         AGOLRole.objects.filter().update(system_default=False)
 #         queryset.update(system_default=True)
 
+
 class AGOLRoleForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
