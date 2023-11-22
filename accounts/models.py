@@ -151,6 +151,10 @@ class AGOLRole(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def auth_group_required(self):
+        return self.agol.requires_auth_group
+
     def clean(self):
         if self.system_default:
             if (self.pk and AGOLRole.objects.filter(system_default=True, agol=self.agol).exclude(pk=self.pk).exists()):
@@ -167,6 +171,7 @@ class AGOL(models.Model):
     allow_external_accounts = models.BooleanField(default=False, help_text='Allow external (non-enterprise) accounts to be created.')
     enterprise_precreate_domains = models.TextField(null=True, blank=True, verbose_name='Email domains for enterprise accounts',
                                                     help_text='Separate email domains with comma (e.g. gmail.com,hotmail.com). Value required if external account creation is not allowed')
+    requires_auth_group = models.BooleanField(default=True)
 
     @property
     def enterprise_precreate_domains_list(self):
@@ -534,11 +539,15 @@ class ResponseProject(models.Model):
         url = f"{reverse('admin:accounts_accountrequests_changelist')}?response__id__exact={self.pk}"
         return url
 
+    @property
+    def auth_group_required(self):
+        return self.portal.requires_auth_group
+
     def can_be_disabled(self):
         return not self.requests.filter(approved__isnull=True).exists()
 
     def clean(self):
-        if not self.role.auth_groups.filter(id=self.authoritative_group_id).exists():
+        if self.auth_group_required and not self.role.auth_groups.filter(id=self.authoritative_group_id).exists():
             raise ValidationError({"authoritative_group": "The Authoritative Group must be available under the selected Role. "
                                   "Check the Role's allowed Authoritative Groups."})
 

@@ -48,7 +48,7 @@ class AGOLAdminForm(ModelForm):
 
     class Meta:
         model = AGOL
-        fields = ['portal_name', 'portal_url', 'user', 'allow_external_accounts',
+        fields = ['portal_name', 'portal_url', 'user', 'allow_external_accounts', 'requires_auth_group',
                   'enterprise_precreate_domains']
 
 
@@ -275,6 +275,15 @@ class RequestAdmin(admin.ModelAdmin):
 #         AGOLRole.objects.filter().update(system_default=False)
 #         queryset.update(system_default=True)
 
+class AGOLRoleForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if kwargs.get('instance', False):
+            self.fields['auth_groups'].required = kwargs['instance'].auth_group_required
+
+    class Meta:
+        model = AGOLRole
+        fields = ['name', 'id', 'description', 'agol', 'is_available', 'system_default', 'auth_groups']
 
 
 @admin.register(AGOLRole)
@@ -283,9 +292,10 @@ class AGOLRoleAdmin(admin.ModelAdmin):
     search_fields = ['name', 'description']
     ordering = ['-is_available', 'agol', 'name']
     list_filter = ['is_available', 'agol']
-    fields = ['name', 'id', 'description', 'agol', 'is_available', 'system_default', 'auth_groups']
     readonly_fields = ['name', 'id', 'description', 'agol']
     autocomplete_fields = ['auth_groups']
+    form = AGOLRoleForm
+    fields = ['name', 'id', 'description', 'agol', 'is_available', 'system_default', 'auth_groups']
     # actions = [set_system_default] removed b/c its more complicated with multiple agols
 
     def has_add_permission(self, request):
@@ -316,8 +326,9 @@ class ResponseProjectForm(ModelForm):
         if kwargs.get('instance', False):
             self.fields['users'].required = True
             self.fields['requester'].required = True
-            self.fields['authoritative_group'].required = True
             self.fields['role'].required = True
+            if kwargs['instance'].auth_group_required:
+                self.fields['authoritative_group'].required = True
 
     class Meta:
         model = ResponseProject
