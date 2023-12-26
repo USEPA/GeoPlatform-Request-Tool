@@ -229,7 +229,7 @@ class RequestAdmin(admin.ModelAdmin):
     fields = ['first_name', 'last_name', 'email', 'possible_existing_account', 'existing_account_enabled', 'organization', 'username',
               'username_valid', 'user_type', 'role', 'auth_group', 'sponsor', 'sponsor_notified', 'reason',
               'approved', 'approved_by', 'created', 'response', 'is_existing_account']
-    readonly_fields = ['possible_existing_account', 'username_valid', 'sponsor_notified', 'approved', 'created',
+    readonly_fields = ['possible_existing_account', 'username', 'username_valid', 'sponsor_notified', 'approved', 'created',
                        'is_existing_account', 'existing_account_enabled', 'approved_by']
     inlines = [GroupAdminInline, PendingNotificationInline]
     actions = ['disable_account_action']

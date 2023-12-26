@@ -46,7 +46,7 @@ class AccountRequests(models.Model):
     is_existing_account = models.BooleanField(default=False)
     existing_account_enabled = models.BooleanField(default=False)
     organization = models.CharField(max_length=200)
-    username = models.CharField(max_length=200)
+    username = models.CharField(max_length=200, help_text='User frontend to modify username.')
     username_valid = models.BooleanField(default=False)
     user_type = models.CharField(max_length=200, choices=USER_TYPE_CHOICES, default='creatorUT')
     role = models.ForeignKey('AGOLRole', on_delete=models.DO_NOTHING, blank=True, null=True, related_name='account_requests')
