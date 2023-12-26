@@ -59,7 +59,7 @@
     </mat-select>
   </mat-form-field>
   <!--authoritative group-->
-  <mat-form-field>
+  <mat-form-field *ngIf="(userConfig.config | async)?.portal_requires_auth_group">
     <mat-select formControlName="authoritative_group" placeholder="Primary Auth Group" aria-label="Primary Auth Group">
       <mat-option *ngFor="let authGroupChoice of auth_groups | async" [value]="authGroupChoice.id">
         {{authGroupChoice.title}}

@@ -31,7 +31,7 @@ export class FieldCoordErRequestFormComponent implements OnInit {
     users: new FormControl(null),
     assignable_groups: new FormControl(null, Validators.required),
     requester: new FormControl(null, Validators.required),
-    authoritative_group: new FormControl(null, Validators.required),
+    authoritative_group: new FormControl(null),
     default_reason: new FormControl(null, Validators.required),
     role: new FormControl(null, Validators.required),
     portal: new FormControl()
@@ -77,11 +77,16 @@ export class FieldCoordErRequestFormComponent implements OnInit {
               });
           }
         }
+        // only get auth groups if they are required
+        this.initRoles(r[1].portal_requires_auth_group);
+        if(r[1].portal_requires_auth_group) {
+          this.fieldTeamCoordErForm.controls['authoritative_group'].setValidators(Validators.required);
+        }
       })
     ).subscribe();
 
     this.initReasons();
-    this.initRoles();
+
 
     // this.fieldTeamCoordErForm.controls.role.valueChanges.pipe(
     //   switchMap(v => this.getAuthGroups(v)),
@@ -132,7 +137,7 @@ export class FieldCoordErRequestFormComponent implements OnInit {
     ).subscribe();
   }
 
-  initRoles() {
+  initRoles(getAuthGroups: boolean) {
     this.roleService.getList<AGOLRole>({is_available: true}).pipe(
       map(r => r.results),
       tap(r => {
@@ -140,7 +145,9 @@ export class FieldCoordErRequestFormComponent implements OnInit {
         const default_role = r.find(x => x.system_default);
         if (default_role) {
           this.fieldTeamCoordErForm.patchValue({role: default_role.id});
-          this.getAuthGroups(default_role.id);
+          if (getAuthGroups) {
+            this.getAuthGroups(default_role.id);
+          }
         }
       })
     ).subscribe();
