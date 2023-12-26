@@ -359,9 +359,9 @@ class ResponseProjectAdmin(admin.ModelAdmin):
     search_fields = ['name']
     ordering = ['name']
     fields = ['name', 'requester', 'users', 'assignable_groups', 'role', 'authoritative_group', 'default_reason',
-              'approved', 'approved_by', 'disabled', 'disabled_by', 'disable_users_link', 'portal']
+              'approved', 'approved_by', 'disabled', 'disabled_by', 'disable_users_link', 'portal', 'protected_datasets']
     readonly_fields = ['approved', 'approved_by', 'disabled', 'disabled_by', 'disable_users_link']
-    autocomplete_fields = ['users', 'assignable_groups']
+    autocomplete_fields = ['users', 'assignable_groups', 'protected_datasets']
     inlines = [PendingNotificationInline]
     list_filter = ['disabled', 'approved']
     form = ResponseProjectForm
@@ -492,3 +492,9 @@ class PendingNotificationAdmin(admin.ModelAdmin):
     list_display = ['to_emails', 'subject', 'sent']
     fields = ['to', 'subject', 'content', 'sent']
     readonly_fields = ['sent']
+
+
+@admin.register(ProtectedDataset)
+class ProtectedDatasetAdmin(admin.ModelAdmin):
+    list_display = ['name']
+    search_fields = ['name']

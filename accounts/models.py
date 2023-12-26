@@ -515,6 +515,7 @@ class ResponseProject(models.Model):
     approved_by = models.ForeignKey(User, models.PROTECT, 'approved_responses', null=True, blank=True)
     requester = models.ForeignKey(User, models.PROTECT, 'requested_responses', null=True, blank=True)
     notifications = GenericRelation('Notification')
+    protected_datasets = models.ManyToManyField('ProtectedDataset')
 
     def __str__(self):
         return self.name
@@ -676,3 +677,10 @@ class Notification(models.Model):
         if results == 1:
             self.sent = datetime.now()
             self.save()
+
+
+class ProtectedDataset(models.Model):
+    name = models.CharField(max_length=500)
+
+    def __str__(self):
+        return self.name
