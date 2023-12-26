@@ -3,6 +3,7 @@ from django.utils.timezone import now
 from .models import AccountRequests, AGOL, GroupMembership, AGOLGroup, Notification, ResponseProject
 from uuid import UUID
 import logging
+import requests
 
 logger = logging.getLogger('django')
 
@@ -123,3 +124,9 @@ def get_response_from_request(request):
     return None
 
 
+def email_not_associated_with_existing_account(account_request: AccountRequests):
+    # skip this if its not an existing account
+    if not account_request.is_existing_account:
+        return True
+    associated_usernames = account_request.possible_existing_account.split(',')
+    return account_request.username not in associated_usernames

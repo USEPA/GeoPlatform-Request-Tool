@@ -40,11 +40,15 @@
         </button>
       </mat-form-field>
       <!--Action Buttons-->
-      <div
-        style="display: flex; flex-direction: row; align-items: center; justify-content: space-evenly; padding-right: 25px;">
+
+      <div style="display: flex; flex-direction: row; align-items: center;
+                  justify-content: space-evenly; padding-right: 25px;">
+        <ng-container *ngIf="selectedAccountIds.length > 0 && !isApprovalReady">
+          <mat-icon style="color: red; margin-right: 5px">warning</mat-icon> Resolve error in order to approve this record.
+        </ng-container>
         <div>
           <button *ngIf="selectedAccountIds.length > 0" type="button" mat-raised-button color="warn"
-                  (click)="editAccountDialog()" style="margin-right: 20px;" id="editBtn">
+                  (click)="editAccountDialog()" style="margin-right: 20px; margin-left: 20px;" id="editBtn">
             Edit
           </button>
           <button *ngIf="isApprovalReady" type="button" mat-raised-button color="warn"
@@ -93,11 +97,18 @@
             Username
           </mat-header-cell>
           <mat-cell *cdkCellDef="let row" class="cell">
-            <mat-icon color="warn" *ngIf="row.is_existing_account && !row.username_valid && row.existing_account_enabled"
+            <mat-icon style="color: red;"
+                      *ngIf="row.is_existing_account && !emailMatchesAccount(row) && !row.username_valid"
+                      [matTooltip]="getEmailMismatchTooltip(userConfig)">
+              warning
+            </mat-icon>
+            <mat-icon color="warn"
+                      *ngIf="row.is_existing_account && !row.username_valid && row.existing_account_enabled"
                       matTooltip="Username already exists. Approval will modify existing groups.">
               warning
             </mat-icon>
-            <mat-icon style="color: red;" *ngIf="row.is_existing_account && !row.username_valid && !row.existing_account_enabled"
+            <mat-icon style="color: red;"
+                      *ngIf="row.is_existing_account && emailMatchesAccount(row) && !row.existing_account_enabled"
                       matTooltip="Username already exists but account is disabled. Approval will re-enable account and modify existing groups.">
               warning
             </mat-icon>
@@ -114,7 +125,7 @@
             Email
           </mat-header-cell>
           <mat-cell *cdkCellDef="let row" class="cell">
-            <mat-icon color="warn" *ngIf="row.possible_existing_account" tooltipClass="'mat-tooltip'"
+            <mat-icon color="warn" *ngIf="row.possible_existing_account.length > 0" tooltipClass="'mat-tooltip'"
                       matTooltip="Found accounts with same email. To add existing account to groups, edit Username to an existing username.
                       Existing username(s): {{ row.possible_existing_account }}">
               warning
@@ -148,8 +159,7 @@
           </mat-header-cell>
           <mat-cell *cdkCellDef="let row" class="cell">
             <mat-icon *ngIf="row.groups.length > 0" style="color: green;">check</mat-icon>
-            <mat-icon *ngIf="row.groups.length == 0" color="warn"
-                      tooltipClass="'mat-tooltip'"
+            <mat-icon *ngIf="row.groups.length == 0" style="color: red;"
                       matTooltip="No group has been selected.">warning
             </mat-icon>
           </mat-cell>
@@ -161,8 +171,7 @@
           </mat-header-cell>
           <mat-cell *cdkCellDef="let row" class="cell">
             <mat-icon *ngIf="row.sponsor" style="color: green;">check</mat-icon>
-            <mat-icon *ngIf="!row.sponsor" color="warn"
-                      tooltipClass="'mat-tooltip'"
+            <mat-icon *ngIf="!row.sponsor" style="color: red;"
                       matTooltip="No sponsor has been selected.">warning
             </mat-icon>
           </mat-cell>

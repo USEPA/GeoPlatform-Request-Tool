@@ -2,7 +2,7 @@ from rest_framework.serializers import ModelSerializer, CharField, PrimaryKeyRel
     JSONField, BooleanField
 from .models import *
 from drf_recaptcha.fields import ReCaptchaV2Field
-from .func import has_outstanding_request, email_allowed_for_portal
+from .func import has_outstanding_request, email_allowed_for_portal, email_not_associated_with_existing_account
 
 
 class AccountRequestSerializer(ModelSerializer):
@@ -42,6 +42,7 @@ class AccountSerializer(ModelSerializer):
     response = PrimaryKeyRelatedField(required=True, queryset=ResponseProject.objects.all())
     reason = ChoiceField(required=True, allow_null=False, allow_blank=False, choices=REASON_CHOICES)
     existing_account_enabled = BooleanField(read_only=True)
+    is_existing_account = BooleanField(read_only=True)
 
     class Meta:
         model = AccountRequests
