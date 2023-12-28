@@ -56,6 +56,17 @@ describe('Anonymous submission', () => {
     cy.get('span[class="mat-simple-snack-bar-content"]', {timeout: 30000}).should('contain', 'Request can not be accepted at this time.')
 
   })
+
+  it('should preselect response/project if response in query params', () => {
+    cy.visit('/?response=1');
+    cy.get('mat-select[formcontrolname="response"]').should('contain', 'R09 Testing')
+  })
+
+  it('should not filter responses if response in query params does not exist', () => {
+    cy.visit('/?response=999999')
+    cy.get('mat-select[formcontrolname="response"]').click();
+    cy.get('mat-option', {timeout: 30000}).should('exist')
+  })
 })
 
 
@@ -135,4 +146,5 @@ describe('approver workflow', () => {
     cy.get('span[class="mat-simple-snack-bar-content"]').should('contain', 'Deleted User.Test_EPA')
 
   })
+
 })

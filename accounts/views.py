@@ -368,11 +368,11 @@ class ResponseProjectViewSet(ModelViewSet):
             return FullResponseProjectSerializer
         return ResponseProjectSerializer
 
-    def get_queryset(self):
-        if not self.request.user.is_anonymous:
-            user_portal = self.request.user.agol_info.portal_id
-            return self.queryset.filter(portal_id=user_portal)
-        return self.queryset
+    # def get_queryset(self):
+    #     if not self.request.user.is_anonymous:
+    #         user_portal = self.request.user.agol_info.portal_id
+    #         return self.queryset.filter(portal_id=user_portal)
+    #     return self.queryset
 
 
 class SponsorsViewSet(DALAutocompleteMixin, ReadOnlyModelViewSet):
