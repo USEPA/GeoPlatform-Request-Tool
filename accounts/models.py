@@ -515,7 +515,7 @@ class ResponseProject(models.Model):
     approved_by = models.ForeignKey(User, models.PROTECT, 'approved_responses', null=True, blank=True)
     requester = models.ForeignKey(User, models.PROTECT, 'requested_responses', null=True, blank=True)
     notifications = GenericRelation('Notification')
-    protected_datasets = models.ManyToManyField('ProtectedDataset')
+    protected_datasets = models.ManyToManyField('ProtectedDataset', null=True, blank=True)
 
     def __str__(self):
         return self.name
