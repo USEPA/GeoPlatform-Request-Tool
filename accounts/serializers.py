@@ -1,12 +1,13 @@
 from rest_framework.serializers import ModelSerializer, CharField, PrimaryKeyRelatedField, ChoiceField, \
     JSONField, BooleanField
 from .models import *
-from drf_recaptcha.fields import ReCaptchaV2Field
+from drf_recaptcha.fields import ReCaptchaV3Field
 from .func import has_outstanding_request, email_allowed_for_portal, email_not_associated_with_existing_account
+from django.conf import settings
 
 
 class AccountRequestSerializer(ModelSerializer):
-    recaptcha = ReCaptchaV2Field()
+    recaptcha = ReCaptchaV3Field(action='submit', required_score=settings.DRF_RECAPTCHA_MINIMUM_SCORE)
     response = PrimaryKeyRelatedField(required=True, queryset=ResponseProject.objects.all())
 
     def validate(self, attrs):
