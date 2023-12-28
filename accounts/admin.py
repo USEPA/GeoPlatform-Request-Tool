@@ -363,7 +363,7 @@ class ResponseProjectAdmin(admin.ModelAdmin):
     readonly_fields = ['approved', 'approved_by', 'disabled', 'disabled_by', 'request_url_link', 'disable_users_link']
     autocomplete_fields = ['users', 'assignable_groups', 'protected_datasets']
     inlines = [PendingNotificationInline]
-    list_filter = ['disabled', 'approved']
+    list_filter = ['portal', 'disabled', 'approved']
     form = ResponseProjectForm
 
     def get_queryset(self, request):

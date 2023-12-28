@@ -15,7 +15,7 @@ from django.utils.timezone import now
 from django.core.exceptions import ObjectDoesNotExist
 from django.urls import resolve
 
-from .filters import AGOLGroupFilterSet
+from .filters import AGOLGroupFilterSet, ResponseProjectFilterSet
 from .models import *
 from .serializers import *
 from .permissions import IsSponsor
@@ -325,23 +325,6 @@ class AGOLGroupViewSet(DALAutocompleteMixin, ReadOnlyModelViewSet):
             })
         sorted_group_list = natsorted(groups_list, key=lambda x: x['title'])
         return Response(sorted_group_list)
-
-
-class ResponseProjectFilterSet(FilterSet):
-    for_approver = BooleanFilter(method='for_approver_func')
-    id_in = BaseCSVFilter(field_name='pk', lookup_expr='in')
-    is_disabled = BooleanFilter(field_name='disabled', lookup_expr='isnull', exclude=True)
-
-    def for_approver_func(self, queryset, name, value):
-        if not value:
-            return queryset
-
-        sponsors = User.objects.filter(agol_info__delegates=self.request.user)
-        return queryset.filter(Q(users=self.request.user) | Q(users__in=sponsors))
-
-    class Meta:
-        model = ResponseProject
-        fields = ['disabled']
 
 
 class ResponseProjectViewSet(ModelViewSet):
