@@ -118,7 +118,9 @@ describe('approver workflow', () => {
     cy.wait(1000);
     cy.get('mat-select[formcontrolname="groups"].mat-select-disabled').should('not.exist')
     cy.get('mat-select[formcontrolname="groups"]').click();
-    cy.get('.mat-option-text').contains('Test').click().type('{esc}');
+    cy.get('.mat-option-text').contains('Test').click();
+    cy.get('body').click()
+    cy.wait(1000) // submit button is greyed out for a moment
     cy.get('button').contains('Submit').click();
     cy.get('span[class="mat-simple-snack-bar-content"]').should('contain', 'Success');
   })

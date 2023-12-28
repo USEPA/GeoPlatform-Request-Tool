@@ -46,7 +46,7 @@ class AccountRequests(models.Model):
     is_existing_account = models.BooleanField(default=False)
     existing_account_enabled = models.BooleanField(default=False)
     organization = models.CharField(max_length=200)
-    username = models.CharField(max_length=200)
+    username = models.CharField(max_length=200, help_text='User frontend to modify username.')
     username_valid = models.BooleanField(default=False)
     user_type = models.CharField(max_length=200, choices=USER_TYPE_CHOICES, default='creatorUT')
     role = models.ForeignKey('AGOLRole', on_delete=models.DO_NOTHING, blank=True, null=True, related_name='account_requests')
@@ -126,6 +126,10 @@ class AGOLGroup(models.Model):
     def __str__(self):
         return self.title
 
+    @property
+    def name(self):
+        return self.title
+
 
 class GroupMembership(models.Model):
     id = models.AutoField(primary_key=True)
@@ -141,16 +145,20 @@ class AGOLRole(models.Model):
     is_available = models.BooleanField(default=False)
     agol = models.ForeignKey('AGOL', on_delete=models.CASCADE, related_name='roles')
     system_default = models.BooleanField(default=False)
+    auth_groups = models.ManyToManyField(AGOLGroup, verbose_name='Allowed Authoritative Groups',
+                                         related_name='roles', limit_choices_to={'is_auth_group': True})
 
     def __str__(self):
         return self.name
 
+    @property
+    def auth_group_required(self):
+        return self.agol.requires_auth_group
+
     def clean(self):
         if self.system_default:
-            if (self.pk and AGOLRole.objects.filter(system_default=True, agol=self.agol).exclude(
-                    pk=self.pk).exists()) or \
-                    AGOLRole.objects.filter(system_default=True, agol=self.agol).exists():
-                raise ValidationError({'system_default': 'You cannot have more than one system default.'})
+            if (self.pk and AGOLRole.objects.filter(system_default=True, agol=self.agol).exclude(pk=self.pk).exists()):
+                raise ValidationError({'system_default': 'You cannot have more than one system default. Remove current default to select a new one.'})
 
 
 class AGOL(models.Model):
@@ -163,6 +171,7 @@ class AGOL(models.Model):
     allow_external_accounts = models.BooleanField(default=False, help_text='Allow external (non-enterprise) accounts to be created.')
     enterprise_precreate_domains = models.TextField(null=True, blank=True, verbose_name='Email domains for enterprise accounts',
                                                     help_text='Separate email domains with comma (e.g. gmail.com,hotmail.com). Value required if external account creation is not allowed')
+    requires_auth_group = models.BooleanField(default=True)
 
     @property
     def enterprise_precreate_domains_list(self):
@@ -494,8 +503,7 @@ class ResponseProject(models.Model):
     assignable_groups = models.ManyToManyField('AGOLGroup', related_name='response',
                                                verbose_name='Assignable Groups')
     role = models.ForeignKey('AGOLRole', on_delete=models.PROTECT, verbose_name='Role',
-                             limit_choices_to={'is_available': True}, null=True, blank=True,
-                             help_text='System default will be used if left blank.', related_name='responses')
+                             limit_choices_to={'is_available': True}, related_name='responses')
     authoritative_group = models.ForeignKey('AGOLGroup', on_delete=models.PROTECT,
                                             verbose_name='Authoritative Group', blank=True, null=True,
                                             limit_choices_to={'is_auth_group': True})
@@ -507,6 +515,7 @@ class ResponseProject(models.Model):
     approved_by = models.ForeignKey(User, models.PROTECT, 'approved_responses', null=True, blank=True)
     requester = models.ForeignKey(User, models.PROTECT, 'requested_responses', null=True, blank=True)
     notifications = GenericRelation('Notification')
+    protected_datasets = models.ManyToManyField('ProtectedDataset', null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -531,8 +540,17 @@ class ResponseProject(models.Model):
         url = f"{reverse('admin:accounts_accountrequests_changelist')}?response__id__exact={self.pk}"
         return url
 
+    @property
+    def auth_group_required(self):
+        return self.portal.requires_auth_group
+
     def can_be_disabled(self):
         return not self.requests.filter(approved__isnull=True).exists()
+
+    def clean(self):
+        if self.auth_group_required and not self.role.auth_groups.filter(id=self.authoritative_group_id).exists():
+            raise ValidationError({"authoritative_group": "The Authoritative Group must be available under the selected Role. "
+                                  "Check the Role's allowed Authoritative Groups."})
 
     def save(self, *args, **kwargs):
         if self.role is None:
@@ -603,6 +621,7 @@ class ResponseProject(models.Model):
                 "Email Error: There was an error emailing the disabled Response Project's assigned sponsors and their delegates.")
             raise e
 
+
     class Meta:
         verbose_name_plural = 'Responses/Projects'
         verbose_name = 'Response/Project'
@@ -658,3 +677,10 @@ class Notification(models.Model):
         if results == 1:
             self.sent = datetime.now()
             self.save()
+
+
+class ProtectedDataset(models.Model):
+    name = models.CharField(max_length=500)
+
+    def __str__(self):
+        return self.name

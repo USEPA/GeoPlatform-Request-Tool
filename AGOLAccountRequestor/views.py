@@ -27,6 +27,7 @@ def current_user(request):
         'id': request.user.id,
         'portal': request.user.agol_info.portal.get_portal_name_display(),
         'portal_id': request.user.agol_info.portal.id,
+        'portal_requires_auth_group': request.user.agol_info.portal.requires_auth_group,
         'name': '{} {}'.format(request.user.first_name, request.user.last_name) if request.user.first_name else request.user.username,
         'permissions': set(permissions),
         'is_superuser': request.user.is_superuser,
