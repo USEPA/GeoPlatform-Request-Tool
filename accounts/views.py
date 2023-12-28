@@ -19,7 +19,7 @@ from .filters import AGOLGroupFilterSet
 from .models import *
 from .serializers import *
 from .permissions import IsSponsor
-from .func import create_account, add_account_to_groups, update_requests_groups, enable_account
+from .func import create_account, add_account_to_groups, update_requests_groups, enable_account, format_username
 from natsort import natsorted
 
 from dal import autocomplete

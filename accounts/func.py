@@ -125,6 +125,17 @@ def get_response_from_request(request):
     object_id = get_object_id_from_request(request)
     return ResponseProject.objects.get(id=object_id) if object_id else None
 
+def format_username(data, enterprise_domains=None):
+    if enterprise_domains is None:
+        enterprise_domains = []
+    if data['email'].split('@')[1].lower() in enterprise_domains:
+        username = data['email']
+    else:
+        username_extension = 'EPAEXT' if '@epa.gov' not in data['email'] else 'EPA'
+        last_name = re.sub(r'\W+', '', data["last_name"])
+        first_name = re.sub(r'\W+', '', data["first_name"])
+        username = f'{last_name.capitalize()}.{first_name.capitalize()}_{username_extension}'
+    return username.replace(' ', '')
 
 def get_role_from_request(request):
     object_id = get_object_id_from_request(request)
