@@ -363,8 +363,7 @@ class AGOL(models.Model):
         if 'error' in r_json:
             raise Exception(r_json)
 
-    def check_username(self, username):
-        token = self.get_token()
+    def _username_check(self, username: list[str], token: str):
         url = f'{self.portal_url}/sharing/rest/community/checkUsernames'
 
         data = {
@@ -375,33 +374,38 @@ class AGOL(models.Model):
 
         r = requests.post(url, data=data)
 
-        response = r.json()
-        if 'error' in response:
+        return r.json()
+
+    def check_username(self, username: list[str]):
+        token = self.get_token()
+        response = self._username_check(username, token)
+
+        # error or missing usernames will fail everything so bail here and mark invalid
+        if 'error' in response or 'usernames' not in response:
             return False, None, [], False, None
 
-        if 'usernames' in response:
-            # if it suggested matches requested...great this is normal for new accounts
-            if response['usernames'] and response['usernames'][0]['requested'] == response['usernames'][0]['suggested']:
-                return True, None, [], False, None
-            # if list is blank the account appears to not exist but may have been previously deleted
-            elif len(response['usernames']) == 0:
-                return True, None, [], False, None
-            else:
-                # else check actual username endpoint and see if user exists
-                user_url = f'{self.portal_url}/sharing/rest/community/users/{username}'
+        # if it suggested matches requested...great this is normal for new accounts
+        if response['usernames'] and response['usernames'][0]['requested'] == response['usernames'][0]['suggested']:
+            return True, None, [], False, None
+        # if list is blank the account appears to not exist but may have been previously deleted
+        elif len(response['usernames']) == 0:
+            return True, None, [], False, None
+        else:
+            # else check actual username endpoint and see if user exists
+            user_url = f'{self.portal_url}/sharing/rest/community/users/{username}'
 
-                user_response = requests.get(user_url, params={'token': token, 'f': 'json'})
-                user_response_json = user_response.json()
-                if 'error' in user_response_json or 'disabled' not in user_response_json:
-                    return False, None, [], False, None
-                else:
-                    # fixes issue #34
-                    group_ids = list(x['id'] for x in user_response_json.get('groups', []))
-                    for group_id in (x for x in group_ids if not AGOLGroup.objects.filter(id=x).exists()):
-                        self.get_group(group_id)
-                    return False, user_response_json['id'], group_ids, not user_response_json[
-                        'disabled'], datetime.utcfromtimestamp(
-                        user_response_json['created'] / 1000)
+            user_response = requests.get(user_url, params={'token': token, 'f': 'json'})
+            user_response_json = user_response.json()
+            if 'error' in user_response_json or 'disabled' not in user_response_json:
+                return False, None, [], False, None
+            else:
+                # fixes issue #34
+                group_ids = list(x['id'] for x in user_response_json.get('groups', []))
+                for group_id in (x for x in group_ids if not AGOLGroup.objects.filter(id=x).exists()):
+                    self.get_group(group_id)
+                return False, user_response_json['id'], group_ids, \
+                    not user_response_json['disabled'], \
+                    datetime.utcfromtimestamp(user_response_json['created'] / 1000)
 
     def add_to_group(self, user, group):
         token = self.get_token()

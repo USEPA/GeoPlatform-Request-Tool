@@ -129,33 +129,44 @@ class AccountViewSet(ModelViewSet):
         # agol of the user request from response/project
         agol = ResponseProject.objects.get(pk=self.request.data['response']).portal
 
-        username_valid, agol_id, existing_groups, existing_account_enabled, created = agol.check_username(self.request.data['username'])
+        # needed in case the requestor updates the email address associated with the account they are requesting (issue #113)
+        possible_accounts = agol.find_accounts_by_email(self.request.data['email'])
+
+        username_valid, agol_id, existing_groups, existing_account_enabled, created = agol.check_username(
+            self.request.data['username'])
         is_existing_account = True if agol_id is not None else False
         account_request = serializer.save(username_valid=username_valid, agol_id=agol_id,
                                           is_existing_account=is_existing_account,
-                                          existing_account_enabled=existing_account_enabled)
+                                          existing_account_enabled=existing_account_enabled,
+                                          possible_existing_account=possible_accounts)
         update_requests_groups(account_request, existing_groups, self.request.data['groups'])
 
     # create account (or queue up creation?)
     @action(['POST'], detail=False)
     def approve(self, request):
         account = AccountRequests.objects.get(pk=request.data['account_id'])
+
         if not account:
             return Response({
                 'id': request.data['account_id'],
                 'error': f"Account not {request.data['account_id']} found"
             }, status=404)
 
+        if email_not_associated_with_existing_account(account):
+            return Response(
+                {'details': 'Provided email address is not associated with this existing username.'},
+                status=400
+            )
+
         # verify user has permission on each request submitted.
         self.check_object_permissions(request, account)
 
         # marked approved and capture who dun it (do we want to do this here, or after it's actually created?)
-        account.approved=now()
-        account.approved_by=request.user
+        account.approved = now()
+        account.approved_by = request.user
         account.save()
 
         password = request.data.get('password', None)
-
 
         # create accounts that don't exist
         if account.agol_id is None:
@@ -166,7 +177,7 @@ class AccountViewSet(ModelViewSet):
                     'error': f"Error creating {account.username} at {account.response.portal.portal_name}."
                 }, status=500)
         else:
-            create_success = True # fake it for existing accounts
+            create_success = True  # fake it for existing accounts
 
         # re-enabled disabled accounts
         enabled_success = enable_account(account, password)
@@ -188,9 +199,9 @@ class AccountViewSet(ModelViewSet):
             # no groups to add
             group_success = True
 
-        #success = [x.pk for x in account_requests if x.pk in create_success and x.pk in group_success]
+        # success = [x.pk for x in account_requests if x.pk in create_success and x.pk in group_success]
         if create_success and enabled_success and group_success:
-            account.created = now() # mark created once created or enabled and added to groups
+            account.created = now()  # mark created once created or enabled and added to groups
             account.save()
             return Response({
                 'id': account.pk,
@@ -276,7 +287,8 @@ class AccountViewSet(ModelViewSet):
     @action(['GET'], detail=True)
     def preview_invitation_email(self, request, pk=None):
         account_request = get_object_or_404(AccountRequests, pk=pk)
-        return TemplateResponse(request, 'invitation_email_body.html', {"account_request": account_request, "PORTAL": account_request.response.portal})
+        return TemplateResponse(request, 'invitation_email_body.html',
+                                {"account_request": account_request, "PORTAL": account_request.response.portal})
 
 
 class AGOLGroupViewSet(DALAutocompleteMixin, ReadOnlyModelViewSet):
@@ -362,6 +374,7 @@ class ResponseProjectViewSet(ModelViewSet):
             return self.queryset.filter(portal_id=user_portal)
         return self.queryset
 
+
 class SponsorsViewSet(DALAutocompleteMixin, ReadOnlyModelViewSet):
     queryset = User.objects.filter(agol_info__sponsor=True)
     serializer_class = SponsorSerializer
@@ -387,7 +400,7 @@ class AGOLRoleViewSet(DALAutocompleteMixin, ReadOnlyModelViewSet):
     queryset = AGOLRole.objects.filter(is_available=True)
     serializer_class = AGOLRoleSerializer
     ordering = ['system_default', 'name']
-    permission_classes = [IsAuthenticated] # todo: can we remove this adn just assign read permission now?
+    permission_classes = [IsAuthenticated]  # todo: can we remove this adn just assign read permission now?
     search_fields = ['name', 'description']
     filterset_fields = ['system_default', 'is_available']
     autocomplete_config = {'display_field': F('name'), 'field_walk': {'portal': 'agol'}}
@@ -398,6 +411,7 @@ class AGOLRoleViewSet(DALAutocompleteMixin, ReadOnlyModelViewSet):
 
         # filter role options based on currently logged in user association
         return super().get_queryset().filter(Q(agol=self.request.user.agol_info.portal))
+
 
 # class PendingNotificationViewSet(ReadOnlyModelViewSet):
 #     queryset = Notification.objects.filter(sent__isnull=True)

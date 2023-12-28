@@ -49,6 +49,15 @@ def mock_existing_check_username(*args, **kwargs):
     return MockResponse()
 
 
+def mock_request_json(return_value):
+    def _(*args, **kwargs):
+        class MockResponse:
+            def json(self):
+                return return_value
+        return MockResponse()
+    return _
+
+
 def mock_get_user(*args, **kwargs):
     class MockResponse:
         def json(self):
@@ -163,6 +172,15 @@ class TestAccounts(TestCase):
     def test_check_existing_username_empty(self, mock_post, mock_get):
         results = self.agol.check_username('doesntmatter')
         self.assertTrue(results[0])
+
+    @patch('requests.post')
+    def test_check_username_failure(self, mock_post):
+        mock_post.side_effect = mock_request_json({'error': {'details': 'nothing'}})
+        results = self.agol.check_username('doesntmatter')
+        self.assertFalse(results[0])
+        mock_post.side_effect = mock_request_json({})
+        results = self.agol.check_username('doesntmatter')
+        self.assertFalse(results[0])
 
     @patch('accounts.models.requests.post', side_effect=mock_fail_create_user)
     @patch('accounts.models.requests.get', side_effect=mock_get_user)
