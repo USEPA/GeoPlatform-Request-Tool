@@ -2,7 +2,7 @@ from django.urls import resolve
 from .models import AccountRequests, AGOL, GroupMembership, AGOLGroup, Notification, ResponseProject, AGOLRole
 from uuid import UUID
 import logging
-import requests
+import re
 
 logger = logging.getLogger('django')
 
