@@ -550,7 +550,7 @@ class ResponseProject(models.Model):
 
     @property
     def auth_group_required(self):
-        return self.portal.requires_auth_group
+        return self.portal.requires_auth_group if self.pk else False
 
     def can_be_disabled(self):
         return not self.requests.filter(approved__isnull=True).exists()

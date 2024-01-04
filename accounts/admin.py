@@ -372,13 +372,13 @@ class ResponseProjectAdmin(admin.ModelAdmin):
             return queryset
         return queryset.filter(portal=request.user.agol_info.portal_id)
 
-    def get_fields(self, request, obj=None):
-        if obj is None:
-            return ['name']
-        return self.fields
+    # def get_fields(self, request, obj=None):
+    #     if obj is None:
+    #         return ['name']
+    #     return self.fields
 
     def get_readonly_fields(self, request, obj=None):
-        if obj and not request.user.is_superuser:
+        if not request.user.is_superuser:
             return self.readonly_fields + ['portal']
         return self.readonly_fields
 
@@ -491,6 +491,8 @@ class ResponseProjectAdmin(admin.ModelAdmin):
             return []
         return self.inlines
 
+    def get_changeform_initial_data(self, request):
+        return {'portal': request.user.agol_info.portal.id} if not request.user.is_superuser else {}
 
 @admin.register(Notification)
 class PendingNotificationAdmin(admin.ModelAdmin):
