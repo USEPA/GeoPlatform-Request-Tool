@@ -8,6 +8,7 @@ export interface UserConfig {
   id: number;
   portal: string;
   portal_id: number;
+  portal_requires_auth_group: boolean;
   name: string;
   permissions: string[];
   is_superuser: boolean;

@@ -9,7 +9,7 @@
     "build:ngst-staging": "ng build --configuration ngst-staging",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e",
+    "e2e": "ng run ui:cypress-run",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run"
   },

@@ -56,6 +56,17 @@ describe('Anonymous submission', () => {
     cy.get('span[class="mat-simple-snack-bar-content"]', {timeout: 30000}).should('contain', 'Request can not be accepted at this time.')
 
   })
+
+  it('should preselect response/project if response in query params', () => {
+    cy.visit('/?response=1');
+    cy.get('mat-select[formcontrolname="response"]').should('contain', 'R09 Testing')
+  })
+
+  it('should not filter responses if response in query params does not exist', () => {
+    cy.visit('/?response=999999')
+    cy.get('mat-select[formcontrolname="response"]').click();
+    cy.get('mat-option', {timeout: 30000}).should('exist')
+  })
 })
 
 
@@ -118,7 +129,9 @@ describe('approver workflow', () => {
     cy.wait(1000);
     cy.get('mat-select[formcontrolname="groups"].mat-select-disabled').should('not.exist')
     cy.get('mat-select[formcontrolname="groups"]').click();
-    cy.get('.mat-option-text').contains('Test').click().type('{esc}');
+    cy.get('.mat-option-text').contains('Test').click();
+    cy.get('body').click()
+    cy.wait(1000) // submit button is greyed out for a moment
     cy.get('button').contains('Submit').click();
     cy.get('span[class="mat-simple-snack-bar-content"]').should('contain', 'Success');
   })
@@ -133,4 +146,5 @@ describe('approver workflow', () => {
     cy.get('span[class="mat-simple-snack-bar-content"]').should('contain', 'Deleted User.Test_EPA')
 
   })
+
 })

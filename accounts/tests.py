@@ -1,6 +1,7 @@
 from django.test import RequestFactory, TestCase
 from unittest.mock import patch, MagicMock
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.utils.timezone import now
 from django.db.models import Q
 
@@ -46,6 +47,15 @@ def mock_existing_check_username(*args, **kwargs):
             }
 
     return MockResponse()
+
+
+def mock_request_json(return_value):
+    def _(*args, **kwargs):
+        class MockResponse:
+            def json(self):
+                return return_value
+        return MockResponse()
+    return _
 
 
 def mock_get_user(*args, **kwargs):
@@ -162,6 +172,15 @@ class TestAccounts(TestCase):
     def test_check_existing_username_empty(self, mock_post, mock_get):
         results = self.agol.check_username('doesntmatter')
         self.assertTrue(results[0])
+
+    @patch('requests.post')
+    def test_check_username_failure(self, mock_post):
+        mock_post.side_effect = mock_request_json({'error': {'details': 'nothing'}})
+        results = self.agol.check_username('doesntmatter')
+        self.assertFalse(results[0])
+        mock_post.side_effect = mock_request_json({})
+        results = self.agol.check_username('doesntmatter')
+        self.assertFalse(results[0])
 
     @patch('accounts.models.requests.post', side_effect=mock_fail_create_user)
     @patch('accounts.models.requests.get', side_effect=mock_get_user)
@@ -301,3 +320,17 @@ class TestAccounts(TestCase):
             for ac in AccountRequests.objects.filter(agol_id=agol.id):
                 result = IsSponsor().has_object_permission(request, SponsorsViewSet, ac)
                 self.assertTrue(result)
+
+    def test_allow_response_with_unrelated_auth_group(self):
+        # at time of writing test most records in the fixture will fail this test
+        # thats fine since clean doesn't generally get called outside of form validation
+        responseproject = ResponseProject.objects.get(id=1001)
+        # this should not error and allow test to pass
+        responseproject.clean()
+
+        responseproject = ResponseProject.objects.get(id=1002)
+        try:
+            responseproject.clean()
+            self.fail('Should not get here')
+        except ValidationError as e:
+            self.assertTrue('authoritative_group' in e.args[0])

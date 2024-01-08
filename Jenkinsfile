@@ -13,6 +13,7 @@ node('staging') {
                 checkout scm
                 stage('update backend dependencies') {
                     bat "$props.VENV_ACTIVATE_CMD && pip install -r requirements.txt"
+                    bat "$props.VENV_ACTIVATE_CMD && python manage.py collectstatic --noinput"
                 }
 
                 stage('run backend unit tests') {
@@ -27,24 +28,26 @@ node('staging') {
                 }
 
                 dir('.\\ui') {
-                    stage('update frontend dependencies') {
-                        bat "$props.NPM_PATH\\npm i"
-                    }
-                    stage("build frontend") {
-                        bat "$props.NPM_PATH\\node $props.NPM_PATH\\node_modules\\@angular\\cli\\bin\\ng build -c=ngst-staging"
-                    }
-                    stage("run e2e tests") {
-                         try {
-                            configFileProvider([configFile(fileId: 'be366a0d-7ab7-4d10-84c0-9ae3e5442af5', targetLocation: 'cypress.env.json')]) {
-                                config = readJSON file: 'cypress.env.json'
-                                env.CYPRESS_BASE_URL=config['baseUrl']
-                                env.NO_COLOR=1
-                                bat "$props.NPM_PATH\\node $props.NPM_PATH\\node_modules\\@angular\\cli\\bin\\ng run ui:cypress-run"
-                            }
-                         } catch (e) {
-                            archiveArtifacts artifacts:'cypress/videos/**/*.mp4'
-                            throw e
-                         }
+                    withEnv(["PATH=$props.NPM_PATH;$PATH"]) {
+                        stage('update frontend dependencies') {
+                            bat "npm i"
+                        }
+                        stage("build frontend") {
+                            bat "npm run build:ngst-staging"
+                        }
+                        stage("run e2e tests") {
+                             try {
+                                configFileProvider([configFile(fileId: 'be366a0d-7ab7-4d10-84c0-9ae3e5442af5', targetLocation: 'cypress.env.json')]) {
+                                    config = readJSON file: 'cypress.env.json'
+                                    env.CYPRESS_BASE_URL=config['baseUrl']
+                                    env.NO_COLOR=1
+                                    bat "npm run e2e"
+                                }
+                             } catch (e) {
+                                archiveArtifacts artifacts:'cypress/videos/**/*.mp4'
+                                throw e
+                             }
+                        }
                     }
                 }
            }

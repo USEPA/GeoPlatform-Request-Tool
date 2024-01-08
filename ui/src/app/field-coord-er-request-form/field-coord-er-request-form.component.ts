@@ -1,9 +1,9 @@
 import {Component, EventEmitter, OnInit, Output} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
-import {BehaviorSubject, combineLatest, forkJoin, Observable, of} from 'rxjs';
+import {BehaviorSubject, combineLatest, forkJoin, Observable, of, Subject} from 'rxjs';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-bar';
-import {catchError, finalize, map, switchMap, tap} from 'rxjs/operators';
+import {catchError, filter, finalize, map, switchMap, tap} from 'rxjs/operators';
 
 import {BaseService, Choice, Response} from '@services/base.service';
 import {FieldCoordinator} from '../field-coord-list/field-coord-list.component';
@@ -23,7 +23,7 @@ export class FieldCoordErRequestFormComponent implements OnInit {
   @Output() saved: EventEmitter<any> = new EventEmitter<any>();
   isLoading: Boolean;
   field_coordinators: Observable<FieldCoordinator[]>;
-  auth_groups: Observable<AgolGroup[]>;
+  auth_groups: BehaviorSubject<AgolGroup[]> = new BehaviorSubject<AgolGroup[]>([]);
   tags = [];
   submitting: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   fieldTeamCoordErForm: FormGroup = new FormGroup({
@@ -31,15 +31,15 @@ export class FieldCoordErRequestFormComponent implements OnInit {
     users: new FormControl(null),
     assignable_groups: new FormControl(null, Validators.required),
     requester: new FormControl(null, Validators.required),
-    authoritative_group: new FormControl(null, Validators.required),
+    authoritative_group: new FormControl(null),
     default_reason: new FormControl(null, Validators.required),
     role: new FormControl(null, Validators.required),
     portal: new FormControl()
   });
   responseService: BaseService;
   roleService: BaseService;
-  reasons: Observable<Choice[]>;
-  roles: Observable<AGOLRole[]>;
+  reasons: BehaviorSubject<Choice[]> = new BehaviorSubject<Choice[]>([]);
+  roles: BehaviorSubject<AGOLRole[]> = new BehaviorSubject<AGOLRole[]>([]);
 
   constructor(public http: HttpClient, public matSnackBar: MatSnackBar, public userConfig: UserConfigService,
               loadingService: LoadingService) {
@@ -77,11 +77,21 @@ export class FieldCoordErRequestFormComponent implements OnInit {
               });
           }
         }
+        // only get auth groups if they are required
+        this.initRoles(r[1].portal_requires_auth_group);
+        if(r[1].portal_requires_auth_group) {
+          this.fieldTeamCoordErForm.controls['authoritative_group'].setValidators(Validators.required);
+        }
       })
     ).subscribe();
-    this.initAuthGroups();
+
     this.initReasons();
-    this.initRoles();
+
+
+    // this.fieldTeamCoordErForm.controls.role.valueChanges.pipe(
+    //   switchMap(v => this.getAuthGroups(v)),
+    //   tap(g => this.auth_groups.next(g))
+    // ).subscribe();
   }
 
   submit() {
@@ -107,28 +117,40 @@ export class FieldCoordErRequestFormComponent implements OnInit {
     ).subscribe();
   }
 
-  initAuthGroups() {
-    this.auth_groups = this.http.get<AgolGroup[]>(`${environment.local_service_endpoint}/v1/agol/groups/all/`,
-      {params: {is_auth_group: true}}
-    );
+  getAuthGroups(role: number) {
+    this.http.get<AgolGroup[]>(`${environment.local_service_endpoint}/v1/agol/groups/all/`,
+      {params: {is_auth_group: true, role_in: role}}
+    ).pipe(
+      tap(groups => {
+        this.auth_groups.next(groups)
+        if (!groups.find(g => this.fieldTeamCoordErForm.controls.authoritative_group.value === g.id)) {
+          this.fieldTeamCoordErForm.controls.authoritative_group.setValue(null);
+        }
+      })
+    ).subscribe();
   }
 
   initReasons() {
-    this.reasons = this.responseService.options().pipe(
-      map(r => r.actions.POST.default_reason.choices)
-    );
+    this.responseService.options().pipe(
+      map(r => r.actions.POST.default_reason.choices),
+      tap(r => this.reasons.next(r))
+    ).subscribe();
   }
 
-  initRoles() {
-    this.roles = this.roleService.getList<AGOLRole>({is_available: true}).pipe(
+  initRoles(getAuthGroups: boolean) {
+    this.roleService.getList<AGOLRole>({is_available: true}).pipe(
       map(r => r.results),
       tap(r => {
+        this.roles.next(r);
         const default_role = r.find(x => x.system_default);
         if (default_role) {
           this.fieldTeamCoordErForm.patchValue({role: default_role.id});
+          if (getAuthGroups) {
+            this.getAuthGroups(default_role.id);
+          }
         }
       })
-    );
+    ).subscribe();
   }
 
 }

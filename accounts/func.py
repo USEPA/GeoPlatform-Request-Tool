@@ -1,8 +1,8 @@
-import re
-from django.utils.timezone import now
-from .models import AccountRequests, AGOL, GroupMembership, AGOLGroup, Notification, ResponseProject
+from django.urls import resolve
+from .models import AccountRequests, AGOL, GroupMembership, AGOLGroup, Notification, ResponseProject, AGOLRole
 from uuid import UUID
 import logging
+import re
 
 logger = logging.getLogger('django')
 
@@ -113,13 +113,37 @@ def enable_account(account_request, password):
     return True
 
 
-def get_response_from_request(request):
+def get_object_id_from_request(request):
     referrer = request.META.get('HTTP_REFERER')
     host = request.META.get('HTTP_HOST')
-    r = re.search(r'http(s)?://{0}(.*)/gi'.format(host), referrer)
-    if r:
-        object_id = r.group(2)
-        return ResponseProject.objects.get(id=object_id)
-    return None
+    path = referrer.split(host)[1].split('?')[0]
+    r = resolve(path)
+    return r.kwargs.get('object_id', None)
 
 
+def get_response_from_request(request):
+    object_id = get_object_id_from_request(request)
+    return ResponseProject.objects.get(id=object_id) if object_id else None
+
+def format_username(data, enterprise_domains=None):
+    if enterprise_domains is None:
+        enterprise_domains = []
+    if data['email'].split('@')[1].lower() in enterprise_domains:
+        username = data['email']
+    else:
+        username_extension = 'EPAEXT' if '@epa.gov' not in data['email'] else 'EPA'
+        last_name = re.sub(r'\W+', '', data["last_name"])
+        first_name = re.sub(r'\W+', '', data["first_name"])
+        username = f'{last_name.capitalize()}.{first_name.capitalize()}_{username_extension}'
+    return username.replace(' ', '')
+
+def get_role_from_request(request):
+    object_id = get_object_id_from_request(request)
+    return AGOLRole.objects.get(id=object_id) if object_id else None
+
+def email_not_associated_with_existing_account(account_request: AccountRequests):
+    # skip this if its not an existing account
+    if not account_request.is_existing_account:
+        return True
+    associated_usernames = account_request.possible_existing_account.split(',')
+    return account_request.username not in associated_usernames

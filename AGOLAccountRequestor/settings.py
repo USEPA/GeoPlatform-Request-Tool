@@ -31,6 +31,8 @@ ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if 'ALLOWED_HOSTS
 # Application definition
 
 INSTALLED_APPS = [
+    'dal',
+    'dal_select2',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -167,6 +169,8 @@ SOCIAL_AUTH_IMMUTABLE_USER_FIELDS  = os.environ.get('SOCIAL_AUTH_IMMUTABLE_USER_
 REST_FRAMEWORK = json.loads(os.environ.get('REST_FRAMEWORK', '{}').replace("'", '"'))
 
 DRF_RECAPTCHA_SECRET_KEY = os.environ.get('DRF_RECAPTCHA_SECRET_KEY', 'fakey')
+DRF_RECAPTCHA_MINIMUM_SCORE = float(os.environ.get('DRF_RECAPTCHA_MINIMUM_SCORE', None))
+
 
 CORS_ORIGIN_WHITELIST = os.environ.get('CORS_ORIGIN_WHITELIST', '').split(',') if 'CORS_ORIGIN_WHITELIST' in os.environ else []
 CORS_ALLOW_CREDENTIALS = os.environ.get('CORS_ALLOW_CREDENTIALS', False) == 'True'
@@ -182,7 +186,7 @@ LOGGING = DEFAULT_LOGGING
 
 LOGGING['handlers']['slack'] = {
     'level': 'ERROR',
-    # 'filters': ['require_debug_false'],
+    'filters': ['require_debug_false'],
     'class': 'slack_logging.SlackExceptionHandler',
     'bot_token': os.environ.get('SLACK_BOT_TOKEN', ''),
     'channel_id': os.environ.get('SLACK_CHANNEL', '')
