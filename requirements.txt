@@ -3,7 +3,7 @@ djangorestframework>=3.14,<=3.14.99
 django-filter>=22.1,<=22.9
 requests>=2.28.2,<=2.28.99
 wfastcgi>=3.0.0,<=3.0.99
-tqdm>=4.64.1<=4.64.99
+tqdm>=4.64.1,<=4.64.99
 drf-recaptcha>=2.2.2,<2.2.99
 git+https://github.com/Innovate-Inc/django-slack-logging.git#egg=django-slack-logging
 social-auth-app-django>=5.0.0,<=5.0.99
