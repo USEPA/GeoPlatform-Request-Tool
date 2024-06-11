@@ -677,7 +677,7 @@ class Notification(models.Model):
         results = send_mail(
             self.subject,
             self.content,
-            'GIS_Team@epa.gov',
+            settings.EMAIL_FROM,
             list(set(self.to_emails)),
             fail_silently=False,
             html_message=self.content,

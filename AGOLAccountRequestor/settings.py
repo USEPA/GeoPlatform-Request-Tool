@@ -181,6 +181,7 @@ CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if 
 
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'localhost')
+EMAIL_FROM = os.environ.get('EMAIL_FROM', 'geoservices@epa.gov')
 
 LOGGING = DEFAULT_LOGGING
 
