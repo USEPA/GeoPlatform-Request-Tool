@@ -16,7 +16,7 @@ describe('Anonymous submission', () => {
     cy.get('input[formcontrolname="email"]').type('@epa.gov')
     cy.get('mat-select[formcontrolname="response"]').click();
     cy.get('mat-option', {timeout: 30000}).contains('R09 Testing').click();
-    cy.solveGoogleReCAPTCHA();
+    // cy.solveGoogleReCAPTCHA();
 
     cy.get('button').contains('Submit').click();
     cy.get('span[class="mat-simple-snack-bar-content"]', {timeout: 30000}).should('contain', 'Request has been successfully submitted')
@@ -29,7 +29,7 @@ describe('Anonymous submission', () => {
     cy.get('input[formcontrolname="organization"]').type('some org')
     cy.get('mat-select[formcontrolname="response"]').click();
     cy.get('mat-option').contains('R09 Testing').click();
-    cy.solveGoogleReCAPTCHA();
+    // cy.solveGoogleReCAPTCHA();
     cy.get('button').contains('Submit').click();
     cy.get('span[class="mat-simple-snack-bar-content"]').should('contain', 'Outstanding request found.')
   })
@@ -50,7 +50,7 @@ describe('Anonymous submission', () => {
     cy.get('input[formcontrolname="email"]').type('@whoknows.gov')
     cy.get('mat-select[formcontrolname="response"]').click();
     cy.get('mat-option', {timeout: 30000}).contains('Geosecure test').click();
-    cy.solveGoogleReCAPTCHA();
+    // cy.solveGoogleReCAPTCHA();
 
     cy.get('button').contains('Submit').click();
     cy.get('span[class="mat-simple-snack-bar-content"]', {timeout: 30000}).should('contain', 'Request can not be accepted at this time.')
@@ -134,6 +134,15 @@ describe('approver workflow', () => {
     cy.wait(1000) // submit button is greyed out for a moment
     cy.get('button').contains('Submit').click();
     cy.get('span[class="mat-simple-snack-bar-content"]').should('contain', 'Success');
+  })
+
+  it('should allow approver to approve request', () => {
+    cy.visit('/accounts/list');
+    cy.get('input#searchInput').type('Test User{enter}')
+    cy.wait(1000);
+    cy.get('mat-cell').first().click();
+    cy.get('button#approveBtn').click()
+    cy.get('.mat-dialog-content').should('exist')
   })
 
   it('should allow apporver to delete the request', () => {

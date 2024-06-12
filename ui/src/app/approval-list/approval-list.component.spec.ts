@@ -1,7 +1,6 @@
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {ApprovalListComponent} from './approval-list.component';
-import {MatTableModule} from '@angular/material';
 import {Observable, of} from 'rxjs';
 import {MatLegacyDialog as MatDialog} from '@angular/material/legacy-dialog';
 import {FilterInputComponent} from '../filter-input/filter-input.component';
@@ -16,10 +15,9 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-bar';
 
 import {environment} from '@environments/environment';
-// @ts-ignore
-import * as mockData from './approval-list-mock-data.json';
+import {UpdateApprovalTest} from './approval-list-mock-data';
 
-
+const updateApprovalTest = new UpdateApprovalTest();
 
 class MatDialogMock {
   public open() {
@@ -48,7 +46,6 @@ describe('ApprovalListComponent', () => {
         CustomMaterialModule,
         FormsModule,
         ReactiveFormsModule,
-        MatTableModule,
         CdkTableModule,
         HttpClientTestingModule,
         BrowserAnimationsModule
@@ -79,7 +76,7 @@ describe('ApprovalListComponent', () => {
   it('should notify users of successful approval', () => {
     spyOn(matSnackBar, 'open');
     spyOn(component.accounts, 'getItems').and.returnValue(of([{}]));
-    component.confirmApproval();
+    component.createAccounts();
     const req = httpTestingController.expectOne('/v1/account/approvals/approve/');
     req.flush('');
     expect(matSnackBar.open).toHaveBeenCalledWith('Success', null, Object({ duration: 2000 }));
@@ -88,7 +85,7 @@ describe('ApprovalListComponent', () => {
   it('should notify users of error if returned from server', () => {
     spyOn(matSnackBar, 'open');
     spyOn(component.accounts, 'getItems').and.returnValue(of([{}]));
-    component.confirmApproval();
+    component.createAccounts();
     const req = httpTestingController.expectOne('/v1/account/approvals/approve/');
     const errorResponse = new HttpErrorResponse({error: 'error', status: 403});
     req.flush('', errorResponse);
@@ -98,13 +95,13 @@ describe('ApprovalListComponent', () => {
   it('should notify users of successful approval update with group as property', () => {
     spyOn(matSnackBar, 'open');
     spyOn(component, 'setNeedsEditing').and.callFake((param) => {
-      expect(param).toBe(mockData.updateApprovalTest);
+      expect(param).toBe(updateApprovalTest);
     });
-    component.updateRecord(mockData.updateApprovalTest).subscribe();
-    const url = `/v1/account/approvals/${mockData.updateApprovalTest.id}/`;
+    component.updateRecord(updateApprovalTest).subscribe();
+    const url = `/v1/account/approvals/${updateApprovalTest.id}/`;
     const req = httpTestingController.expectOne(url);
     expect(req.request.method).toBe('PUT');
-    req.flush(mockData.updateApprovalTest);
+    req.flush(updateApprovalTest);
     expect(matSnackBar.open).toHaveBeenCalledWith('Success', null, Object({ duration: 2000 }));
   });
 });
