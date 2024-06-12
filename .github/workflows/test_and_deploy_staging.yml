@@ -1,0 +1,44 @@
+name: "test and deploy staging"
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: unit test frontend and backend
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and tag backend image
+        id: build-image-backend
+        uses: docker/build-push-action@v4
+        with:
+          file: Dockerfile.api
+          context: .
+          load: true
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+      - name: Run backend unit tests
+        run: |
+          docker run ${{ steps.build-image-backend.outputs.imageid }} python manage.py test
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+      - name: install deps
+        run: npm ci
+      - name: run frontend unit tests
+        env:
+          NODE_OPTIONS: "--max_old_space_size=4096"
+        run: npm run test:ci
+      - name: run backend unit tests
+        run: python manage.py test

@@ -12,7 +12,8 @@
     "lint": "ng lint",
     "e2e": "ng run ui:cypress-run",
     "cypress:open": "cypress open",
-    "cypress:run": "cypress run"
+    "cypress:run": "cypress run",
+    "test:ci": "ng test --no-watch --browsers ChromeHeadless"
   },
   "private": true,
   "dependencies": {
