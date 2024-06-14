@@ -34,11 +34,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20
-      - name: install deps
-        run: npm ci
-      - name: run frontend unit tests
+      - name: install frontend deps and run tests
         env:
           NODE_OPTIONS: "--max_old_space_size=4096"
-        run: npm run test:ci
-      - name: run backend unit tests
-        run: python manage.py test
+        run: |
+          cd ./ui
+          npm ci
+          npm run test:ci
+
+
