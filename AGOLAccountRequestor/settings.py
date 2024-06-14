@@ -178,7 +178,7 @@ SOCIAL_AUTH_IMMUTABLE_USER_FIELDS = os.environ.get('SOCIAL_AUTH_IMMUTABLE_USER_F
 REST_FRAMEWORK = json.loads(os.environ.get('REST_FRAMEWORK', '{}').replace("'", '"'))
 
 DRF_RECAPTCHA_SECRET_KEY = os.environ.get('DRF_RECAPTCHA_SECRET_KEY', 'fakey')
-DRF_RECAPTCHA_MINIMUM_SCORE = float(os.environ.get('DRF_RECAPTCHA_MINIMUM_SCORE', None))
+DRF_RECAPTCHA_MINIMUM_SCORE = float(os.environ.get('DRF_RECAPTCHA_MINIMUM_SCORE', '1.0'))
 
 
 CORS_ORIGIN_WHITELIST = os.environ.get('CORS_ORIGIN_WHITELIST', '').split(',') if 'CORS_ORIGIN_WHITELIST' in os.environ else []
