@@ -45,7 +45,7 @@ jobs:
         run: |
           npm run build:staging
       - name: save build
-        uses: @action/upload-artifact
+        uses: actions/upload-artifact
         with:
           name: frontend-build
           path: ./ui/dist/ui
