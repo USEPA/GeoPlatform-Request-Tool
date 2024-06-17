@@ -48,6 +48,10 @@ export class TagInputComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.listenToTags();
+  }
+
+  listenToTags() {
     this.filteredTags = this.tagsCtrl.valueChanges.pipe(
       startWith(''),
       debounceTime(300),

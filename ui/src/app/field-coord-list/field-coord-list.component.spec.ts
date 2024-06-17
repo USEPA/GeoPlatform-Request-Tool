@@ -10,8 +10,10 @@ import {MatSidenavModule} from '@angular/material/sidenav';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatLegacyTableModule} from '@angular/material/legacy-table';
 import {MatLegacyPaginatorModule} from '@angular/material/legacy-paginator';
-import {ReactiveFormsModule} from '@angular/forms';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {CdkTableModule} from '@angular/cdk/table';
+import {MatInputModule} from '@angular/material/input';
+import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 
 describe('FieldCoordListComponent', () => {
   let component: FieldCoordListComponent;
@@ -24,11 +26,14 @@ describe('FieldCoordListComponent', () => {
         HttpClientTestingModule,
         MatLegacySnackBarModule,
         MatSidenavModule,
-        MatFormFieldModule,
         MatLegacyTableModule,
         MatLegacyPaginatorModule,
+        FormsModule,
         ReactiveFormsModule,
-        CdkTableModule
+        CdkTableModule,
+        MatFormFieldModule,
+        MatInputModule,
+        NoopAnimationsModule
       ],
       providers: [
         {provide: LoadingService, useValue: {setLoading: () => {}}},

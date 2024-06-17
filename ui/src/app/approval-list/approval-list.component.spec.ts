@@ -16,6 +16,14 @@ import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-b
 
 import {environment} from '@environments/environment';
 import {UpdateApprovalTest} from './approval-list-mock-data';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatSidenavModule} from '@angular/material/sidenav';
+import {MatListModule} from '@angular/material/list';
+import {MatTableModule} from '@angular/material/table';
+import {MatPaginatorModule} from '@angular/material/paginator';
+import {MatInputModule} from '@angular/material/input';
+import {MatCheckboxModule} from '@angular/material/checkbox';
+import {MatSelectModule} from '@angular/material/select';
 
 const updateApprovalTest = new UpdateApprovalTest();
 
@@ -43,12 +51,19 @@ describe('ApprovalListComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [
-        CustomMaterialModule,
+        MatFormFieldModule,
+        MatSidenavModule,
+        MatListModule,
+        MatTableModule,
+        MatPaginatorModule,
         FormsModule,
         ReactiveFormsModule,
         CdkTableModule,
         HttpClientTestingModule,
-        BrowserAnimationsModule
+        BrowserAnimationsModule,
+        MatInputModule,
+        MatCheckboxModule,
+        MatSelectModule
       ],
       declarations: [ApprovalListComponent, FilterInputComponent],
       providers: [
@@ -76,20 +91,26 @@ describe('ApprovalListComponent', () => {
   it('should notify users of successful approval', () => {
     spyOn(matSnackBar, 'open');
     spyOn(component.accounts, 'getItems').and.returnValue(of([{}]));
+    component.selectedAccountIds = [1];
     component.createAccounts();
-    const req = httpTestingController.expectOne('/v1/account/approvals/approve/');
-    req.flush('');
-    expect(matSnackBar.open).toHaveBeenCalledWith('Success', null, Object({ duration: 2000 }));
+    const req = httpTestingController.expectOne('/api/v1/account/approvals/approve/');
+    req.flush({});
+    expect(matSnackBar.open).toHaveBeenCalledWith('Success!', null, { duration: 6000, panelClass: [ 'snackbar-success' ] });
   });
 
   it('should notify users of error if returned from server', () => {
     spyOn(matSnackBar, 'open');
     spyOn(component.accounts, 'getItems').and.returnValue(of([{}]));
+    component.selectedAccountIds = [1]
     component.createAccounts();
-    const req = httpTestingController.expectOne('/v1/account/approvals/approve/');
+    const req = httpTestingController.expectOne('/api/v1/account/approvals/approve/');
     const errorResponse = new HttpErrorResponse({error: 'error', status: 403});
     req.flush('', errorResponse);
-    expect(matSnackBar.open).toHaveBeenCalledWith('Error', null, {duration: 3000});
+    expect(matSnackBar.open).toHaveBeenCalledWith(
+      'There was and error with one or more account requests', null, {
+      duration: 6000,
+      panelClass: ['snackbar-error']
+    });
   });
 
   it('should notify users of successful approval update with group as property', () => {
@@ -98,10 +119,10 @@ describe('ApprovalListComponent', () => {
       expect(param).toBe(updateApprovalTest);
     });
     component.updateRecord(updateApprovalTest).subscribe();
-    const url = `/v1/account/approvals/${updateApprovalTest.id}/`;
+    const url = `/api/v1/account/approvals/${updateApprovalTest.id}/`;
     const req = httpTestingController.expectOne(url);
     expect(req.request.method).toBe('PUT');
     req.flush(updateApprovalTest);
-    expect(matSnackBar.open).toHaveBeenCalledWith('Success', null, Object({ duration: 2000 }));
+    expect(matSnackBar.open).toHaveBeenCalledWith('Success', null, Object({duration: 2000}));
   });
 });
