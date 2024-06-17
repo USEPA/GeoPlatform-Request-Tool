@@ -61,9 +61,9 @@ jobs:
       - name: copy app
         run: Copy-Item -Path .\* -Destination ..\..\..\..\app\ -Recurse -Exclude ("ui", ".git", ".github") -Force
       - name: run migrations
-        working-directory: ..\..\..\..\
+        working-directory: ..\..\..\..\app\
         run: |
-          conda activate .\venv\
+          conda activate ..\venv\
           python manage.py migrate
 
 
