@@ -58,12 +58,10 @@ jobs:
       run:
         working-directory: ..\..\..\..\
     steps:
-      - name: checkout
-        uses: actions/checkout@v3
-        with:
-          path: ..\..\..\..\
-      - name: check branch
-        run: git branch
+      - name: checkout PR
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+        run: git fetch origin pull/$env:PR_NUMBER}/head && git checkout FETCH_HEAD
       - name: run migrations
         run: |
           conda activate .\venv\
