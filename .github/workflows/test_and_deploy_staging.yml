@@ -56,7 +56,7 @@ jobs:
     name: deploy to staging
     steps:
       - name: activate env
-        working-directory: $vars.APP_LOCATION
+        working-directory: ${vars.APP_LOCATION}
         run: conda activate .\venv\
       - name: showmigrations
         working-directory: $vars.APP_LOCATION
