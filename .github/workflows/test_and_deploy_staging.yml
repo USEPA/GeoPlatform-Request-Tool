@@ -62,7 +62,6 @@ jobs:
         run: $env:path
       - name: activate env
         run: |
-          conda init powershell
           conda activate .\venv\
       - name: showmigrations
         run: python manage.py showmigrations
