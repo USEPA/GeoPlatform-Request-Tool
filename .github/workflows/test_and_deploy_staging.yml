@@ -60,11 +60,10 @@ jobs:
     steps:
       - name: test
         run: $env:path
-      - name: activate env
+      - name: run migrations
         run: |
           conda activate .\venv\
-      - name: showmigrations
-        run: python manage.py showmigrations
+          python manage.py showmigrations
 
 
 
