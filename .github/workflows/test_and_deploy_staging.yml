@@ -56,7 +56,7 @@ jobs:
     name: deploy to staging
     defaults:
       run:
-        working-directory: ..\..\..\
+        working-directory: ..\..\..\..\
     steps:
       - name: test
         run: $env:path
