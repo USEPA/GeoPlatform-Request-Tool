@@ -61,7 +61,9 @@ jobs:
       - name: checkout PR
         env:
           PR_NUMBER: ${{ github.event.number }}
-        run: git fetch origin pull/$env:PR_NUMBER}/head && git checkout FETCH_HEAD
+        run: |
+          git fetch origin pull/$env:PR_NUMBER/head 
+          git checkout FETCH_HEAD
       - name: run migrations
         run: |
           conda activate .\venv\
