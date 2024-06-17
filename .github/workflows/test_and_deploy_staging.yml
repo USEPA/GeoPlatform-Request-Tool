@@ -60,11 +60,10 @@ jobs:
     steps:
       - name: test
         run: $env:path
-#      - name: activate env
-#        run: conda activate .\venv\
-#      - name: showmigrations
-#        working-directory: $vars.APP_LOCATION
-#        run: python manage.py showmigrations
+      - name: activate env
+        run: conda activate .\venv\
+      - name: showmigrations
+        run: python manage.py showmigrations
 
 
 
