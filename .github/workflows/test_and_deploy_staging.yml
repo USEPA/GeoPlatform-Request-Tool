@@ -60,7 +60,7 @@ jobs:
         uses: actions/checkout@v3
       - name: copy app
         run: |
-          robocopy . ..\..\..\..\app /is /it /s /xd ui /xd .git /xd .github; if ($lastexitcode -eq 1) { $global:LASTEXITCODE = $null }
+          (robocopy . ..\..\..\..\app /is /it /s /xd ui /xd .git /xd .github); if ($lastexitcode -eq 1) { $global:LASTEXITCODE = $null }
       - name: run migrations
         working-directory: ..\..\..\..\
         run: |
