@@ -54,17 +54,15 @@ jobs:
   deploy:
     runs-on: staging
     name: deploy to staging
-    defaults:
-      run:
-        working-directory: ..\..\..\..\
+
     steps:
-      - name: checkout PR
-        env:
-          PR_NUMBER: ${{ github.event.number }}
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: copy app
         run: |
-          git fetch origin pull/$env:PR_NUMBER/head 
-          git checkout FETCH_HEAD
+          robocopy Geoplatform-Request-Tool ..\..\..\..\app /is /it /s /xd ui /xd .git /xd .github
       - name: run migrations
+        working-directory: ..\..\..\..\
         run: |
           conda activate .\venv\
           python manage.py migrate
