@@ -41,5 +41,26 @@ jobs:
           cd ./ui
           npm ci
           npm run test:ci
+      - name: build frontend
+        run: |
+          npm run build:staging
+      - name: save build
+        uses: @action/upload-artifact
+        with:
+          name: frontend-build
+          path: ./ui/dist/ui
+
+
+  deploy:
+    runs-on: staging
+    name: deploy to staging
+    steps:
+      - name: activate env
+        working-directory: $vars.APP_LOCATION
+        run: conda activate .\venv\
+      - name: showmigrations
+        working-directory: $vars.APP_LOCATION
+        run: python manage.py showmigrations
+
 
 
