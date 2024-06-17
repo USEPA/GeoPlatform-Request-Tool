@@ -58,12 +58,12 @@ jobs:
       run:
         working-directory: ..\..\..\..\
     steps:
-      - name: test
-        run: $env:path
+      - name: checkout
+        uses: actions/checkout@v3
       - name: run migrations
         run: |
           conda activate .\venv\
-          python manage.py showmigrations
+          python manage.py migrate
 
 
 
