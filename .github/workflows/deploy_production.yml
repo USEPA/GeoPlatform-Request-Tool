@@ -28,7 +28,7 @@ jobs:
       - name: build frontend
         run: |
           cd ./ui
-          npm run build:ngst-staging
+          npm run build:ngst-prod
       - name: save build
         uses: actions/upload-artifact@v4
         with:
