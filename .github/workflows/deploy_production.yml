@@ -39,21 +39,22 @@ jobs:
     runs-on: production
     name: deploy to production
 #    needs: build_frontend
+    environment: production
     steps:
-      - name: conda envs
-        run: conda info --envs
-#      - name: checkout
-#        uses: actions/checkout@v3
-#      - name: copy app
-#        run: Copy-Item -Path .\* -Destination ..\..\..\..\app\ -Recurse -Exclude ("ui", ".git", ".github") -Force
-#      - name: run migrations and collectstatic
-#        working-directory: ..\..\..\..\app\
-#        run: |
-#          conda activate arcgispro-py3-clone
-#          python manage.py migrate
-#          python manage.py collectstatic --noinput
-#      - name: download ui
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: frontend-build
-#          path: ..\..\..\..\ui\
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: copy app
+        run: Copy-Item -Path .\* -Destination ..\..\..\..\app\ -Recurse -Exclude ("ui", ".git", ".github") -Force
+      - name: run migrations and collectstatic
+        working-directory: ..\..\..\..\app\
+        env:
+          conda_path: $var.CONDA_ENV_PATH
+        run: |
+          conda activate $env:conda_path
+          python manage.py migrate
+          python manage.py collectstatic --noinput
+      - name: download ui
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: ..\..\..\..\ui\
