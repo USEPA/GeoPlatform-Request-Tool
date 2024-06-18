@@ -48,7 +48,7 @@ jobs:
       - name: run migrations and collectstatic
         working-directory: ..\..\..\..\app\
         env:
-          conda_path: $var.CONDA_ENV_PATH
+          conda_path: ${{ vars.CONDA_ENV_PATH }}
         run: |
           conda activate $env:conda_path
           python manage.py migrate
