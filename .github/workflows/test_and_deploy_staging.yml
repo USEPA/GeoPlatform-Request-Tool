@@ -43,6 +43,7 @@ jobs:
           npm run test:ci
       - name: build frontend
         run: |
+          cd ./ui
           npm run build:staging
       - name: save build
         uses: actions/upload-artifact@v4
