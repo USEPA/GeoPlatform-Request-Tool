@@ -1,0 +1,55 @@
+name: deploy production
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+    branches:
+      - master
+
+jobs:
+  build_frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+      - name: install frontend deps and run tests
+        env:
+          NODE_OPTIONS: "--max_old_space_size=4096"
+        run: |
+          cd ./ui
+          npm ci
+      - name: build frontend
+        run: |
+          cd ./ui
+          npm run build:ngst-staging
+      - name: save build
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: ./ui/dist/ui
+
+  deploy:
+    runs-on: production
+    name: deploy to production
+    needs: build_frontend
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: copy app
+        run: Copy-Item -Path .\* -Destination ..\..\..\..\app\ -Recurse -Exclude ("ui", ".git", ".github") -Force
+      - name: run migrations and collectstatic
+        working-directory: ..\..\..\..\app\
+        run: |
+          conda activate arcgispro-py3-clone
+          python manage.py migrate
+          python manage.py collectstatic --noinput
+      - name: download ui
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: ..\..\..\..\ui\
