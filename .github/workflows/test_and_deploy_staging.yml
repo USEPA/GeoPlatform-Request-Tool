@@ -54,7 +54,7 @@ jobs:
   deploy:
     runs-on: staging
     name: deploy to staging
-
+    needs: test
     steps:
       - name: checkout
         uses: actions/checkout@v3
