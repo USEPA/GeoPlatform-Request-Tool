@@ -10,35 +10,35 @@ on:
       - master
 
 jobs:
-#  build_frontend:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: checkout
-#        uses: actions/checkout@v3
-#      - name: Use Node.js
-#        uses: actions/setup-node@v3
-#        with:
-#          node-version: 20
-#      - name: install frontend deps and run tests
-#        env:
-#          NODE_OPTIONS: "--max_old_space_size=4096"
-#        run: |
-#          cd ./ui
-#          npm ci
-#      - name: build frontend
-#        run: |
-#          cd ./ui
-#          npm run build:ngst-staging
-#      - name: save build
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: frontend-build
-#          path: ./ui/dist/ui
+  build_frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+      - name: install frontend deps and run tests
+        env:
+          NODE_OPTIONS: "--max_old_space_size=4096"
+        run: |
+          cd ./ui
+          npm ci
+      - name: build frontend
+        run: |
+          cd ./ui
+          npm run build:ngst-staging
+      - name: save build
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: ./ui/dist/ui
 
   deploy:
     runs-on: production
     name: deploy to production
-#    needs: build_frontend
+    needs: build_frontend
     environment: production
     steps:
       - name: checkout
