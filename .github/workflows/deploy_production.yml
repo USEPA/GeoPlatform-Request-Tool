@@ -37,8 +37,8 @@ jobs:
 
   deploy:
     runs-on: production
-#    name: deploy to production
-    needs: build_frontend
+    name: deploy to production
+#    needs: build_frontend
     steps:
       - name: conda envs
         run: conda info --envs
