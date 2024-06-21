@@ -141,9 +141,7 @@ def get_role_from_request(request):
     object_id = get_object_id_from_request(request)
     return AGOLRole.objects.get(id=object_id) if object_id else None
 
-def email_not_associated_with_existing_account(account_request: AccountRequests):
-    # skip this if its not an existing account
-    if not account_request.is_existing_account:
-        return True
+# false if not existing or username not in associated_usernames (based on email)
+def email_associated_with_existing_account(account_request: AccountRequests):
     associated_usernames = account_request.possible_existing_account.split(',')
-    return account_request.username not in associated_usernames
+    return account_request.username in associated_usernames

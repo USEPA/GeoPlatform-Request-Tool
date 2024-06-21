@@ -54,7 +54,9 @@ def mock_request_json(return_value):
         class MockResponse:
             def json(self):
                 return return_value
+
         return MockResponse()
+
     return _
 
 
@@ -191,7 +193,8 @@ class TestAccounts(TestCase):
                 try:
                     self.agol.create_user_account(account, 'password')
                 except Exception as e:
-                    self.assertEqual(str(e), 'Portal does not allow external accounts and request email does not have a preapproved domain')
+                    self.assertEqual(str(e),
+                                     'Portal does not allow external accounts and request email does not have a preapproved domain')
             else:
                 result = self.agol.create_user_account(account, 'password')
                 self.assertFalse(result)
@@ -237,7 +240,8 @@ class TestAccounts(TestCase):
         # only test with non existing accounts, there should be account requests which already created
         requests = AccountRequests.objects.filter(agol_id=None)
         for account in requests:
-            if account.is_enterprise_account() or (not account.is_enterprise_account() and account.response.portal.allow_external_accounts):
+            if account.is_enterprise_account() or (
+                    not account.is_enterprise_account() and account.response.portal.allow_external_accounts):
                 self.assertTrue(self.agol.create_user_account(account))
 
         # Any non-existing account requests should have been created with all fs GUID
@@ -334,3 +338,15 @@ class TestAccounts(TestCase):
             self.fail('Should not get here')
         except ValidationError as e:
             self.assertTrue('authoritative_group' in e.args[0])
+
+    def test_email_associated_with_existing_account(self):
+        a = AccountRequests()
+
+        a.username = 'test'
+        a.possible_existing_account = ''
+        r = email_associated_with_existing_account(a)
+        self.assertFalse(r)
+
+        a.possible_existing_account = 'test,test12'
+        r = email_associated_with_existing_account(a)
+        self.assertTrue(r)

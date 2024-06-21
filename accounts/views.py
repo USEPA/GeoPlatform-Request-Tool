@@ -152,7 +152,7 @@ class AccountViewSet(ModelViewSet):
                 'error': f"Account not {request.data['account_id']} found"
             }, status=404)
 
-        if email_not_associated_with_existing_account(account):
+        if account.is_existing_account and not email_associated_with_existing_account(account):
             return Response(
                 {'details': 'Provided email address is not associated with this existing username.'},
                 status=400
