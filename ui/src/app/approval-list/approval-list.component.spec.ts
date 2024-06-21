@@ -1,6 +1,6 @@
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
-import {ApprovalListComponent} from './approval-list.component';
+import {Accounts, ApprovalListComponent} from './approval-list.component';
 import {Observable, of} from 'rxjs';
 import {MatLegacyDialog as MatDialog} from '@angular/material/legacy-dialog';
 import {FilterInputComponent} from '../filter-input/filter-input.component';
@@ -81,6 +81,7 @@ describe('ApprovalListComponent', () => {
     component = fixture.componentInstance;
     matSnackBar = TestBed.get(MatSnackBar);
     httpTestingController = TestBed.get(HttpTestingController);
+
     fixture.detectChanges();
   });
 
@@ -95,7 +96,7 @@ describe('ApprovalListComponent', () => {
     component.createAccounts();
     const req = httpTestingController.expectOne('/api/v1/account/approvals/approve/');
     req.flush({});
-    expect(matSnackBar.open).toHaveBeenCalledWith('Success!', null, { duration: 6000, panelClass: [ 'snackbar-success' ] });
+    expect(matSnackBar.open).toHaveBeenCalledWith('Success!', null, {duration: 6000, panelClass: ['snackbar-success']});
   });
 
   it('should notify users of error if returned from server', () => {
@@ -108,9 +109,9 @@ describe('ApprovalListComponent', () => {
     req.flush('', errorResponse);
     expect(matSnackBar.open).toHaveBeenCalledWith(
       'There was and error with one or more account requests', null, {
-      duration: 6000,
-      panelClass: ['snackbar-error']
-    });
+        duration: 6000,
+        panelClass: ['snackbar-error']
+      });
   });
 
   it('should notify users of successful approval update with group as property', () => {
@@ -125,4 +126,84 @@ describe('ApprovalListComponent', () => {
     req.flush(updateApprovalTest);
     expect(matSnackBar.open).toHaveBeenCalledWith('Success', null, Object({duration: 2000}));
   });
+
+  it('should set needs editing if missing required fields', () => {
+    component.accountsListProps = {
+      1: {
+        first_name: null,
+        last_name: null,
+        username: null,
+        email: null,
+        groups: null,
+        organization: null,
+        reason: null,
+        response: null,
+        sponsor: null,
+        approved: null,
+        created: null,
+        isChecked: false,
+        needsEditing: null,
+        is_existing_account: null
+
+      }
+    };
+    component.setNeedsEditing({id: 1, organization: null})
+    expect(component.accountsListProps[1].needsEditing).toBeTruthy();
+
+  })
+
+  it('should mark needs editing true if is existing account and email does not match', () => {
+    component.accountsListProps = {
+      1: {
+        first_name: null,
+        last_name: null,
+        username: null,
+        email: null,
+        groups: null,
+        organization: null,
+        reason: null,
+        response: null,
+        sponsor: null,
+        approved: null,
+        created: null,
+        isChecked: false,
+        needsEditing: null,
+        is_existing_account: null
+
+      }
+    };
+    const spyOnEmailMatches = spyOn(component, 'emailMatchesAccount').and.returnValue(false);
+    component.setNeedsEditing({
+      id: 1, organization: 1, response: 1, sponsor: 1, reason: 1,
+      is_existing_account: true, username_valid: false
+    })
+    expect(component.accountsListProps[1].needsEditing).toBeTruthy();
+  })
+  it('should mark needs editing false if is existing account and email does match', () => {
+    component.accountsListProps = {
+      1: {
+        first_name: null,
+        last_name: null,
+        username: null,
+        email: null,
+        groups: null,
+        organization: null,
+        reason: null,
+        response: null,
+        sponsor: null,
+        approved: null,
+        created: null,
+        isChecked: false,
+        needsEditing: null,
+        is_existing_account: null
+
+      }
+    };
+    const spyOnEmailMatches = spyOn(component, 'emailMatchesAccount').and.returnValue(true);
+    component.setNeedsEditing({
+      id: 1, organization: 1, response: 1, sponsor: 1, reason: 1,
+      is_existing_account: true, username_valid: false
+    })
+    expect(component.accountsListProps[1].needsEditing).toBeFalse();
+  })
 });
