@@ -171,6 +171,8 @@ class AccountViewSet(ModelViewSet):
         # create accounts that don't exist
         if account.agol_id is None:
             create_success = create_account(account, password)
+            account.created = now()  # mark created once created or enabled and added to groups
+            account.save()
             if not create_success:
                 return Response({
                     'id': account.pk,
@@ -201,8 +203,7 @@ class AccountViewSet(ModelViewSet):
 
         # success = [x.pk for x in account_requests if x.pk in create_success and x.pk in group_success]
         if create_success and enabled_success and group_success:
-            account.created = now()  # mark created once created or enabled and added to groups
-            account.save()
+
             return Response({
                 'id': account.pk,
                 'success': f"Successfully approved {account.username} at {account.response.portal.portal_name}"
