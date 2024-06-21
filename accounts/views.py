@@ -171,9 +171,10 @@ class AccountViewSet(ModelViewSet):
         # create accounts that don't exist
         if account.agol_id is None:
             create_success = create_account(account, password)
-            account.created = now()  # mark created once created or enabled and added to groups
-            account.save()
-            if not create_success:
+            if create_success:
+                account.created = now()  # mark created once created or enabled and added to groups
+                account.save()
+            else:
                 return Response({
                     'id': account.pk,
                     'error': f"Error creating {account.username} at {account.response.portal.portal_name}."
@@ -183,7 +184,10 @@ class AccountViewSet(ModelViewSet):
 
         # re-enabled disabled accounts
         enabled_success = enable_account(account, password)
-        if not enabled_success:
+        if enabled_success:
+            account.created = now()  # mark created once created or enabled and added to groups
+            account.save()
+        else:
             return Response({
                 'id': account.pk,
                 'error': f"Error enabling {account.username} at {account.response.portal.portal_name}."
