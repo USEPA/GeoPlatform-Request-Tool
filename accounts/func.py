@@ -1,32 +1,13 @@
 from django.urls import resolve
+from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 from .models import AccountRequests, AGOL, GroupMembership, AGOLGroup, Notification, ResponseProject, AGOLRole
 from uuid import UUID
 import logging
 import re
+from django.utils.timezone import now
 
 logger = logging.getLogger('django')
-
-
-def create_account(account_request, password: str = None):
-    agol = account_request.response.portal
-
-    if account_request.agol_id is None:
-        # double check if username already exists, but we are out of sync
-        username_valid, agol_id, groups, existing_account_enabled, created = agol.check_username(account_request.username)
-        if agol_id:
-            account_request.agol_id = agol_id
-            account_request.existing_account_enabled = existing_account_enabled
-            account_request.save()
-
-            # account already exists since we already grabbed their user id from agol
-            return True
-
-    # invite user since they don't exist yet
-    if agol.create_user_account(account_request, password):
-        return True
-
-    # account creation failed, return false
-    return False
 
 
 def add_account_to_groups(account_request):
@@ -125,6 +106,7 @@ def get_response_from_request(request):
     object_id = get_object_id_from_request(request)
     return ResponseProject.objects.get(id=object_id) if object_id else None
 
+
 def format_username(data, enterprise_domains=None):
     if enterprise_domains is None:
         enterprise_domains = []
@@ -137,11 +119,71 @@ def format_username(data, enterprise_domains=None):
         username = f'{last_name.capitalize()}.{first_name.capitalize()}_{username_extension}'
     return username.replace(' ', '')
 
+
 def get_role_from_request(request):
     object_id = get_object_id_from_request(request)
     return AGOLRole.objects.get(id=object_id) if object_id else None
+
 
 # false if not existing or username not in associated_usernames (based on email)
 def email_associated_with_existing_account(account_request: AccountRequests):
     associated_usernames = account_request.possible_existing_account.split(',')
     return account_request.username in associated_usernames
+
+
+def verify_account_can_be_approved(account):
+    if account.is_existing_account and not email_associated_with_existing_account(account):
+        raise PermissionDenied(
+            {'details': 'Provided email address is not associated with this existing username.'},
+        )
+
+def approve_account(account, password, approved_by):
+    # marked approved and capture who dun it (do we want to do this here, or after it's actually created?)
+    account.approved = now()
+    account.approved_by = approved_by
+    account.save()
+
+    # create accounts that don't exist
+    if account.agol_id is None:
+        create_success = account.create_account(password)
+
+        if not create_success:
+            return Response({
+                'id': account.pk,
+                'error': f"Error creating {account.username} at {account.response.portal.portal_name}."
+            }, status=500)
+    else:
+        create_success = True  # fake it for existing accounts
+
+    # re-enabled disabled accounts
+    enabled_success = enable_account(account, password)
+    if not enabled_success:
+        return Response({
+            'id': account.pk,
+            'error': f"Error enabling {account.username} at {account.response.portal.portal_name}."
+        }, status=500)
+
+    # add account to groups
+    if account.groupmembership_set.count() > 0:
+        group_success = add_account_to_groups(account)
+        if not group_success:
+            return Response({
+                'id': account.pk,
+                'warning': f"Warning, {account.username} created but groups not added at {account.response.portal.portal_name}"
+            }, status=200)
+    else:
+        # no groups to add
+        group_success = True
+
+    # success = [x.pk for x in account_requests if x.pk in create_success and x.pk in group_success]
+    if create_success and enabled_success and group_success:
+        return Response({
+            'id': account.pk,
+            'success': f"Successfully approved {account.username} at {account.response.portal.portal_name}"
+        }, status=200)
+
+    # return unknown error if for some reason previous error checks didn't return an error but was not successful
+    return Response({
+        'id': account.pk,
+        'error': f"Unknown error with {account.username} at {account.response.portal.portal_name}"
+    }, status=400)

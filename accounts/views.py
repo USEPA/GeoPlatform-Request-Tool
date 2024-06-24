@@ -11,7 +11,6 @@ from django.shortcuts import get_list_or_404, get_object_or_404, Http404
 from django_filters.rest_framework import FilterSet, BooleanFilter, DateFilter, NumberFilter, BaseCSVFilter
 from django.db.models import Q, Count, F
 from django.template.response import TemplateResponse
-from django.utils.timezone import now
 from django.core.exceptions import ObjectDoesNotExist
 from django.urls import resolve
 
@@ -19,10 +18,12 @@ from .filters import AGOLGroupFilterSet, ResponseProjectFilterSet
 from .models import *
 from .serializers import *
 from .permissions import IsSponsor
-from .func import create_account, add_account_to_groups, update_requests_groups, enable_account, format_username
+from .func import add_account_to_groups, update_requests_groups, enable_account, format_username, \
+    approve_account, verify_account_can_be_approved
 from natsort import natsorted
 
 from dal import autocomplete
+
 
 # def format_username(data, enterprise_domains=None):
 #     if enterprise_domains is None:
@@ -144,80 +145,13 @@ class AccountViewSet(ModelViewSet):
     # create account (or queue up creation?)
     @action(['POST'], detail=False)
     def approve(self, request):
-        account = AccountRequests.objects.get(pk=request.data['account_id'])
-
-        if not account:
-            return Response({
-                'id': request.data['account_id'],
-                'error': f"Account not {request.data['account_id']} found"
-            }, status=404)
-
-        if account.is_existing_account and not email_associated_with_existing_account(account):
-            return Response(
-                {'details': 'Provided email address is not associated with this existing username.'},
-                status=400
-            )
-
+        account = get_object_or_404(AccountRequests, pk=request.data['account_id'])
         # verify user has permission on each request submitted.
         self.check_object_permissions(request, account)
 
-        # marked approved and capture who dun it (do we want to do this here, or after it's actually created?)
-        account.approved = now()
-        account.approved_by = request.user
-        account.save()
-
+        verify_account_can_be_approved(account)
         password = request.data.get('password', None)
-
-        # create accounts that don't exist
-        if account.agol_id is None:
-            create_success = create_account(account, password)
-            if create_success:
-                account.created = now()  # mark created once created or enabled and added to groups
-                account.save()
-            else:
-                return Response({
-                    'id': account.pk,
-                    'error': f"Error creating {account.username} at {account.response.portal.portal_name}."
-                }, status=500)
-        else:
-            create_success = True  # fake it for existing accounts
-
-        # re-enabled disabled accounts
-        enabled_success = enable_account(account, password)
-        if enabled_success:
-            account.created = now()  # mark created once created or enabled and added to groups
-            account.save()
-        else:
-            return Response({
-                'id': account.pk,
-                'error': f"Error enabling {account.username} at {account.response.portal.portal_name}."
-            }, status=500)
-
-        # add account to groups
-        if account.groupmembership_set.count() > 0:
-            group_success = add_account_to_groups(account)
-            if not group_success:
-                return Response({
-                    'id': account.pk,
-                    'warning': f"Warning, {account.username} created but groups not added at {account.response.portal.portal_name}"
-                }, status=200)
-        else:
-            # no groups to add
-            group_success = True
-
-        # success = [x.pk for x in account_requests if x.pk in create_success and x.pk in group_success]
-        if create_success and enabled_success and group_success:
-
-            return Response({
-                'id': account.pk,
-                'success': f"Successfully approved {account.username} at {account.response.portal.portal_name}"
-            }, status=200)
-
-        # return unknown error if for some reason previous error checks didn't return an error but was not successful
-        return Response({
-            'id': account.pk,
-            'error': f"Unknown error with {account.username} at {account.response.portal.portal_name}"
-        }, status=400)
+        return approve_account(account, password, request.user)
 
     # possible to setup email to request with reason
     @action(['POST'], detail=True)

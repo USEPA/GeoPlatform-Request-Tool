@@ -17,6 +17,7 @@ from datetime import datetime
 from django.contrib.auth.models import User, Group
 from urllib.parse import urlencode
 import json
+from django.utils.timezone import now
 
 import logging
 
@@ -88,6 +89,13 @@ class AccountRequests(models.Model):
     def disable_account(self):
         if not self.is_enterprise_account() and not self.is_existing_account:
             self.response.portal.disable_user_account(self.username)
+
+    def create_account(self, password=None):
+        create_success = self.response.portal.create_user_account(self, password)
+        if create_success:
+            self.created = now()  # mark created once created or enabled and added to groups
+            self.save()
+        return create_success
 
     def save(self, *args, **kwargs):
         # this resets role and auth_group if the response changes

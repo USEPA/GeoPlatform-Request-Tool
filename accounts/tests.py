@@ -350,3 +350,96 @@ class TestAccounts(TestCase):
         a.possible_existing_account = 'test,test12'
         r = email_associated_with_existing_account(a)
         self.assertTrue(r)
+
+    @patch('accounts.func.email_associated_with_existing_account')
+    def test_verify_account_can_be_approved(self, mock_email_association):
+        mock_email_association.return_value = False
+        a = AccountRequests(is_existing_account=True)
+        # this one should fail
+        try:
+            verify_account_can_be_approved(a)
+        except PermissionDenied:
+            self.assertTrue(True)
+
+        # this should not throw exception
+        mock_email_association.return_value = True
+        try:
+            verify_account_can_be_approved(a)
+        except:
+            self.assertTrue(False)
+
+        # this should not throw exception
+        a.is_existing_account = False
+        try:
+            verify_account_can_be_approved(a)
+        except:
+            self.assertTrue(False)
+
+
+    @patch('accounts.models.AGOL.create_user_account')
+    def test_create_account_from_request(self, mock_create_user_account):
+        mock_create_user_account.return_value = False
+        a = AccountRequests.objects.get(id=103)
+        self.assertFalse(a.create_account())
+
+        mock_create_user_account.return_value = True
+        self.assertTrue(a.create_account())
+        self.assertTrue(a.created is not None)
+
+    @patch('accounts.models.AGOL.enable_user_account')
+    def test_enable_account(self, mock_enable_user_account):
+        a = AccountRequests(existing_account_enabled=True)
+        self.assertTrue(enable_account(a, None))
+
+        mock_enable_user_account.return_value = True
+        a = AccountRequests.objects.get(id=101)
+        self.assertFalse(a.existing_account_enabled)
+        self.assertTrue(enable_account(a, None))
+        self.assertTrue(a.existing_account_enabled)
+
+
+    @patch('accounts.models.AGOL.create_user_account')
+    def test_create_account_from_request(self, mock_create_user_account):
+        mock_create_user_account.return_value = False
+        a = AccountRequests.objects.get(id=103)
+        self.assertFalse(a.create_account())
+
+        mock_create_user_account.return_value = True
+        self.assertTrue(a.create_account())
+        self.assertTrue(a.created is not None)
+
+    @patch('accounts.func.add_account_to_groups')
+    @patch('accounts.func.enable_account')
+    @patch('accounts.models.AGOL.create_user_account')
+    def test_account_approval(self, mock_create_user_account, mock_enable_account, mock_add_to_groups):
+        a = AccountRequests.objects.get(id=101)
+        mock_create_user_account.return_value = True
+        mock_add_to_groups.return_value = False
+        r = approve_account(a, None, User(id=1))
+        self.assertTrue('groups not added at' in r.data['warning'])
+
+
+        a = AccountRequests.objects.get(id=102)
+        self.assertTrue(a.approved is None and a.approved_by is None and a.existing_account_enabled)
+
+        mock_create_user_account.return_value = False
+
+        r = approve_account(a, None, User(id=1))
+        self.assertEqual(r.data['id'], 102)
+        print(r.data['error'])
+        self.assertTrue("Error creating" in r.data['error'])
+
+        mock_create_user_account.return_value = True
+        mock_enable_account.return_value = False
+
+        r = approve_account(a, None, User(id=1))
+        self.assertTrue('Error enabling' in r.data['error'])
+
+        mock_enable_account.return_value = True
+        r = approve_account(a, None, User(id=1))
+        self.assertTrue('Successfully' in r.data['success'])
+
+
+
+
+
