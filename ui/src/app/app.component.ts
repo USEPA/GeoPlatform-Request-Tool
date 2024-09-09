@@ -57,7 +57,7 @@ export class AppComponent implements OnInit {
   }
 
   open_redirect_message() {
-    // this.router.navigate([], {queryParams: {redirect: null}, queryParamsHandling: 'merge'})
+    this.router.navigate([], {queryParams: {redirect: null}, queryParamsHandling: 'merge'})
     this.snackBar.open(
       'The Account Request Tool has a new home. Please update your bookmarks to https://gpdashboard.epa.gov/request/',
       'Dismiss',
