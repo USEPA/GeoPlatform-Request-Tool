@@ -1,9 +1,10 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { LoginComponent } from './login.component';
+import {LoginComponent} from './login.component';
 import {AuthModule} from '../auth.module';
 import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {RouterTestingModule} from '@angular/router/testing';
+import {ActivatedRoute} from '@angular/router';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
@@ -15,9 +16,21 @@ describe('LoginComponent', () => {
         AuthModule,
         HttpClientTestingModule,
         RouterTestingModule
+      ],
+      providers: [
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              queryParams: {
+                next: 'test'
+              }
+            }
+          }
+        }
       ]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {

@@ -12,6 +12,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 
 logger = logging.getLogger('django')
 
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 @ensure_csrf_cookie
@@ -22,19 +23,28 @@ def current_user(request):
     for groups in request.user.groups.all():
         for permission in groups.permissions.all():
             permissions.append(permission.codename)
-    delegate_for = request.user.delegate_for.values_list('id', flat=True)
+
     current_user = {
         'id': request.user.id,
-        'portal': request.user.agol_info.portal.get_portal_name_display(),
-        'portal_id': request.user.agol_info.portal.id,
-        'name': '{} {}'.format(request.user.first_name, request.user.last_name) if request.user.first_name else request.user.username,
+        'name': '{} {}'.format(request.user.first_name,
+                               request.user.last_name) if request.user.first_name else request.user.username,
         'permissions': set(permissions),
         'is_superuser': request.user.is_superuser,
         'is_staff': request.user.is_staff,
-        'is_sponsor': request.user.agol_info.sponsor,
-        'is_delegate': True if len(delegate_for) > 0 else False,
-        'delegate_for': delegate_for,
+
     }
+
+    if hasattr(request.user, 'agol_info'):
+        delegate_for = request.user.delegate_for.values_list('id', flat=True)
+        current_user = {
+            **current_user,
+            'portal': request.user.agol_info.portal.get_portal_name_display(),
+            'portal_id': request.user.agol_info.portal.id,
+            'portal_requires_auth_group': request.user.agol_info.portal.requires_auth_group,
+            'is_sponsor': request.user.agol_info.sponsor,
+            'is_delegate': True if len(delegate_for) > 0 else False,
+            'delegate_for': delegate_for,
+        }
     return Response(current_user)
 
 

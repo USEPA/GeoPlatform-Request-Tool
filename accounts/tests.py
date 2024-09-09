@@ -1,6 +1,7 @@
 from django.test import RequestFactory, TestCase
 from unittest.mock import patch, MagicMock
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.utils.timezone import now
 from django.db.models import Q
 
@@ -46,6 +47,17 @@ def mock_existing_check_username(*args, **kwargs):
             }
 
     return MockResponse()
+
+
+def mock_request_json(return_value):
+    def _(*args, **kwargs):
+        class MockResponse:
+            def json(self):
+                return return_value
+
+        return MockResponse()
+
+    return _
 
 
 def mock_get_user(*args, **kwargs):
@@ -163,6 +175,15 @@ class TestAccounts(TestCase):
         results = self.agol.check_username('doesntmatter')
         self.assertTrue(results[0])
 
+    @patch('requests.post')
+    def test_check_username_failure(self, mock_post):
+        mock_post.side_effect = mock_request_json({'error': {'details': 'nothing'}})
+        results = self.agol.check_username('doesntmatter')
+        self.assertFalse(results[0])
+        mock_post.side_effect = mock_request_json({})
+        results = self.agol.check_username('doesntmatter')
+        self.assertFalse(results[0])
+
     @patch('accounts.models.requests.post', side_effect=mock_fail_create_user)
     @patch('accounts.models.requests.get', side_effect=mock_get_user)
     def test_account_rejection(self, mock_post, mock_get):
@@ -172,7 +193,8 @@ class TestAccounts(TestCase):
                 try:
                     self.agol.create_user_account(account, 'password')
                 except Exception as e:
-                    self.assertEqual(str(e), 'Portal does not allow external accounts and request email does not have a preapproved domain')
+                    self.assertEqual(str(e),
+                                     'Portal does not allow external accounts and request email does not have a preapproved domain')
             else:
                 result = self.agol.create_user_account(account, 'password')
                 self.assertFalse(result)
@@ -218,7 +240,8 @@ class TestAccounts(TestCase):
         # only test with non existing accounts, there should be account requests which already created
         requests = AccountRequests.objects.filter(agol_id=None)
         for account in requests:
-            if account.is_enterprise_account() or (not account.is_enterprise_account() and account.response.portal.allow_external_accounts):
+            if account.is_enterprise_account() or (
+                    not account.is_enterprise_account() and account.response.portal.allow_external_accounts):
                 self.assertTrue(self.agol.create_user_account(account))
 
         # Any non-existing account requests should have been created with all fs GUID
@@ -301,3 +324,122 @@ class TestAccounts(TestCase):
             for ac in AccountRequests.objects.filter(agol_id=agol.id):
                 result = IsSponsor().has_object_permission(request, SponsorsViewSet, ac)
                 self.assertTrue(result)
+
+    def test_allow_response_with_unrelated_auth_group(self):
+        # at time of writing test most records in the fixture will fail this test
+        # thats fine since clean doesn't generally get called outside of form validation
+        responseproject = ResponseProject.objects.get(id=1001)
+        # this should not error and allow test to pass
+        responseproject.clean()
+
+        responseproject = ResponseProject.objects.get(id=1002)
+        try:
+            responseproject.clean()
+            self.fail('Should not get here')
+        except ValidationError as e:
+            self.assertTrue('authoritative_group' in e.args[0])
+
+    def test_email_associated_with_existing_account(self):
+        a = AccountRequests()
+
+        a.username = 'test'
+        a.possible_existing_account = ''
+        r = email_associated_with_existing_account(a)
+        self.assertFalse(r)
+
+        a.possible_existing_account = 'test,test12'
+        r = email_associated_with_existing_account(a)
+        self.assertTrue(r)
+
+    @patch('accounts.func.email_associated_with_existing_account')
+    def test_verify_account_can_be_approved(self, mock_email_association):
+        mock_email_association.return_value = False
+        a = AccountRequests(is_existing_account=True)
+        # this one should fail
+        try:
+            verify_account_can_be_approved(a)
+        except PermissionDenied:
+            self.assertTrue(True)
+
+        # this should not throw exception
+        mock_email_association.return_value = True
+        try:
+            verify_account_can_be_approved(a)
+        except:
+            self.assertTrue(False)
+
+        # this should not throw exception
+        a.is_existing_account = False
+        try:
+            verify_account_can_be_approved(a)
+        except:
+            self.assertTrue(False)
+
+
+    @patch('accounts.models.AGOL.create_user_account')
+    def test_create_account_from_request(self, mock_create_user_account):
+        mock_create_user_account.return_value = False
+        a = AccountRequests.objects.get(id=103)
+        self.assertFalse(a.create_account())
+
+        mock_create_user_account.return_value = True
+        self.assertTrue(a.create_account())
+        self.assertTrue(a.created is not None)
+
+    @patch('accounts.models.AGOL.enable_user_account')
+    def test_enable_account(self, mock_enable_user_account):
+        a = AccountRequests(existing_account_enabled=True)
+        self.assertTrue(enable_account(a, None))
+
+        mock_enable_user_account.return_value = True
+        a = AccountRequests.objects.get(id=101)
+        self.assertFalse(a.existing_account_enabled)
+        self.assertTrue(enable_account(a, None))
+        self.assertTrue(a.existing_account_enabled)
+
+
+    @patch('accounts.models.AGOL.create_user_account')
+    def test_create_account_from_request(self, mock_create_user_account):
+        mock_create_user_account.return_value = False
+        a = AccountRequests.objects.get(id=103)
+        self.assertFalse(a.create_account())
+
+        mock_create_user_account.return_value = True
+        self.assertTrue(a.create_account())
+        self.assertTrue(a.created is not None)
+
+    @patch('accounts.func.add_account_to_groups')
+    @patch('accounts.func.enable_account')
+    @patch('accounts.models.AGOL.create_user_account')
+    def test_account_approval(self, mock_create_user_account, mock_enable_account, mock_add_to_groups):
+        a = AccountRequests.objects.get(id=101)
+        mock_create_user_account.return_value = True
+        mock_add_to_groups.return_value = False
+        r = approve_account(a, None, User(id=1))
+        self.assertTrue('groups not added at' in r.data['warning'])
+
+
+        a = AccountRequests.objects.get(id=102)
+        self.assertTrue(a.approved is None and a.approved_by is None and a.existing_account_enabled)
+
+        mock_create_user_account.return_value = False
+
+        r = approve_account(a, None, User(id=1))
+        self.assertEqual(r.data['id'], 102)
+        print(r.data['error'])
+        self.assertTrue("Error creating" in r.data['error'])
+
+        mock_create_user_account.return_value = True
+        mock_enable_account.return_value = False
+
+        r = approve_account(a, None, User(id=1))
+        self.assertTrue('Error enabling' in r.data['error'])
+
+        mock_enable_account.return_value = True
+        r = approve_account(a, None, User(id=1))
+        self.assertTrue('Successfully' in r.data['success'])
+
+
+
+
+

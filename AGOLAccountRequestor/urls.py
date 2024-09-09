@@ -28,7 +28,7 @@ router = routers.DefaultRouter()
 
 router.register('portals', account_views.PortalsViewSet)
 router.register('account/request', account_views.AccountRequestViewSet)
-router.register('account/approvals', account_views.AccountViewSet)
+router.register('account/approvals', account_views.AccountViewSet, basename='accountrequest_approvals')
 router.register('responses', account_views.ResponseProjectViewSet)
 router.register('sponsors', account_views.SponsorsViewSet)
 router.register('agol/groups', account_views.AGOLGroupViewSet)
@@ -53,7 +53,13 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
-    urlpatterns += [path('__debug__/', include(debug_toolbar.urls)),]
+    def test_error(request):
+        raise Exception('testing')
+
+    urlpatterns += [
+        path('__debug__/', include(debug_toolbar.urls)),
+        path(f'{settings.URL_PREFIX}/api/v1/test_error', test_error)
+    ]
 
 if not settings.DISABLE_PASSWORD_AUTH:
     urlpatterns += [path(f'{settings.URL_PREFIX}api/auth/', include('rest_framework.urls', namespace='rest_framework'))]
