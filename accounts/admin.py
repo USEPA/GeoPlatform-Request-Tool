@@ -56,6 +56,7 @@ class AGOLAdminForm(ModelForm):
 class AGOLAdmin(admin.ModelAdmin):
     list_display = ['portal_name', 'portal_url']
     form = AGOLAdminForm
+    autocomplete_fields = ['user']
 
 
 admin.site.unregister(User)
