@@ -9,6 +9,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.conf import settings
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.contrib import messages
+from django.shortcuts import redirect
 
 logger = logging.getLogger('django')
 
@@ -81,3 +83,28 @@ def email_field_coordinator_request(request):
 
 def error_test(request):
     raise Exception("this should log")
+
+
+
+def redirect_middleware(get_response):
+    # One-time configuration and initialization.
+
+    def middleware(request):
+        # Code to be executed for each request before
+        # the view (and later middleware) are called.
+        if 'redirect' in request.GET:
+            query_string = request.GET.copy()
+            del query_string['redirect']
+
+            messages.add_message(request, messages.WARNING, "The Account Request Tool has a new home. Please update your bookmarks to https://gpdashboard.epa.gov/request/")
+            path = f'{request.path}?{query_string.urlencode()}' if query_string else request.path
+            response = redirect(path)
+        else:
+            response = get_response(request)
+
+        # Code to be executed for each request/response after
+        # the view is called.
+
+        return response
+
+    return middleware
