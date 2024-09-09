@@ -21,13 +21,15 @@ import {BaseService} from '../services/base.service';
 import {LoadingService} from '../services/loading.service';
 import {UserConfig, UserConfigService} from "../auth/user-config.service";
 
-import {EditAccountPropsDialogComponent} from '../dialogs/edit-account-props-dialog/edit-account-props-dialog.component';
+import {
+  EditAccountPropsDialogComponent
+} from '../dialogs/edit-account-props-dialog/edit-account-props-dialog.component';
 import {ConfirmApprovalDialogComponent} from '../dialogs/confirm-approval-dialog/confirm-approval-dialog.component';
 import {ChooseCreationMethodComponent} from '../dialogs/choose-creation-method/choose-creation-method.component';
 import {GenericConfirmDialogComponent} from '../dialogs/generic-confirm-dialog/generic-confirm-dialog.component';
 import {environment} from '@environments/environment';
 
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 
 export interface AccountProps {
   first_name: string;
@@ -90,6 +92,7 @@ export class ApprovalListComponent implements OnInit {
 
     this.accounts.filter = {created: false};
     this.accounts.dataChange.pipe(
+      map(response => this.formatExistingAccountUsernames(response)),
       tap(response => this.setAccountsListProps(response))
     ).subscribe();
     this.accounts.getItems().subscribe();
@@ -274,7 +277,7 @@ export class ApprovalListComponent implements OnInit {
 
   openApproveOptions() {
     const new_account_request = this.checkForNewAccounts();
-    if(this.userConfig.portal.toLowerCase() == 'geoplatform') {
+    if (this.userConfig.portal.toLowerCase() == 'geoplatform') {
       this.dialog.open(ChooseCreationMethodComponent, {data: {existing_only: !new_account_request}}).afterClosed().pipe(
         filter(x => x),
         switchMap(choice => {
@@ -290,7 +293,7 @@ export class ApprovalListComponent implements OnInit {
         filter(x => x.confirmed),
         tap(r => this.createAccounts(r.password))
       ).subscribe();
-    } else if(this.userConfig.portal.toLowerCase() == 'geosecure'){
+    } else if (this.userConfig.portal.toLowerCase() == 'geosecure') {
       this.confirmSendNotification().pipe(
         map(x => {
           return {confirmed: x, password: null};
@@ -351,7 +354,7 @@ export class ApprovalListComponent implements OnInit {
       tap((accountRequests) => {
         this.setAccountsListProps(accountRequests);
         this.clearAllSelected();
-        this.matSnackBar.open('Deleted '+selectedRequest.username);
+        this.matSnackBar.open('Deleted ' + selectedRequest.username);
       }),
       catchError((err) => {
         of(this.handleErrorResponse(err));
@@ -363,16 +366,23 @@ export class ApprovalListComponent implements OnInit {
   setNeedsEditing(account) {
     let needsEditing = false;
     // removed group as requirement for editing per issue #31
-    if (!account.organization || !account.response || !account.sponsor || !account.reason || (!account.is_existing_account && !account.username_valid)) {
+    if (!account.organization || !account.response || !account.sponsor || !account.reason) {
+      needsEditing = true;
+    }
+    if (account.is_existing_account && !account.username_valid && !this.emailMatchesAccount(account)) {
       needsEditing = true;
     }
     this.accountsListProps[account.id].needsEditing = needsEditing;
   }
 
+
   createAccounts(password?) {
 
     const requests = this.selectedAccountIds.map(id => {
-      return this.http.post(`${environment.local_service_endpoint}/v1/account/approvals/approve/`, {account_id: id, password}).pipe(
+      return this.http.post(`${environment.local_service_endpoint}/v1/account/approvals/approve/`, {
+        account_id: id,
+        password
+      }).pipe(
         catchError(err => of(err))
       )
     });
@@ -394,7 +404,7 @@ export class ApprovalListComponent implements OnInit {
         this.matSnackBar.open(
           'Success!',
           null,
-          { duration: environment.snackbar_duration, panelClass: ['snackbar-success'] }
+          {duration: environment.snackbar_duration, panelClass: ['snackbar-success']}
         );
       }
 
@@ -436,4 +446,22 @@ export class ApprovalListComponent implements OnInit {
     return this.selectedAccountIds.find(id => !this.accountsListProps[id].is_existing_account) !== undefined;
   }
 
+  formatExistingAccountUsernames(accounts) {
+    return accounts.map(a => {
+      a.possible_existing_account = a.possible_existing_account ? a.possible_existing_account.split(',') : [];
+      return a;
+    })
+  }
+
+  emailMatchesAccount(account) {
+    return account.possible_existing_account.includes(account.username);
+  }
+
+  getEmailMismatchTooltip(config) {
+    return `Username is associated with a different email. Complete one of the following:
+            1. Modify the username to create a new account associated with this email.
+            2. Instruct the requestor to update their ${config.portal} profile with the correct email.
+            3. Instruct the requestor to submit a new request with the correct email.`;
+
+  }
 }

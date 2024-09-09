@@ -1,3 +1,4 @@
+from dal_select2.widgets import ModelSelect2
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.contenttypes.admin import GenericTabularInline
@@ -15,7 +16,8 @@ from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
 from django.utils.translation import gettext_lazy as _
 import re
 import logging
-from .func import get_response_from_request
+from .func import get_response_from_request, get_role_from_request
+from dal import autocomplete, forward
 
 email_domain_regex = re.compile(r"(^[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)")
 
@@ -24,13 +26,12 @@ from .models import *
 logger = logging.getLogger('django')
 
 # hack to make full name show up in autocomplete b/c nothing else worked
-# User.__str__ = lambda x: f"{x.first_name} {x.last_name} ({x.agol_info.portal.portal_name if hasattr(x, 'agol_info') and x.agol_info.portal is not None else ''})"
+User.__str__ = lambda x: f"{x.first_name} {x.last_name} ({x.agol_info.portal.portal_name if hasattr(x, 'agol_info') and x.agol_info.portal is not None else ''})"
 # # make admin panel show full name and portal of currently logged in user
-# def _get_short_name_(user_instance):
-#     return f"{user_instance.first_name} {user_instance.last_name} ({user_instance.agol_info.portal if hasattr(user_instance, 'agol_info') and user_instance.agol_info.portal is not None else ''})"
+def _get_short_name_(user_instance):
+    return f"{user_instance.first_name} {user_instance.last_name} ({user_instance.agol_info.portal if hasattr(user_instance, 'agol_info') and user_instance.agol_info.portal is not None else ''})"
 
-
-# User.get_short_name = _get_short_name_
+User.get_short_name = _get_short_name_
 
 class AGOLAdminForm(ModelForm):
     def clean_enterprise_precreate_domains(self):
@@ -47,7 +48,7 @@ class AGOLAdminForm(ModelForm):
 
     class Meta:
         model = AGOL
-        fields = ['portal_name', 'portal_url', 'user', 'allow_external_accounts',
+        fields = ['portal_name', 'portal_url', 'user', 'allow_external_accounts', 'requires_auth_group',
                   'enterprise_precreate_domains']
 
 
@@ -140,6 +141,10 @@ class AGOLGroupAdmin(admin.ModelAdmin):
             r = get_response_from_request(request)
             if r:
                 queryset = queryset.filter(agol=r.portal)
+        if 'agolrole' in referrer:
+            r = get_role_from_request(request)
+            if r:
+                queryset = queryset.filter(agol=r.agol)
         return super().get_search_results(request, queryset, search_term)
 
 
@@ -224,7 +229,7 @@ class RequestAdmin(admin.ModelAdmin):
     fields = ['first_name', 'last_name', 'email', 'possible_existing_account', 'existing_account_enabled', 'organization', 'username',
               'username_valid', 'user_type', 'role', 'auth_group', 'sponsor', 'sponsor_notified', 'reason',
               'approved', 'approved_by', 'created', 'response', 'is_existing_account']
-    readonly_fields = ['possible_existing_account', 'username_valid', 'sponsor_notified', 'approved', 'created',
+    readonly_fields = ['possible_existing_account', 'username', 'username_valid', 'sponsor_notified', 'approved', 'created',
                        'is_existing_account', 'existing_account_enabled', 'approved_by']
     inlines = [GroupAdminInline, PendingNotificationInline]
     actions = ['disable_account_action']
@@ -271,14 +276,27 @@ class RequestAdmin(admin.ModelAdmin):
 #         queryset.update(system_default=True)
 
 
+class AGOLRoleForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if kwargs.get('instance', False):
+            self.fields['auth_groups'].required = kwargs['instance'].auth_group_required
+
+    class Meta:
+        model = AGOLRole
+        fields = ['name', 'id', 'description', 'agol', 'is_available', 'system_default', 'auth_groups']
+
+
 @admin.register(AGOLRole)
 class AGOLRoleAdmin(admin.ModelAdmin):
     list_display = ['name', 'is_available', 'system_default', 'agol']
     search_fields = ['name', 'description']
     ordering = ['-is_available', 'agol', 'name']
     list_filter = ['is_available', 'agol']
-    fields = ['name', 'id', 'description', 'agol', 'is_available', 'system_default']
     readonly_fields = ['name', 'id', 'description', 'agol']
+    autocomplete_fields = ['auth_groups']
+    form = AGOLRoleForm
+    fields = ['name', 'id', 'description', 'agol', 'is_available', 'system_default', 'auth_groups']
     # actions = [set_system_default] removed b/c its more complicated with multiple agols
 
     def has_add_permission(self, request):
@@ -309,12 +327,31 @@ class ResponseProjectForm(ModelForm):
         if kwargs.get('instance', False):
             self.fields['users'].required = True
             self.fields['requester'].required = True
-            self.fields['authoritative_group'].required = True
+            self.fields['role'].required = True
+            if kwargs['instance'].auth_group_required:
+                self.fields['authoritative_group'].required = True
 
     class Meta:
         model = ResponseProject
         fields = '__all__'
+        widgets = {
+            'authoritative_group': autocomplete.ModelSelect2(url='agolgroup-autocomplete',
+                                                             forward=['role']),
+            'requester': autocomplete.ModelSelect2(url='user-autocomplete',
+                                                   forward=['portal']),
+            'users': autocomplete.ModelSelect2Multiple(url='user-autocomplete',
+                                                  forward=[
+                                                      'portal',
+                                                      forward.Const(True, 'agol_info__sponsor')
+                                                  ]),
+            'assignable_groups': autocomplete.ModelSelect2Multiple(url='agolgroup-autocomplete',
+                                                                forward=['portal']),
+            'role': autocomplete.ModelSelect2(url='agolrole-autocomplete',
+                                              forward=['portal'])
+        }
 
+    class Media:
+        js = ['admin/js/jquery.init.js', 'autocomplete.js']
 
 @admin.register(ResponseProject)
 class ResponseProjectAdmin(admin.ModelAdmin):
@@ -322,11 +359,11 @@ class ResponseProjectAdmin(admin.ModelAdmin):
     search_fields = ['name']
     ordering = ['name']
     fields = ['name', 'requester', 'users', 'assignable_groups', 'role', 'authoritative_group', 'default_reason',
-              'approved', 'approved_by', 'disabled', 'disabled_by', 'disable_users_link', 'portal']
-    readonly_fields = ['approved', 'approved_by', 'disabled', 'disabled_by', 'disable_users_link']
-    autocomplete_fields = ['users', 'assignable_groups']
+              'approved', 'approved_by', 'disabled', 'disabled_by', 'request_url_link', 'disable_users_link', 'portal', 'protected_datasets']
+    readonly_fields = ['approved', 'approved_by', 'disabled', 'disabled_by', 'request_url_link', 'disable_users_link']
+    autocomplete_fields = ['users', 'assignable_groups', 'protected_datasets']
     inlines = [PendingNotificationInline]
-    list_filter = ['disabled', 'approved']
+    list_filter = ['portal', 'disabled', 'approved']
     form = ResponseProjectForm
 
     def get_queryset(self, request):
@@ -335,31 +372,29 @@ class ResponseProjectAdmin(admin.ModelAdmin):
             return queryset
         return queryset.filter(portal=request.user.agol_info.portal_id)
 
-    def get_fields(self, request, obj=None):
-        if obj is None:
-            return ['name']
-        return self.fields
+    # def get_fields(self, request, obj=None):
+    #     if obj is None:
+    #         return ['name']
+    #     return self.fields
 
     def get_readonly_fields(self, request, obj=None):
-        if obj and not request.user.is_superuser:
+        if not request.user.is_superuser:
             return self.readonly_fields + ['portal']
         return self.readonly_fields
 
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        response_id = request.resolver_match.kwargs.get('object_id', None)
-        if db_field.name == "requester":
-            kwargs["queryset"] = User.objects.filter(agol_info__portal__responses=response_id)
-
-        if db_field.name == "authoritative_group":
-            kwargs["queryset"] = AGOLGroup.objects.filter(agol__responses=response_id, is_auth_group=True)
-
-        if db_field.name == "role":
-            kwargs["queryset"] = AGOLRole.objects.filter(agol__responses=response_id, is_available=True)
-
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+    # def formfield_for_foreignkey(self, db_field, request, **kwargs):
+    #     response_id = request.resolver_match.kwargs.get('object_id', None)
+    #     if db_field.name == "requester":
+    #         kwargs["queryset"] = User.objects.filter(agol_info__portal__responses=response_id)
+    #
+    #     if db_field.name == "role":
+    #         kwargs["queryset"] = AGOLRole.objects.filter(agol__responses=response_id, is_available=True)
+    #
+    #     return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         response = super(ResponseProjectAdmin, self).change_view(request, object_id, form_url, extra_context)
+
         if type(response) == HttpResponseRedirect:
             if 'approve' in request.POST:
                 return redirect('../approve/')
@@ -369,6 +404,11 @@ class ResponseProjectAdmin(admin.ModelAdmin):
 
     def disable_users_link(self, obj):
         return mark_safe(f'<a target=_blank href="{obj.disable_users_link}">Relevant Response/Project Accounts List</a>')
+
+    def request_url_link(self, obj):
+        if obj.disabled:
+            return None
+        return mark_safe(f'<a target=_blank href="{obj.request_url}">Account Request Shortcut Link</a>')
 
     def get_urls(self):
         from django.urls import path
@@ -451,9 +491,17 @@ class ResponseProjectAdmin(admin.ModelAdmin):
             return []
         return self.inlines
 
+    def get_changeform_initial_data(self, request):
+        return {'portal': request.user.agol_info.portal.id} if not request.user.is_superuser else {}
 
 @admin.register(Notification)
 class PendingNotificationAdmin(admin.ModelAdmin):
     list_display = ['to_emails', 'subject', 'sent']
     fields = ['to', 'subject', 'content', 'sent']
     readonly_fields = ['sent']
+
+
+@admin.register(ProtectedDataset)
+class ProtectedDatasetAdmin(admin.ModelAdmin):
+    list_display = ['name']
+    search_fields = ['name']

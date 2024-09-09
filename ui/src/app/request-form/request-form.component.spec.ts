@@ -1,6 +1,10 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { RequestFormComponent } from './request-form.component';
+import {HttpClientTestingModule} from '@angular/common/http/testing';
+import {MatLegacySnackBar, MatLegacySnackBarRef} from '@angular/material/legacy-snack-bar';
+import {RouterTestingModule} from '@angular/router/testing';
+import {ReCaptchaV3Service} from 'ng-recaptcha';
 
 describe('RequestFormComponent', () => {
   let component: RequestFormComponent;
@@ -8,7 +12,15 @@ describe('RequestFormComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ RequestFormComponent ]
+      declarations: [ RequestFormComponent ],
+      imports: [
+        HttpClientTestingModule,
+        RouterTestingModule
+      ],
+      providers: [
+        {provide: MatLegacySnackBar, useValue: {}},
+        {provide: ReCaptchaV3Service, useValue: {}},
+      ]
     })
     .compileComponents();
   }));

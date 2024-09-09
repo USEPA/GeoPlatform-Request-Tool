@@ -7,11 +7,13 @@
     "build:prod": "ng build --configuration production --base-href=/request/",
     "build:staging": "ng build --configuration staging --base-href=/apps/staging/request/ --source-map",
     "build:ngst-staging": "ng build --configuration ngst-staging",
+    "build:ngst-prod": "ng build --configuration ngst-prod",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e",
+    "e2e": "ng run ui:cypress-run",
     "cypress:open": "cypress open",
-    "cypress:run": "cypress run"
+    "cypress:run": "cypress run",
+    "test:ci": "ng test --no-watch --browsers ChromeHeadless"
   },
   "private": true,
   "dependencies": {

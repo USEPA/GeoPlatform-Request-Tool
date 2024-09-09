@@ -53,7 +53,13 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
-    urlpatterns += [path('__debug__/', include(debug_toolbar.urls)),]
+    def test_error(request):
+        raise Exception('testing')
+
+    urlpatterns += [
+        path('__debug__/', include(debug_toolbar.urls)),
+        path(f'{settings.URL_PREFIX}/api/v1/test_error', test_error)
+    ]
 
 if not settings.DISABLE_PASSWORD_AUTH:
     urlpatterns += [path(f'{settings.URL_PREFIX}api/auth/', include('rest_framework.urls', namespace='rest_framework'))]

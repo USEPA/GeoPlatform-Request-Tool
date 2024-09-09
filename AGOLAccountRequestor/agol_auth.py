@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from social_core.backends.oauth import BaseOAuth2
 from django.contrib.auth.models import User
 from social_core.exceptions import AuthException
@@ -158,13 +159,17 @@ def create_accounts_for_preapproved_domains(backend, details, user=None, *args, 
             first_name=details.get('first_name'),
             last_name=details.get('last_name')
         )
-        AGOLUserFields.objects.create(user=user,
-                                      agol_username=user.username,
-                                      portal_id=AGOL.objects.get(portal_name=backend.name).pk,
-                                      )
-        # any authenticated user needs to be able to create
-        user.groups.add(backend.setting('UNKNOWN_REQUESTER_GROUP_ID'))
-
+        # this try/except resolves an issue when first setting up the tool and you can't create
+        # a login
+        try:
+            AGOLUserFields.objects.create(user=user,
+                                          agol_username=user.username,
+                                          portal_id=AGOL.objects.get(portal_name=backend.name).pk,
+                                          )
+            # any authenticated user needs to be able to create
+            user.groups.add(backend.setting('UNKNOWN_REQUESTER_GROUP_ID'))
+        except ObjectDoesNotExist:
+            pass
         return {
             'user': user,
             'is_new': True

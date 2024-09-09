@@ -1,4 +1,4 @@
-import {Component, ElementRef, Input, OnInit, ViewChild} from '@angular/core';
+import {Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {FormGroup, FormControl} from '@angular/forms';
 import {HttpClient} from '@angular/common/http';
 import {COMMA, ENTER} from '@angular/cdk/keycodes';
@@ -8,7 +8,9 @@ import {debounceTime, map, startWith, switchMap} from 'rxjs/operators';
 
 import {BaseService, Response} from '@services/base.service';
 import {LoadingService} from '@services/loading.service';
-import {MatLegacyAutocompleteSelectedEvent as MatAutocompleteSelectedEvent} from '@angular/material/legacy-autocomplete';
+import {
+  MatLegacyAutocompleteSelectedEvent as MatAutocompleteSelectedEvent
+} from '@angular/material/legacy-autocomplete';
 import {MatLegacyChipInputEvent as MatChipInputEvent} from '@angular/material/legacy-chips';
 
 export interface TagItem {
@@ -22,7 +24,7 @@ export interface TagItem {
   styleUrls: ['./tag-input.component.css']
 })
 export class TagInputComponent implements OnInit {
-  @Input() formControl: FormControl;
+  @Output() tagSelected: EventEmitter<number[]> = new EventEmitter<number[]>();
   @Input() tags: TagItem[];
   @Input() label: '';
   @Input() hint: '';
@@ -42,10 +44,14 @@ export class TagInputComponent implements OnInit {
 
   constructor(public http: HttpClient, public loadingService: LoadingService) {
     this.tagsService = new BaseService('v1/agol/groups/all', this.http, this.loadingService);
-    this.allTags = this.tagsService.getList({all: true});
+    this.allTags = this.tagsService.getList();
   }
 
   ngOnInit() {
+    this.listenToTags();
+  }
+
+  listenToTags() {
     this.filteredTags = this.tagsCtrl.valueChanges.pipe(
       startWith(''),
       debounceTime(300),
@@ -80,7 +86,7 @@ export class TagInputComponent implements OnInit {
       input.value = '';
     }
 
-    this.updateFormControl();
+    this.emitSelectedTags();
     this.tagsCtrl.setValue(null);
   }
 
@@ -90,7 +96,7 @@ export class TagInputComponent implements OnInit {
     if (index >= 0) {
       this.tags.splice(index, 1);
     }
-    this.updateFormControl();
+    this.emitSelectedTags();
   }
 
   selected(event: MatAutocompleteSelectedEvent): void {
@@ -98,11 +104,11 @@ export class TagInputComponent implements OnInit {
       this.tags.push({id: event.option.value.id, title: event.option.value.title});
     }
     this.tagInput.nativeElement.value = '';
-    this.updateFormControl();
+    this.emitSelectedTags();
     this.tagsCtrl.setValue(null);
   }
 
-  private updateFormControl(): void {
-    this.formControl.setValue(this.tags.map(x => x.id));
+  private emitSelectedTags(): void {
+    this.tagSelected.emit(this.tags.map(x => x.id));
   }
 }

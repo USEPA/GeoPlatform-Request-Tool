@@ -410,7 +410,8 @@
       "description": "Viewer",
       "is_available": true,
       "agol": 1,
-      "system_default": false
+      "system_default": false,
+      "auth_groups": ["ff6c119c-27f5-4870-b8cb-4a36253b6bb9", "ad16a6c3-be08-4939-a23d-38d8e9f7b962"]
     }
   }, {
     "model": "accounts.agolrole",
@@ -420,7 +421,8 @@
       "description": "Data Editor",
       "is_available": true,
       "agol": 1,
-      "system_default": false
+      "system_default": false,
+      "auth_groups": []
     }
   }, {
     "model": "accounts.agolrole",
@@ -430,7 +432,8 @@
       "description": "Facilitator",
       "is_available": false,
       "agol": 1,
-      "system_default": false
+      "system_default": false,
+      "auth_groups": []
     }
   }, {
     "model": "accounts.agolrole",
@@ -440,7 +443,8 @@
       "description": "Viewer",
       "is_available": true,
       "agol": 36,
-      "system_default": false
+      "system_default": false,
+      "auth_groups": []
     }
   }, {
     "model": "accounts.agolrole",
@@ -450,7 +454,8 @@
       "description": "Data Editor",
       "is_available": true,
       "agol": 36,
-      "system_default": false
+      "system_default": false,
+      "auth_groups": []
     }
   }, {
     "model": "accounts.agolrole",
@@ -460,7 +465,8 @@
       "description": "Facilitator",
       "is_available": false,
       "agol": 36,
-      "system_default": false
+      "system_default": false,
+      "auth_groups": []
     }
   },
 
@@ -494,7 +500,7 @@
     "fields": {
       "name": "geoportal test response",
       "portal": 1,
-      "role": 2,
+      "role": 1,
       "authoritative_group": "ff6c119c-27f5-4870-b8cb-4a36253b6bb9",
       "disabled": null,
       "disabled_by": null,

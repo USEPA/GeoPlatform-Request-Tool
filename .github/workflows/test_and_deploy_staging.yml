@@ -1,0 +1,75 @@
+name: "test and deploy staging"
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: unit test frontend and backend
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and tag backend image
+        id: build-image-backend
+        uses: docker/build-push-action@v4
+        with:
+          file: Dockerfile.api
+          context: .
+          load: true
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+      - name: Run backend unit tests
+        run: |
+          docker run ${{ steps.build-image-backend.outputs.imageid }} python manage.py test
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+      - name: install frontend deps and run tests
+        env:
+          NODE_OPTIONS: "--max_old_space_size=4096"
+        run: |
+          cd ./ui
+          npm ci
+          npm run test:ci
+      - name: build frontend
+        run: |
+          cd ./ui
+          npm run build:ngst-staging
+      - name: save build
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: ./ui/dist/ui
+
+
+  deploy:
+    runs-on: staging
+    name: deploy to staging
+    needs: test
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: copy app
+        run: Copy-Item -Path .\* -Destination ..\..\..\..\app\ -Recurse -Exclude ("ui", ".git", ".github") -Force
+      - name: run migrations and collectstatic
+        working-directory: ..\..\..\..\app\
+        run: |
+          conda activate ..\venv\
+          python manage.py migrate
+          python manage.py collectstatic --noinput
+      - name: download ui
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: ..\..\..\..\ui\
+

@@ -47,19 +47,19 @@
     </mat-select>
   </mat-form-field>
   <!-- groups -->
-  <app-tag-input label="Groups" [formControl]="fieldTeamCoordErForm.controls.assignable_groups"
+  <app-tag-input label="Groups" (tagSelected)="fieldTeamCoordErForm.controls.assignable_groups.setValue($event)"
                  [tags]="this.tags" hint="Select all applicable groups.">
   </app-tag-input>
     <!-- role -->
   <mat-form-field>
-    <mat-select required formControlName="role" placeholder="Role">
+    <mat-select required formControlName="role" placeholder="Role" (selectionChange)="getAuthGroups($event.value)">
       <mat-option *ngFor="let r of roles | async" [value]="r.id">
         {{r.name}}
       </mat-option>
     </mat-select>
   </mat-form-field>
   <!--authoritative group-->
-  <mat-form-field>
+  <mat-form-field *ngIf="(userConfig.config | async)?.portal_requires_auth_group">
     <mat-select formControlName="authoritative_group" placeholder="Primary Auth Group" aria-label="Primary Auth Group">
       <mat-option *ngFor="let authGroupChoice of auth_groups | async" [value]="authGroupChoice.id">
         {{authGroupChoice.title}}

@@ -8,7 +8,7 @@ export const environment = {
   oauth_url: 'http://localhost:4200/api/oauth2',
   local_service_endpoint: '/api',
   local_test_service_endpoint: 'http://localhost:9876/api',
-  recaptcha_siteKey: '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI',
+  recaptcha_siteKey: '6LfEFvIoAAAAAIjfP5q6FfP4A7BcjkhjVXM0iYbJ',
   snackbar_duration: 6000
 };
 

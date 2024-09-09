@@ -17,6 +17,7 @@ from datetime import datetime
 from django.contrib.auth.models import User, Group
 from urllib.parse import urlencode
 import json
+from django.utils.timezone import now
 
 import logging
 
@@ -46,7 +47,7 @@ class AccountRequests(models.Model):
     is_existing_account = models.BooleanField(default=False)
     existing_account_enabled = models.BooleanField(default=False)
     organization = models.CharField(max_length=200)
-    username = models.CharField(max_length=200)
+    username = models.CharField(max_length=200, help_text='User frontend to modify username.')
     username_valid = models.BooleanField(default=False)
     user_type = models.CharField(max_length=200, choices=USER_TYPE_CHOICES, default='creatorUT')
     role = models.ForeignKey('AGOLRole', on_delete=models.DO_NOTHING, blank=True, null=True, related_name='account_requests')
@@ -89,6 +90,13 @@ class AccountRequests(models.Model):
         if not self.is_enterprise_account() and not self.is_existing_account:
             self.response.portal.disable_user_account(self.username)
 
+    def create_account(self, password=None):
+        create_success = self.response.portal.create_user_account(self, password)
+        if create_success:
+            self.created = now()  # mark created once created or enabled and added to groups
+            self.save()
+        return create_success
+
     def save(self, *args, **kwargs):
         # this resets role and auth_group if the response changes
         if self.response:
@@ -126,6 +134,10 @@ class AGOLGroup(models.Model):
     def __str__(self):
         return self.title
 
+    @property
+    def name(self):
+        return self.title
+
 
 class GroupMembership(models.Model):
     id = models.AutoField(primary_key=True)
@@ -141,16 +153,20 @@ class AGOLRole(models.Model):
     is_available = models.BooleanField(default=False)
     agol = models.ForeignKey('AGOL', on_delete=models.CASCADE, related_name='roles')
     system_default = models.BooleanField(default=False)
+    auth_groups = models.ManyToManyField(AGOLGroup, verbose_name='Allowed Authoritative Groups',
+                                         related_name='roles', limit_choices_to={'is_auth_group': True})
 
     def __str__(self):
         return self.name
 
+    @property
+    def auth_group_required(self):
+        return self.agol.requires_auth_group
+
     def clean(self):
         if self.system_default:
-            if (self.pk and AGOLRole.objects.filter(system_default=True, agol=self.agol).exclude(
-                    pk=self.pk).exists()) or \
-                    AGOLRole.objects.filter(system_default=True, agol=self.agol).exists():
-                raise ValidationError({'system_default': 'You cannot have more than one system default.'})
+            if (self.pk and AGOLRole.objects.filter(system_default=True, agol=self.agol).exclude(pk=self.pk).exists()):
+                raise ValidationError({'system_default': 'You cannot have more than one system default. Remove current default to select a new one.'})
 
 
 class AGOL(models.Model):
@@ -163,6 +179,7 @@ class AGOL(models.Model):
     allow_external_accounts = models.BooleanField(default=False, help_text='Allow external (non-enterprise) accounts to be created.')
     enterprise_precreate_domains = models.TextField(null=True, blank=True, verbose_name='Email domains for enterprise accounts',
                                                     help_text='Separate email domains with comma (e.g. gmail.com,hotmail.com). Value required if external account creation is not allowed')
+    requires_auth_group = models.BooleanField(default=True)
 
     @property
     def enterprise_precreate_domains_list(self):
@@ -354,8 +371,7 @@ class AGOL(models.Model):
         if 'error' in r_json:
             raise Exception(r_json)
 
-    def check_username(self, username):
-        token = self.get_token()
+    def _username_check(self, username: list[str], token: str):
         url = f'{self.portal_url}/sharing/rest/community/checkUsernames'
 
         data = {
@@ -366,33 +382,38 @@ class AGOL(models.Model):
 
         r = requests.post(url, data=data)
 
-        response = r.json()
-        if 'error' in response:
+        return r.json()
+
+    def check_username(self, username: list[str]):
+        token = self.get_token()
+        response = self._username_check(username, token)
+
+        # error or missing usernames will fail everything so bail here and mark invalid
+        if 'error' in response or 'usernames' not in response:
             return False, None, [], False, None
 
-        if 'usernames' in response:
-            # if it suggested matches requested...great this is normal for new accounts
-            if response['usernames'] and response['usernames'][0]['requested'] == response['usernames'][0]['suggested']:
-                return True, None, [], False, None
-            # if list is blank the account appears to not exist but may have been previously deleted
-            elif len(response['usernames']) == 0:
-                return True, None, [], False, None
-            else:
-                # else check actual username endpoint and see if user exists
-                user_url = f'{self.portal_url}/sharing/rest/community/users/{username}'
+        # if it suggested matches requested...great this is normal for new accounts
+        if response['usernames'] and response['usernames'][0]['requested'] == response['usernames'][0]['suggested']:
+            return True, None, [], False, None
+        # if list is blank the account appears to not exist but may have been previously deleted
+        elif len(response['usernames']) == 0:
+            return True, None, [], False, None
+        else:
+            # else check actual username endpoint and see if user exists
+            user_url = f'{self.portal_url}/sharing/rest/community/users/{username}'
 
-                user_response = requests.get(user_url, params={'token': token, 'f': 'json'})
-                user_response_json = user_response.json()
-                if 'error' in user_response_json or 'disabled' not in user_response_json:
-                    return False, None, [], False, None
-                else:
-                    # fixes issue #34
-                    group_ids = list(x['id'] for x in user_response_json.get('groups', []))
-                    for group_id in (x for x in group_ids if not AGOLGroup.objects.filter(id=x).exists()):
-                        self.get_group(group_id)
-                    return False, user_response_json['id'], group_ids, not user_response_json[
-                        'disabled'], datetime.utcfromtimestamp(
-                        user_response_json['created'] / 1000)
+            user_response = requests.get(user_url, params={'token': token, 'f': 'json'})
+            user_response_json = user_response.json()
+            if 'error' in user_response_json or 'disabled' not in user_response_json:
+                return False, None, [], False, None
+            else:
+                # fixes issue #34
+                group_ids = list(x['id'] for x in user_response_json.get('groups', []))
+                for group_id in (x for x in group_ids if not AGOLGroup.objects.filter(id=x).exists()):
+                    self.get_group(group_id)
+                return False, user_response_json['id'], group_ids, \
+                    not user_response_json['disabled'], \
+                    datetime.utcfromtimestamp(user_response_json['created'] / 1000)
 
     def add_to_group(self, user, group):
         token = self.get_token()
@@ -494,8 +515,7 @@ class ResponseProject(models.Model):
     assignable_groups = models.ManyToManyField('AGOLGroup', related_name='response',
                                                verbose_name='Assignable Groups')
     role = models.ForeignKey('AGOLRole', on_delete=models.PROTECT, verbose_name='Role',
-                             limit_choices_to={'is_available': True}, null=True, blank=True,
-                             help_text='System default will be used if left blank.', related_name='responses')
+                             limit_choices_to={'is_available': True}, related_name='responses')
     authoritative_group = models.ForeignKey('AGOLGroup', on_delete=models.PROTECT,
                                             verbose_name='Authoritative Group', blank=True, null=True,
                                             limit_choices_to={'is_auth_group': True})
@@ -507,6 +527,7 @@ class ResponseProject(models.Model):
     approved_by = models.ForeignKey(User, models.PROTECT, 'approved_responses', null=True, blank=True)
     requester = models.ForeignKey(User, models.PROTECT, 'requested_responses', null=True, blank=True)
     notifications = GenericRelation('Notification')
+    protected_datasets = models.ManyToManyField('ProtectedDataset', null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -514,6 +535,10 @@ class ResponseProject(models.Model):
     @property
     def sponsors(self):
         return ','.join([f'{u.first_name} {u.last_name}' for u in self.users.all()])
+
+    @property
+    def request_url(self):
+        return f"{settings.HOST_ADDRESS}?response={self.pk}"
 
     @property
     def disable_users_link(self):
@@ -531,8 +556,17 @@ class ResponseProject(models.Model):
         url = f"{reverse('admin:accounts_accountrequests_changelist')}?response__id__exact={self.pk}"
         return url
 
+    @property
+    def auth_group_required(self):
+        return self.portal.requires_auth_group if self.pk else False
+
     def can_be_disabled(self):
         return not self.requests.filter(approved__isnull=True).exists()
+
+    def clean(self):
+        if self.auth_group_required and not self.role.auth_groups.filter(id=self.authoritative_group_id).exists():
+            raise ValidationError({"authoritative_group": "The Authoritative Group must be available under the selected Role. "
+                                  "Check the Role's allowed Authoritative Groups."})
 
     def save(self, *args, **kwargs):
         if self.role is None:
@@ -574,7 +608,7 @@ class ResponseProject(models.Model):
     def generate_approval_email(self):
         try:
             recipients = self.get_email_recipients()
-            request_url = f"{settings.HOST_ADDRESS}?response={self.pk}"
+            request_url = self.request_url
             approval_url = f"{settings.HOST_ADDRESS}/accounts/list?{self.portal}"
             email_subject = f"{self.portal} Account Response/Project {self.name} has been approved"
             msg = render_to_string('response_approval_email.html', {
@@ -602,6 +636,7 @@ class ResponseProject(models.Model):
             logger.error(
                 "Email Error: There was an error emailing the disabled Response Project's assigned sponsors and their delegates.")
             raise e
+
 
     class Meta:
         verbose_name_plural = 'Responses/Projects'
@@ -650,7 +685,7 @@ class Notification(models.Model):
         results = send_mail(
             self.subject,
             self.content,
-            'GIS_Team@epa.gov',
+            settings.EMAIL_FROM,
             list(set(self.to_emails)),
             fail_silently=False,
             html_message=self.content,
@@ -658,3 +693,10 @@ class Notification(models.Model):
         if results == 1:
             self.sent = datetime.now()
             self.save()
+
+
+class ProtectedDataset(models.Model):
+    name = models.CharField(max_length=500)
+
+    def __str__(self):
+        return self.name

@@ -31,6 +31,8 @@ ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if 'ALLOWED_HOSTS
 # Application definition
 
 INSTALLED_APPS = [
+    'dal',
+    'dal_select2',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -84,7 +86,16 @@ WSGI_APPLICATION = 'AGOLAccountRequestor.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-DATABASES = json.loads(os.environ.get('DATABASES', '{}').replace("'", '"'))
+
+if 'DATABASES' in os.environ:
+    DATABASES = json.loads(os.environ.get('DATABASES', '{}').replace("'", '"'))
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -162,11 +173,13 @@ SOCIAL_AUTH_GEOPLATFORM_UNKNOWN_REQUESTER_GROUP_ID = os.environ.get('SOCIAL_AUTH
 SOCIAL_AUTH_GEOSECURE_PREAPPROVED_DOMAINS = os.environ.get('SOCIAL_AUTH_GEOPLATFORM_PREAPPROVED_DOMAINS', [])
 SOCIAL_AUTH_GEOSECURE_UNKNOWN_REQUESTER_GROUP_ID = os.environ.get('SOCIAL_AUTH_GEOPLATFORM_UNKNOWN_REQUESTER_GROUP_ID', 0)
 SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS = os.environ.get('SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS', '').split(',') if 'SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS' in os.environ else []
-SOCIAL_AUTH_IMMUTABLE_USER_FIELDS  = os.environ.get('SOCIAL_AUTH_IMMUTABLE_USER_FIELDS ', '').split(',') if 'SOCIAL_AUTH_IMMUTABLE_USER_FIELDS ' in os.environ else []
+SOCIAL_AUTH_IMMUTABLE_USER_FIELDS = os.environ.get('SOCIAL_AUTH_IMMUTABLE_USER_FIELDS ', '').split(',') if 'SOCIAL_AUTH_IMMUTABLE_USER_FIELDS ' in os.environ else []
 
 REST_FRAMEWORK = json.loads(os.environ.get('REST_FRAMEWORK', '{}').replace("'", '"'))
 
 DRF_RECAPTCHA_SECRET_KEY = os.environ.get('DRF_RECAPTCHA_SECRET_KEY', 'fakey')
+DRF_RECAPTCHA_MINIMUM_SCORE = float(os.environ.get('DRF_RECAPTCHA_MINIMUM_SCORE', '1.0'))
+
 
 CORS_ORIGIN_WHITELIST = os.environ.get('CORS_ORIGIN_WHITELIST', '').split(',') if 'CORS_ORIGIN_WHITELIST' in os.environ else []
 CORS_ALLOW_CREDENTIALS = os.environ.get('CORS_ALLOW_CREDENTIALS', False) == 'True'
@@ -177,12 +190,13 @@ CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if 
 
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'localhost')
+EMAIL_FROM = os.environ.get('EMAIL_FROM', 'geoservices@epa.gov')
 
 LOGGING = DEFAULT_LOGGING
 
 LOGGING['handlers']['slack'] = {
     'level': 'ERROR',
-    # 'filters': ['require_debug_false'],
+    'filters': ['require_debug_false'],
     'class': 'slack_logging.SlackExceptionHandler',
     'bot_token': os.environ.get('SLACK_BOT_TOKEN', ''),
     'channel_id': os.environ.get('SLACK_CHANNEL', '')

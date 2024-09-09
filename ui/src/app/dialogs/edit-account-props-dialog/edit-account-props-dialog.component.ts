@@ -1,6 +1,9 @@
 import {Component, Inject, OnInit} from '@angular/core';
-import {UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
-import {MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogRef as MatDialogRef} from '@angular/material/legacy-dialog';
+import {AbstractControl, UntypedFormControl, UntypedFormGroup, ValidationErrors, Validators} from '@angular/forms';
+import {
+  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
+  MatLegacyDialogRef as MatDialogRef
+} from '@angular/material/legacy-dialog';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {iif, Observable, Subject} from 'rxjs';
 import {finalize, map, switchMap, tap} from 'rxjs/operators';
@@ -23,6 +26,11 @@ export interface Sponsor {
   last_name: string;
 }
 
+function UsernameValidator(control: AbstractControl): ValidationErrors | null {
+  const lastChar = control.value?.slice(-1);
+  return parseInt(lastChar) ? {username: 'Username cannot end with a numerical value.'} : null;
+}
+
 @Component({
   selector: 'app-edit-account-props-dialog',
   templateUrl: './edit-account-props-dialog.component.html',
@@ -36,7 +44,7 @@ export class EditAccountPropsDialogComponent implements OnInit {
   groupsLoading = false;
   // Form Group
   editAccountPropsForm: UntypedFormGroup = new UntypedFormGroup({
-    username: new UntypedFormControl(null),
+    username: new UntypedFormControl(null, [UsernameValidator]),
     groups: new UntypedFormControl([]),
     sponsor: new UntypedFormControl(null, [Validators.required]),
     response: new UntypedFormControl(null, [Validators.required]),
@@ -52,7 +60,8 @@ export class EditAccountPropsDialogComponent implements OnInit {
 
   ngOnInit() {
     this.responses = this.http.get<Response[]>(`${environment.local_service_endpoint}/v1/responses/`, {
-      params: new HttpParams().set('for_approver', 'true')});
+      params: new HttpParams().set('for_approver', 'true')
+    });
     this.getSponsors();
     this.editAccountPropsForm.controls.groups.disable();
   }
@@ -79,8 +88,8 @@ export class EditAccountPropsDialogComponent implements OnInit {
         return iif(() => config.is_sponsor,
           this.http.get<Sponsor>(`${environment.local_service_endpoint}/v1/sponsors/${config.id}/`).pipe(map(s => [s])),
           this.http.get<Sponsor[]>(`${environment.local_service_endpoint}/v1/sponsors/`,
-      {params: new HttpParams().set('agol_info__delegates', config.id.toString())}).pipe(
-        map(r => r['results'])
+            {params: new HttpParams().set('agol_info__delegates', config.id.toString())}).pipe(
+            map(r => r['results'])
           ));
       }),
       tap(s => {

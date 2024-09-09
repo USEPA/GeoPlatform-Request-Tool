@@ -1,12 +1,13 @@
 from rest_framework.serializers import ModelSerializer, CharField, PrimaryKeyRelatedField, ChoiceField, \
     JSONField, BooleanField
 from .models import *
-from drf_recaptcha.fields import ReCaptchaV2Field
-from .func import has_outstanding_request, email_allowed_for_portal
+from drf_recaptcha.fields import ReCaptchaV3Field
+from .func import has_outstanding_request, email_allowed_for_portal, email_associated_with_existing_account
+from django.conf import settings
 
 
 class AccountRequestSerializer(ModelSerializer):
-    recaptcha = ReCaptchaV2Field()
+    recaptcha = ReCaptchaV3Field(action='submit', required_score=settings.DRF_RECAPTCHA_MINIMUM_SCORE)
     response = PrimaryKeyRelatedField(required=True, queryset=ResponseProject.objects.all())
 
     def validate(self, attrs):
@@ -42,6 +43,7 @@ class AccountSerializer(ModelSerializer):
     response = PrimaryKeyRelatedField(required=True, queryset=ResponseProject.objects.all())
     reason = ChoiceField(required=True, allow_null=False, allow_blank=False, choices=REASON_CHOICES)
     existing_account_enabled = BooleanField(read_only=True)
+    is_existing_account = BooleanField(read_only=True)
 
     class Meta:
         model = AccountRequests
@@ -68,7 +70,7 @@ class ResponseProjectSerializer(ModelSerializer):
 
 
 class FullResponseProjectSerializer(ModelSerializer):
-    authoritative_group = PrimaryKeyRelatedField(required=True, queryset=AGOLGroup.objects.filter(is_auth_group=True))
+    authoritative_group = PrimaryKeyRelatedField(queryset=AGOLGroup.objects.filter(is_auth_group=True), allow_null=True)
     requester = PrimaryKeyRelatedField(required=True, queryset=User.objects.all())
 
     class Meta:
