@@ -114,6 +114,9 @@ mat-list-item.filter-btn div {
 .snackbar-error {
   background-color: darkorange !important;
   color: black !important;
+  .mat-simple-snackbar-action {
+    color: black;
+  }
 }
 
 div.mat-dialog-actions {
