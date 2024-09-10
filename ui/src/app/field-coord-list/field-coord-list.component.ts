@@ -22,6 +22,7 @@ export interface FieldCoordinator {
   authoritative_group: string;
   region: string;
   id: number;
+  title: string;
 }
 
 @Component({

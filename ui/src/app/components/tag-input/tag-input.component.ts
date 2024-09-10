@@ -28,11 +28,11 @@ export class TagInputComponent implements OnInit {
   @Input() tags: TagItem[];
   @Input() label: '';
   @Input() hint: '';
+  @Input() tagsService!: BaseService;
 
   tagsCtrl = new FormControl([]);
-  filteredTags: Observable<Response>;
-  tagsService: BaseService;
-  allTags: Observable<Response>;
+  filteredTags: Observable<any[]>;
+  allTags: Observable<any[]>;
   // for tag autocomplete... all may not be needed
   separatorKeysCodes: number[] = [ENTER, COMMA];
   visible = true;
@@ -43,11 +43,10 @@ export class TagInputComponent implements OnInit {
   @ViewChild('tagInput', {static: false}) tagInput: ElementRef;
 
   constructor(public http: HttpClient, public loadingService: LoadingService) {
-    this.tagsService = new BaseService('v1/agol/groups/all', this.http, this.loadingService);
-    this.allTags = this.tagsService.getList();
   }
 
   ngOnInit() {
+    this.allTags = this.tagsService.getList().pipe(map(r => r.results));
     this.listenToTags();
   }
 
@@ -57,11 +56,11 @@ export class TagInputComponent implements OnInit {
       debounceTime(300),
       switchMap((tag: string | null) => {
         if (tag) {
-          return this.tagsService.getList({search: tag});
+          return this.tagsService.getList({search: tag}).pipe(map(r => r.results));
         } else {
           return this.allTags;
         }
-      }),
+      })
       // map((response) => {
       //   if (isArray(response)) {
       //     if (this.tags && this.tags.length > 0) {

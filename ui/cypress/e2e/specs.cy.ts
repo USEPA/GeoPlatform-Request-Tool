@@ -81,8 +81,11 @@ describe('approver workflow', () => {
     cy.get('input[formcontrolname="name"]').type('Test')
     cy.get('mat-select[formcontrolname="default_reason"]').click();
     cy.get('mat-option').contains('Emergency Response').click();
-    cy.get('app-tag-input').type('test');
+    cy.get('app-tag-input[label="Groups"]').type('test');
     cy.get('mat-option').first().click();
+    cy.get('mat-select[formcontrolname="role"]').click();
+    cy.get('mat-option').first().click();
+    cy.wait(4000);
     cy.get('mat-select[formcontrolname="authoritative_group"]').click();
     cy.get('mat-option').first().click();
     cy.get('mat-dialog-content button').contains('Submit').scrollIntoView().click();

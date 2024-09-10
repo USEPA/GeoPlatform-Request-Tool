@@ -8,6 +8,8 @@ import {MatLegacyInputModule} from '@angular/material/legacy-input';
 import {MatLegacyChipsModule} from '@angular/material/legacy-chips';
 import {MatLegacyFormFieldModule} from '@angular/material/legacy-form-field';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {BaseService} from '@services/base.service';
+import {Observable} from 'rxjs';
 
 describe('TagInputComponent', () => {
   let component: TagInputComponent;
@@ -34,6 +36,7 @@ describe('TagInputComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(TagInputComponent);
     component = fixture.componentInstance;
+    component.tagsService = {getList: () => new Observable()} as BaseService
     fixture.detectChanges();
   });
 
