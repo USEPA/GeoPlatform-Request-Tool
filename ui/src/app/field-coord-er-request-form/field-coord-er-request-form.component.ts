@@ -6,12 +6,13 @@ import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-b
 import {catchError, filter, finalize, map, switchMap, tap} from 'rxjs/operators';
 
 import {BaseService, Choice, Response} from '@services/base.service';
-import {FieldCoordinator} from '../field-coord-list/field-coord-list.component';
+// import {FieldCoordinator} from '../field-coord-list/field-coord-list.component';
 import {environment} from '@environments/environment';
 import {AgolGroup} from '../dialogs/edit-account-props-dialog/edit-account-props-dialog.component';
 import {UserConfigService} from '../auth/user-config.service';
 import {LoadingService} from '@services/loading.service';
 import {AGOLRole} from '../types';
+import {TagItem} from '@components/tag-input/tag-input.component';
 
 
 @Component({
@@ -22,7 +23,7 @@ import {AGOLRole} from '../types';
 export class FieldCoordErRequestFormComponent implements OnInit {
   @Output() saved: EventEmitter<any> = new EventEmitter<any>();
   isLoading: Boolean;
-  field_coordinators: Observable<FieldCoordinator[]>;
+  field_coordinators: Observable<TagItem[]>;
   auth_groups: BehaviorSubject<AgolGroup[]> = new BehaviorSubject<AgolGroup[]>([]);
   tags = [];
   submitting: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
@@ -38,6 +39,8 @@ export class FieldCoordErRequestFormComponent implements OnInit {
   });
   responseService: BaseService;
   roleService: BaseService;
+  groupService: BaseService;
+  sponsorsService: BaseService;
   reasons: BehaviorSubject<Choice[]> = new BehaviorSubject<Choice[]>([]);
   roles: BehaviorSubject<AGOLRole[]> = new BehaviorSubject<AGOLRole[]>([]);
 
@@ -46,40 +49,40 @@ export class FieldCoordErRequestFormComponent implements OnInit {
     this.isLoading = true;
     this.responseService = new BaseService('v1/responses', http, loadingService);
     this.roleService = new BaseService('v1/agol/roles', http, loadingService);
+    this.groupService = new BaseService('v1/agol/groups', http, loadingService);
+    this.sponsorsService = new BaseService('/v1/sponsors', http, loadingService);
   }
 
   ngOnInit() {
-    this.field_coordinators = this.http.get<Response>(`${environment.local_service_endpoint}/v1/sponsors/`).pipe(
-      map(response => response.results)
-    );
-    combineLatest([this.field_coordinators, this.userConfig.config]
-    ).pipe(
-      tap(r => {
+    this.userConfig.config.pipe(
+      tap(c => {
         this.fieldTeamCoordErForm.patchValue({
-          requester: r[1].id,
-          requester_phone_number: r[1].phone_number,
-          portal: r[1].portal_id
+          requester: c.id,
+          requester_phone_number: c.phone_number,
+          portal: c.portal_id
         });
-        if (r[1].is_sponsor) {
-          const known_coord = r[0].find(x => x.id === r[1].id);
-          if (known_coord) {
-            this.fieldTeamCoordErForm.patchValue(
-              {
-                users: [known_coord.id]
-              });
-          }
-        } else if (r[1].is_delegate) {
-          const known_coords = r[0].filter(x => r[1].delegate_for.includes(x.id));
-          if (known_coords) {
-            this.fieldTeamCoordErForm.patchValue(
-              {
-                users: known_coords.map(x => x.id)
-              });
-          }
-        }
+        // todo: potentially bring these back but they are mostly nice to haves
+        // if (c.is_sponsor) {
+        //   const known_coord = r[0].find(x => x.id === c.id);
+        //   if (known_coord) {
+        //     this.fieldTeamCoordErForm.patchValue(
+        //       {
+        //         users: [known_coord.id]
+        //       });
+        //   }
+        // }
+        // else if (c.is_delegate) {
+        //   const known_coords = r[0].filter(x => c.delegate_for.includes(x.id));
+        //   if (known_coords) {
+        //     this.fieldTeamCoordErForm.patchValue(
+        //       {
+        //         users: known_coords.map(x => x.id)
+        //       });
+        //   }
+        // }
         // only get auth groups if they are required
-        this.initRoles(r[1].portal_requires_auth_group);
-        if(r[1].portal_requires_auth_group) {
+        this.initRoles(c.portal_requires_auth_group);
+        if (c.portal_requires_auth_group) {
           this.fieldTeamCoordErForm.controls['authoritative_group'].setValidators(Validators.required);
         }
       })
@@ -87,11 +90,6 @@ export class FieldCoordErRequestFormComponent implements OnInit {
 
     this.initReasons();
 
-
-    // this.fieldTeamCoordErForm.controls.role.valueChanges.pipe(
-    //   switchMap(v => this.getAuthGroups(v)),
-    //   tap(g => this.auth_groups.next(g))
-    // ).subscribe();
   }
 
   submit() {

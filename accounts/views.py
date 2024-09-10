@@ -9,7 +9,7 @@ from rest_framework.filters import BaseFilterBackend
 
 from django.shortcuts import get_list_or_404, get_object_or_404, Http404
 from django_filters.rest_framework import FilterSet, BooleanFilter, DateFilter, NumberFilter, BaseCSVFilter
-from django.db.models import Q, Count, F
+from django.db.models import Q, Count, F, Case
 from django.template.response import TemplateResponse
 from django.core.exceptions import ObjectDoesNotExist
 from django.urls import resolve
@@ -235,7 +235,7 @@ class AGOLGroupViewSet(DALAutocompleteMixin, ReadOnlyModelViewSet):
     serializer_class = AGOLGroupSerializer
     ordering = ['title']
     permission_classes = [IsAuthenticated]
-    pagination_class = None
+    # pagination_class = None
     filterset_class = AGOLGroupFilterSet
     search_fields = ['title']
     autocomplete_config = {'field_walk': {'role': 'roles', 'portal': 'agol'}, 'display_field': F('title')}
@@ -298,7 +298,8 @@ class ResponseProjectViewSet(ModelViewSet):
 
 
 class SponsorsViewSet(DALAutocompleteMixin, ReadOnlyModelViewSet):
-    queryset = User.objects.filter(agol_info__sponsor=True)
+    queryset = User.objects.filter(agol_info__sponsor=True)\
+        .annotate(title=Concat(F('first_name'), Value(' '), F('last_name')))
     serializer_class = SponsorSerializer
     ordering = ['last_name']
     permission_classes = [IsAuthenticated]

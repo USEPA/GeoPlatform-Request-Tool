@@ -9,7 +9,7 @@ import {iif, Observable, Subject} from 'rxjs';
 import {finalize, map, switchMap, tap} from 'rxjs/operators';
 import {UserConfig, UserConfigService} from '../../auth/user-config.service';
 import {environment} from "@environments/environment";
-
+import {Response as ServiceResponse} from "../../services/base.service"
 export interface AgolGroup {
   id: number;
   title: string;
@@ -103,10 +103,10 @@ export class EditAccountPropsDialogComponent implements OnInit {
 
   getGroups(response: number) {
     if (response) {
-      this.http.get<AgolGroup[]>(`${environment.local_service_endpoint}/v1/agol/groups/`,
+      this.http.get<ServiceResponse>(`${environment.local_service_endpoint}/v1/agol/groups/`,
         {params: new HttpParams().set('response', response.toString())}).pipe(
         tap((res) => {
-          this.groups.next(res);
+          this.groups.next(res.results);
         }),
         finalize(() => this.editAccountPropsForm.controls.groups.enable())
       ).subscribe();

@@ -1,3 +1,4 @@
+from rest_framework.fields import ReadOnlyField
 from rest_framework.serializers import ModelSerializer, CharField, PrimaryKeyRelatedField, ChoiceField, \
     JSONField, BooleanField
 from .models import *
@@ -26,9 +27,11 @@ class AccountRequestSerializer(ModelSerializer):
 
 
 class SponsorSerializer(ModelSerializer):
+    title = ReadOnlyField()
+
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'email']
+        fields = ['id', 'first_name', 'last_name', 'email', 'title']
 
 
 # do NOT user with Sponsor viewset b/c that is unsecured and this exposes username

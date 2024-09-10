@@ -193,14 +193,16 @@ EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'localhost')
 EMAIL_FROM = os.environ.get('EMAIL_FROM', 'geoservices@epa.gov')
 
+ADMINS = json.loads(os.environ.get('ADMINS', '[]'))
+SERVER_EMAIL = "noreply@epa.gov <Account Request Tool>"
+
 LOGGING = DEFAULT_LOGGING
 
-LOGGING['handlers']['slack'] = {
+LOGGING['handlers']['mail_admins'] = {
     'level': 'ERROR',
-    'filters': ['require_debug_false'],
-    'class': 'slack_logging.SlackExceptionHandler',
-    'bot_token': os.environ.get('SLACK_BOT_TOKEN', ''),
-    'channel_id': os.environ.get('SLACK_CHANNEL', '')
+    # 'filters': ['require_debug_false'],
+    "class": "django.utils.log.AdminEmailHandler",
+    "include_html": False,
 }
 
 LOGGING['handlers']['file'] = {
@@ -211,7 +213,7 @@ LOGGING['handlers']['file'] = {
 }
 
 LOGGING['loggers']['django'] = {
-    'handlers': ['console', 'slack', 'file'],
+    'handlers': ['console', 'mail_admins', 'file'],
     'level': 'INFO',
 }
 
