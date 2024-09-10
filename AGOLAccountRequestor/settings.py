@@ -194,13 +194,13 @@ EMAIL_HOST = os.environ.get('EMAIL_HOST', 'localhost')
 EMAIL_FROM = os.environ.get('EMAIL_FROM', 'geoservices@epa.gov')
 
 ADMINS = json.loads(os.environ.get('ADMINS', '[]'))
-SERVER_EMAIL = "noreply@epa.gov <Account Request Tool>"
+SERVER_EMAIL = "noreply@epa.gov"
 
 LOGGING = DEFAULT_LOGGING
 
 LOGGING['handlers']['mail_admins'] = {
     'level': 'ERROR',
-    # 'filters': ['require_debug_false'],
+    'filters': ['require_debug_false'],
     "class": "django.utils.log.AdminEmailHandler",
     "include_html": False,
 }
