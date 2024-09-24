@@ -96,7 +96,7 @@ def enable_account(account_request, password):
 
 def get_object_id_from_request(request):
     referrer = request.META.get('HTTP_REFERER')
-    host = request.META.get('HTTP_HOST')
+    host = request.get_host()
     path = referrer.split(host)[1].split('?')[0]
     r = resolve(path)
     return r.kwargs.get('object_id', None)

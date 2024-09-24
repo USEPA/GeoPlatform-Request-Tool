@@ -136,6 +136,7 @@ class AGOLGroupAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
+    # this may no longer be needed due to using autcomplete fields
     def get_search_results(self, request, queryset, search_term):
         referrer = request.META.get('HTTP_REFERER', '')
         if 'responseproject' in referrer:
