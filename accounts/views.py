@@ -231,7 +231,7 @@ class AccountViewSet(ModelViewSet):
 
 
 class AGOLGroupViewSet(DALAutocompleteMixin, ReadOnlyModelViewSet):
-    queryset = AGOLGroup.objects.none()
+    queryset = AGOLGroup.objects.all()
     serializer_class = AGOLGroupSerializer
     ordering = ['title']
     permission_classes = [IsAuthenticated]
@@ -241,17 +241,25 @@ class AGOLGroupViewSet(DALAutocompleteMixin, ReadOnlyModelViewSet):
     autocomplete_config = {'field_walk': {'role': 'roles', 'portal': 'agol'}, 'display_field': F('title')}
 
     # only show groups for which the user has access per agol group fields assignable groups
+    # or if user is a sponsor/delegate for response/project that has the group available
     def get_queryset(self):
         if self.request.user.is_superuser:
             return AGOLGroup.objects.all()
         sponsors = User.objects.filter(agol_info__delegates=self.request.user)
-        return AGOLGroup.objects.filter(Q(agol_id=self.request.user.agol_info.portal_id) &
-                                        Q(response__users=self.request.user) | Q(response__users__in=sponsors))
+        return AGOLGroup.objects.filter(
+            (Q(agol_id=self.request.user.agol_info.portal_id) & Q(groupmembership__user=self.request.user.agol_info)) |
+            Q(response__users=self.request.user) | Q(response__users__in=sponsors)).distinct()
 
-    def get_permissions(self):
-        if self.action == 'all':
-            return [AllowAny()]
-        return super(AGOLGroupViewSet, self).get_permissions()
+        # if self.request.user.is_superuser:
+        #     return AGOLGroup.objects.all()
+        # sponsors = User.objects.filter(agol_info__delegates=self.request.user)
+        # return AGOLGroup.objects.filter(Q(agol_id=self.request.user.agol_info.portal_id) &
+        #                                 Q(response__users=self.request.user) | Q(response__users__in=sponsors)).distinct()
+
+    # def get_permissions(self):
+    #     if self.action == 'all':
+    #         return [AllowAny()]
+    #     return super(AGOLGroupViewSet, self).get_permissions()
 
     @action(['GET'], detail=False)
     def all(self, request):
@@ -298,7 +306,7 @@ class ResponseProjectViewSet(ModelViewSet):
 
 
 class SponsorsViewSet(DALAutocompleteMixin, ReadOnlyModelViewSet):
-    queryset = User.objects.filter(agol_info__sponsor=True)\
+    queryset = User.objects.filter(agol_info__sponsor=True) \
         .annotate(title=Concat(F('first_name'), Value(' '), F('last_name')))
     serializer_class = SponsorSerializer
     ordering = ['last_name']
