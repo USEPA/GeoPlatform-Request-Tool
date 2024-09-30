@@ -78,9 +78,10 @@ describe('approver workflow', () => {
 
   it('should allow logged in user to submit response form', () => {
     cy.get('button').contains('Configure New Response / Project').click();
+    cy.wait(2000);
     cy.get('input[formcontrolname="name"]').type('Test')
     cy.get('mat-select[formcontrolname="default_reason"]').click();
-    cy.get('mat-option').contains('Emergency Response').click();
+    cy.get('mat-option').first().click();
     cy.get('app-tag-input[label="Groups"]').type('test');
     cy.get('mat-option').first().click();
     cy.get('mat-select[formcontrolname="role"]').click();

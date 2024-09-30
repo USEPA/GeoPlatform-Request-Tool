@@ -29,7 +29,7 @@ export class FieldCoordErRequestFormComponent implements OnInit {
   submitting: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   fieldTeamCoordErForm: FormGroup = new FormGroup({
     name: new FormControl(null, Validators.required),
-    users: new FormControl(null),
+    users: new FormControl([]),
     assignable_groups: new FormControl(null, Validators.required),
     requester: new FormControl(null, Validators.required),
     authoritative_group: new FormControl(null),

@@ -129,6 +129,7 @@ class AGOLGroup(models.Model):
     title = models.CharField(max_length=500)
     agol = models.ForeignKey('AGOL', on_delete=models.CASCADE, related_name='groups')
     requests = models.ManyToManyField('AccountRequests', through='GroupMembership')
+    users = models.ManyToManyField('AGOLUserFields', through='GroupMembership')
     is_auth_group = models.BooleanField(default=False)
 
     def __str__(self):
@@ -142,7 +143,8 @@ class AGOLGroup(models.Model):
 class GroupMembership(models.Model):
     id = models.AutoField(primary_key=True)
     group = models.ForeignKey('AGOLGroup', on_delete=models.CASCADE)
-    request = models.ForeignKey('AccountRequests', on_delete=models.CASCADE)
+    request = models.ForeignKey('AccountRequests', on_delete=models.CASCADE, null=True, blank=True)
+    user = models.ForeignKey('AGOLUserFields', on_delete=models.CASCADE, null=True, blank=True)
     is_member = models.BooleanField(default=False)
 
 
@@ -197,6 +199,7 @@ class AGOL(models.Model):
                 super().save(*args, **kwargs)
             if self.groups.count() == 0:
                 self.get_all_groups()
+                self.get_all_existing_user_group_memberships()
             if self.roles.count() == 0:
                 self.get_all_roles()
 
@@ -213,7 +216,7 @@ class AGOL(models.Model):
                              params={'f': 'json', 'token': self.get_token()})
             return r.json()['id']
 
-    def get_list(self, url, results_key='results'):
+    def get_list(self, url, results_key='results', use_query=True):
         try:
             sys.stdout.write(f'\nGetting All from {self.portal_url}... \n')
 
@@ -237,7 +240,7 @@ class AGOL(models.Model):
                 sys.stdout.flush()
                 sys.stdout.write('\rFetched {} of {}\r'.format(len(all_records), total_records))
 
-                if response_json['nextStart'] == -1 or response_json['nextStart'] == 0:
+                if (response_json['nextStart'] == -1 or response_json['nextStart'] == 0) and use_query:
                     next_record = 1
                     q = 'uploaded: [000000{} TO 000000{}000] AND {}'.format(all_records[-1]['created'] + 1,
                                                                             int(time.time()),
@@ -262,6 +265,19 @@ class AGOL(models.Model):
         except:
             sys.stdout.write('\nError encountered. Stopping update.\n')
             raise
+
+    def get_all_existing_user_group_memberships(self):
+        GroupMembership.objects.filter(user__isnull=False).delete()
+        for user in AGOLUserFields.objects.filter(portal=self):
+            r = requests.get(f'{self.portal_url}/sharing/rest/community/users/{user.agol_username}',
+                             params={'token': self.get_token(), 'f': 'json'})
+            response_json = r.json(strict=False)
+            if 'error' in response_json:
+                continue
+            for group in response_json.get('groups', []):
+                if AGOLGroup.objects.filter(id=group['id'], agol=self).exists():
+                    GroupMembership.objects.create(group_id=group['id'], user=user, is_member=True)
+
 
     def get_all_roles(self):
         all_roles = self.get_list('portals/self/roles', 'roles')
