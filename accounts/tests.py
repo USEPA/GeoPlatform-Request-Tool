@@ -509,3 +509,35 @@ class TestGetUserDetails(TestCase):
             'agol_groups': ['group1', 'group2']
         }
         self.assertEqual(get_user_details(response), expected)
+
+    def test_user_details_with_comma(self):
+        response = {
+            'username': 'testuser',
+            'email': 'testuser@example.com',
+            'fullName': ' User,  Test ',
+            'groups': [{'id': 'group1'}, {'id': 'group2'}]
+        }
+        expected = {
+            'username': 'testuser',
+            'email': 'testuser@example.com',
+            'first_name': 'Test',
+            'last_name': 'User',
+            'agol_groups': ['group1', 'group2']
+        }
+        self.assertEqual(get_user_details(response), expected)
+
+    def test_user_details_with_space_in_last(self):
+        response = {
+            'username': 'testuser',
+            'email': 'testuser@example.com',
+            'fullName': 'User Fake,  Test ',
+            'groups': [{'id': 'group1'}, {'id': 'group2'}]
+        }
+        expected = {
+            'username': 'testuser',
+            'email': 'testuser@example.com',
+            'first_name': 'Test',
+            'last_name': 'User Fake',
+            'agol_groups': ['group1', 'group2']
+        }
+        self.assertEqual(get_user_details(response), expected)

@@ -13,15 +13,18 @@ def get_user_details(response):
     last_name = response.get('lastName', '')
     full_name = response.get('fullName', '')
     if full_name != '' and first_name == '' and last_name == '':
-        full_name = full_name.split(' ')
-        first_name = full_name[0]
-        last_name = ' '.join(full_name[1:])
+        if ',' in full_name:
+            last_name, first_name = full_name.split(',')
+        else:
+            full_name = full_name.split(' ')
+            first_name = full_name[0]
+            last_name = ' '.join(full_name[1:])
 
     return {
         'username': response.get('username'),
         'email': response.get('email'),
-        'first_name': first_name,
-        'last_name': last_name,
+        'first_name': first_name.strip(),
+        'last_name': last_name.strip(),
         'agol_groups': [x.get('id') for x in response.get('groups', [])]  # get list of group ids user is a member of
     }
 
