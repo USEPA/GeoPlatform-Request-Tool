@@ -5,6 +5,27 @@ from social_core.exceptions import AuthException
 from accounts.models import AGOL, AGOLUserFields
 
 
+def get_user_details(response):
+    if 'error' in response:
+        return {}
+
+    first_name = response.get('firstName', '')
+    last_name = response.get('lastName', '')
+    full_name = response.get('fullName', '')
+    if full_name != '' and first_name == '' and last_name == '':
+        full_name = full_name.split(' ')
+        first_name = full_name[0]
+        last_name = ' '.join(full_name[1:])
+
+    return {
+        'username': response.get('username'),
+        'email': response.get('email'),
+        'first_name': first_name,
+        'last_name': last_name,
+        'agol_groups': [x.get('id') for x in response.get('groups', [])]  # get list of group ids user is a member of
+    }
+
+
 class AGOLOAuth2Geoplatform(BaseOAuth2):
     name = 'geoplatform'
     ID_KEY = 'username'
@@ -32,17 +53,7 @@ class AGOLOAuth2Geoplatform(BaseOAuth2):
         return self._ACCESS_TOKEN_URL.format(self._base_url())
 
     def get_user_details(self, response):
-        if 'error' in response:
-            return {}
-
-        return {
-            'username': response.get('username'),
-            'email': response.get('email'),
-            'fullname': response.get('fullName', ''),
-            'first_name': response.get('firstName', ''),
-            'last_name': response.get('lastName', ''),
-            'agol_groups': [x.get('id') for x in response.get('groups')]  # get list of group ids user is a member of
-        }
+        return get_user_details(response)
 
     def user_data(self, access_token, *args, **kwargs):
         return self.get_json(
@@ -87,25 +98,7 @@ class AGOLOAuth2Geosecure(BaseOAuth2):
         return self._ACCESS_TOKEN_URL.format(self._base_url())
 
     def get_user_details(self, response):
-        if 'error' in response:
-            return {}
-
-        first_name = response.get('firstName', '')
-        last_name = response.get('lastName', '')
-        full_name = response.get('fullName', '')
-        if full_name != '' and first_name == '' and last_name == '':
-            full_name = full_name.split(' ')
-            first_name = full_name[0]
-            last_name = ' '.join(full_name[1:])
-
-        return {
-            'username': response.get('username'),
-            'email': response.get('email'),
-            'fullname': response.get('fullName', ''),
-            'first_name': first_name,
-            'last_name': last_name,
-            'agol_groups': [x.get('id') for x in response.get('groups')]  # get list of group ids user is a member of
-        }
+        return get_user_details(response)
 
     def user_data(self, access_token, *args, **kwargs):
         return self.get_json(
@@ -153,12 +146,9 @@ def create_accounts_for_preapproved_domains(backend, details, user=None, *args, 
 
     email_domain = details.get('email').split('@')[1]
     if email_domain in backend.setting('PREAPPROVED_DOMAINS'):
-        user = User.objects.create_user(
-            username=details.get('username'),
-            email=details.get('email'),
-            first_name=details.get('first_name'),
-            last_name=details.get('last_name')
-        )
+        user_details = get_user_details(details)
+        del user_details['agol_groups']
+        user = User.objects.create_user(**user_details)
         # this try/except resolves an issue when first setting up the tool and you can't create
         # a login
         try:

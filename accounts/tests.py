@@ -9,6 +9,7 @@ import os
 from urllib.parse import parse_qs
 import json
 
+from AGOLAccountRequestor.agol_auth import get_user_details
 from .models import AGOL, AGOLUserFields, AccountRequests
 from .views import format_username, SponsorsViewSet, AccountViewSet
 from .permissions import IsSponsor
@@ -442,4 +443,69 @@ class TestAccounts(TestCase):
 
 
 
+class TestGetUserDetails(TestCase):
 
+    def test_user_details_with_full_name(self):
+        response = {
+            'username': 'testuser',
+            'email': 'testuser@example.com',
+            'fullName': 'Test User',
+            'groups': [{'id': 'group1'}, {'id': 'group2'}]
+        }
+        expected = {
+            'username': 'testuser',
+            'email': 'testuser@example.com',
+            'first_name': 'Test',
+            'last_name': 'User',
+            'agol_groups': ['group1', 'group2']
+        }
+        self.assertEqual(get_user_details(response), expected)
+
+    def test_user_details_with_first_and_last_name(self):
+        response = {
+            'username': 'testuser',
+            'email': 'testuser@example.com',
+            'firstName': 'Test',
+            'lastName': 'User',
+            'groups': [{'id': 'group1'}, {'id': 'group2'}]
+        }
+        expected = {
+            'username': 'testuser',
+            'email': 'testuser@example.com',
+            'first_name': 'Test',
+            'last_name': 'User',
+            'agol_groups': ['group1', 'group2']
+        }
+        self.assertEqual(get_user_details(response), expected)
+
+    def test_user_details_with_error(self):
+        response = {'error': 'Some error'}
+        expected = {}
+        self.assertEqual(get_user_details(response), expected)
+
+    def test_user_details_with_empty_response(self):
+        response = {}
+        expected = {
+            'username': None,
+            'email': None,
+            'first_name': '',
+            'last_name': '',
+            'agol_groups': []
+        }
+        self.assertEqual(get_user_details(response), expected)
+
+    def test_user_details_with_partial_name(self):
+        response = {
+            'username': 'testuser',
+            'email': 'testuser@example.com',
+            'fullName': 'Test',
+            'groups': [{'id': 'group1'}, {'id': 'group2'}]
+        }
+        expected = {
+            'username': 'testuser',
+            'email': 'testuser@example.com',
+            'first_name': 'Test',
+            'last_name': '',
+            'agol_groups': ['group1', 'group2']
+        }
+        self.assertEqual(get_user_details(response), expected)
