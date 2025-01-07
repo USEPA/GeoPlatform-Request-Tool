@@ -1,3 +1,4 @@
+from ckeditor.fields import RichTextField
 from django.core.mail import send_mail
 from django.db import models
 from django.core.exceptions import ValidationError
@@ -182,6 +183,7 @@ class AGOL(models.Model):
     enterprise_precreate_domains = models.TextField(null=True, blank=True, verbose_name='Email domains for enterprise accounts',
                                                     help_text='Separate email domains with comma (e.g. gmail.com,hotmail.com). Value required if external account creation is not allowed')
     requires_auth_group = models.BooleanField(default=True)
+    email_signature_content = RichTextField(null=True, blank=True)
 
     @property
     def enterprise_precreate_domains_list(self):

@@ -49,7 +49,7 @@ class AGOLAdminForm(ModelForm):
     class Meta:
         model = AGOL
         fields = ['portal_name', 'portal_url', 'user', 'allow_external_accounts', 'requires_auth_group',
-                  'enterprise_precreate_domains']
+                  'enterprise_precreate_domains', 'email_signature_content']
 
 
 @admin.register(AGOL)
