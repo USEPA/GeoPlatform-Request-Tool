@@ -140,6 +140,9 @@ class AGOLGroup(models.Model):
     def name(self):
         return self.title
 
+    class Meta:
+        verbose_name = 'AGOL/Portal Group'
+        verbose_name_plural = 'AGOL/Portal Groups'
 
 class GroupMembership(models.Model):
     id = models.AutoField(primary_key=True)
@@ -171,6 +174,9 @@ class AGOLRole(models.Model):
             if (self.pk and AGOLRole.objects.filter(system_default=True, agol=self.agol).exclude(pk=self.pk).exists()):
                 raise ValidationError({'system_default': 'You cannot have more than one system default. Remove current default to select a new one.'})
 
+    class Meta:
+        verbose_name = 'AGOL/Portals Role'
+        verbose_name_plural = 'AGOL/Portals Roles'
 
 class AGOL(models.Model):
     id = models.AutoField(primary_key=True)
@@ -495,6 +501,9 @@ class AGOL(models.Model):
             return response_json.get('success', False)
         return False
 
+    class Meta:
+        verbose_name = 'AGOL/Portal'
+        verbose_name_plural = 'AGOL/Portals'
 
 class AGOLUserFields(models.Model):
     id = models.AutoField(primary_key=True)
