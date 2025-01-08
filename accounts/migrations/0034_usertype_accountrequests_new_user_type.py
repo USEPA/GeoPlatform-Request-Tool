@@ -6,9 +6,16 @@ import django.db.models.deletion
 def convert_user_types(apps, schema_editor):
     UserType = apps.get_model('accounts', 'UserType')
     AccountRequests = apps.get_model('accounts', 'AccountRequests')
-    creator = UserType.objects.create(code='creatorUT', name='Creator')
+    AGOL = apps.get_model('accounts', 'AGOL')
+    for portal in AGOL.objects.all():
+        roles = portal.roles.filter(is_available=True)
+        creator = UserType.objects.create(code='creatorUT', name='Creator', portal=portal)
+        creator.compatible_roles.set(roles)
+        AccountRequests.objects.filter(user_type='creatorUT', response__portal=portal).update(new_user_type=creator)
 
-    AccountRequests.objects.filter(user_type='creatorUT').update(new_user_type=creator)
+def revert_user_types(apps, schema_editor):
+    AccountRequests = apps.get_model('accounts', 'AccountRequests')
+    AccountRequests.objects.update(user_type='creatorUT')
 
 class Migration(migrations.Migration):
 
@@ -23,6 +30,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('code', models.CharField(max_length=16)),
                 ('name', models.CharField(max_length=200)),
+                ('portal', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='user_types', to='accounts.AGOL')),
+                ('compatible_roles', models.ManyToManyField(to='accounts.AGOLRole')),
             ],
             options={
                 'verbose_name': 'AGOL/Portal User Type',
@@ -34,7 +43,7 @@ class Migration(migrations.Migration):
             name='new_user_type',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='accounts.usertype'),
         ),
-        migrations.RunPython(convert_user_types),
+        migrations.RunPython(convert_user_types, revert_user_types),
         migrations.RemoveField(
             model_name='accountrequests',
             name='user_type',
@@ -43,5 +52,12 @@ class Migration(migrations.Migration):
             model_name='accountrequests',
             old_name='new_user_type',
             new_name='user_type',
+        ),
+        migrations.AddField(
+            model_name='responseproject',
+            name='user_type',
+            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.PROTECT, related_name='responses',
+                                    to='accounts.usertype'),
+            preserve_default=False,
         ),
     ]

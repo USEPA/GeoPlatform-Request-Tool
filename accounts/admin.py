@@ -349,7 +349,7 @@ class ResponseProjectForm(ModelForm):
             'assignable_groups': autocomplete.ModelSelect2Multiple(url='agolgroup-autocomplete',
                                                                 forward=['portal']),
             'role': autocomplete.ModelSelect2(url='agolrole-autocomplete',
-                                              forward=['portal']),
+                                              forward=['portal', 'user_type']),
             'user_type': autocomplete.ModelSelect2(url='usertype-autocomplete', forward=['portal']),
         }
 
@@ -510,7 +510,22 @@ class ProtectedDatasetAdmin(admin.ModelAdmin):
     search_fields = ['name']
 
 
+class UserTypeAdminForm(ModelForm):
+    class Meta:
+        model = UserType
+        fields = '__all__'
+        widgets = {
+            'compatible_roles': autocomplete.ModelSelect2Multiple(url='agolrole-autocomplete',
+                                              forward=['portal'])
+        }
+
+    class Media:
+        js = ['admin/js/jquery.init.js', 'autocomplete.js']
+
+
 @admin.register(UserType)
 class UserTypeAdmin(admin.ModelAdmin):
-    list_display = ['name']
+    list_display = ['name', 'portal']
     search_fields = ['name']
+    list_filter = ['portal']
+    form = UserTypeAdminForm

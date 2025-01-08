@@ -169,7 +169,7 @@ class AGOLRole(models.Model):
 class UserType(models.Model):
     code = models.CharField(max_length=16)
     name = models.CharField(max_length=200)
-    portal = models.ManyToManyField('AGOL', related_name='user_types')
+    portal = models.ForeignKey('AGOL', related_name='user_types', on_delete=models.PROTECT)
     compatible_roles = models.ManyToManyField('AGOLRole', related_name='user_types')
 
     def __str__(self):
