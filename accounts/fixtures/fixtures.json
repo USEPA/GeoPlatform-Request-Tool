@@ -270,7 +270,7 @@
       "email": "newb@dasg.com",
       "possible_existing_account": "",
       "is_existing_account": false,
-      "existing_account_enabled": true,
+      "existing_account_enabled": false,
       "organization": "asdf",
       "username": "User.Test4_EPAEXT",
       "username_valid": true,
@@ -480,7 +480,7 @@
       "user": 1,
       "allow_external_accounts": true,
       "enterprise_precreate_domains": "",
-      "email_signature_content": ""
+      "email_signature_content": "Geoplatform Email Signature"
     }
   }, {
     "model": "accounts.agol",
@@ -492,7 +492,7 @@
       "user": 3,
       "allow_external_accounts": false,
       "enterprise_precreate_domains": "dasg.com",
-      "email_signature_content": ""
+      "email_signature_content": "Geosecure Email Signature"
     }
   },
 
