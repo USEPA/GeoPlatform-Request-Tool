@@ -106,3 +106,9 @@ class PortalsSerializer(ModelSerializer):
     class Meta:
         model = AGOL
         fields = ['id', 'portal_name', 'portal_url']
+
+
+class UserTypeSerializer(ModelSerializer):
+    class Meta:
+        model = UserType
+        fields = '__all__'

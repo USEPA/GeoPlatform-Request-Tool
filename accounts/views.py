@@ -43,20 +43,20 @@ class DALAutocompleteMixin:
             self.request.query_params._mutable = True
             self.request.query_params['search'] = self.request.query_params.pop('q')[0]
         forwarded = json.loads(self.request.query_params.get('forward', '{}'))
-
+        autocomplete_config = getattr(self, 'autocomplete_config', {})
         # covert incoming fields to target filters
-        for f, t in self.autocomplete_config.get('field_walk', {}).items():
+        for f, t in autocomplete_config.get('field_walk', {}).items():
             if f in forwarded:
                 forwarded[t] = forwarded.pop(f)
         try:
             groups_qs = self.filter_queryset(self.get_queryset()).filter(**forwarded)
-            if 'display_field' in self.autocomplete_config:
-                groups_qs = groups_qs.annotate(text=self.autocomplete_config['display_field'])
+            if 'display_field' in autocomplete_config:
+                groups_qs = groups_qs.annotate(text=autocomplete_config['display_field'])
         except ValueError:
             return Response({'results': [{'id': None, 'text': 'Could not locate matching record'}]})
         results = []
         for g in groups_qs:
-            results.append({'id': g.id, 'text': g.text if 'display_field' in self.autocomplete_config else str(g)})
+            results.append({'id': g.id, 'text': g.text if 'display_field' in autocomplete_config else str(g)})
         return Response({'results': results})
 
 
@@ -360,3 +360,8 @@ class PortalsViewSet(ReadOnlyModelViewSet):
     serializer_class = PortalsSerializer
     ordering = ['portal_name']
     search_fields = ['portal_name', 'portal_url']
+
+
+class UserTypeViewSet(DALAutocompleteMixin, ReadOnlyModelViewSet):
+    queryset = UserType.objects.all()
+    serializer_class = UserTypeSerializer

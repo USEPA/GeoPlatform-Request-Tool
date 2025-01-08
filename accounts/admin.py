@@ -349,7 +349,8 @@ class ResponseProjectForm(ModelForm):
             'assignable_groups': autocomplete.ModelSelect2Multiple(url='agolgroup-autocomplete',
                                                                 forward=['portal']),
             'role': autocomplete.ModelSelect2(url='agolrole-autocomplete',
-                                              forward=['portal'])
+                                              forward=['portal']),
+            'user_type': autocomplete.ModelSelect2(url='usertype-autocomplete', forward=['portal']),
         }
 
     class Media:
@@ -360,7 +361,7 @@ class ResponseProjectAdmin(admin.ModelAdmin):
     list_display = ['name', 'portal', 'requester', 'sponsors', 'approved', 'disabled']
     search_fields = ['name']
     ordering = ['name']
-    fields = ['name', 'requester', 'users', 'assignable_groups', 'role', 'authoritative_group', 'default_reason',
+    fields = ['name', 'requester', 'users', 'assignable_groups', 'user_type', 'role', 'authoritative_group', 'default_reason',
               'approved', 'approved_by', 'disabled', 'disabled_by', 'request_url_link', 'disable_users_link', 'portal', 'protected_datasets']
     readonly_fields = ['approved', 'approved_by', 'disabled', 'disabled_by', 'request_url_link', 'disable_users_link']
     autocomplete_fields = ['users', 'assignable_groups', 'protected_datasets']
@@ -505,5 +506,11 @@ class PendingNotificationAdmin(admin.ModelAdmin):
 
 @admin.register(ProtectedDataset)
 class ProtectedDatasetAdmin(admin.ModelAdmin):
+    list_display = ['name']
+    search_fields = ['name']
+
+
+@admin.register(UserType)
+class UserTypeAdmin(admin.ModelAdmin):
     list_display = ['name']
     search_fields = ['name']

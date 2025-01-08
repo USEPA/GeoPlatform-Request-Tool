@@ -36,10 +36,6 @@ REASON_CHOICES = (('Emergency Response', 'Emergency Response'),
 
 class AccountRequests(models.Model):
     id = models.AutoField(primary_key=True)
-    USER_TYPE_CHOICES = (('creatorUT', 'Creator'),)
-    # ROLE_CHOICES = (('jmc1ObdWfBTH6NAN', 'EPA Publisher'),
-    #                 ('71yacZLdeuDirQ6K', 'EPA Viewer'))
-
     first_name = models.CharField(max_length=200)
     last_name = models.CharField(max_length=200)
     email = models.EmailField()
@@ -49,7 +45,7 @@ class AccountRequests(models.Model):
     organization = models.CharField(max_length=200)
     username = models.CharField(max_length=200, help_text='User frontend to modify username.')
     username_valid = models.BooleanField(default=False)
-    user_type = models.CharField(max_length=200, choices=USER_TYPE_CHOICES, default='creatorUT')
+    user_type = models.ForeignKey('UserType', on_delete=models.DO_NOTHING, blank=True, null=True)
     role = models.ForeignKey('AGOLRole', on_delete=models.DO_NOTHING, blank=True, null=True, related_name='account_requests')
     groups = models.ManyToManyField('AGOLGroup', blank=True, related_name='account_requests', through='GroupMembership')
     auth_group = models.ForeignKey('AGOLGroup', on_delete=models.DO_NOTHING, blank=True, null=True)
@@ -169,6 +165,19 @@ class AGOLRole(models.Model):
         if self.system_default:
             if (self.pk and AGOLRole.objects.filter(system_default=True, agol=self.agol).exclude(pk=self.pk).exists()):
                 raise ValidationError({'system_default': 'You cannot have more than one system default. Remove current default to select a new one.'})
+
+class UserType(models.Model):
+    code = models.CharField(max_length=16)
+    name = models.CharField(max_length=200)
+    portal = models.ManyToManyField('AGOL', related_name='user_types')
+    compatible_roles = models.ManyToManyField('AGOLRole', related_name='user_types')
+
+    def __str__(self):
+        return f"{self.name} ({self.code})"
+
+    class Meta:
+        verbose_name = 'AGOL/Portal User Type'
+        verbose_name_plural = 'AGOL/Portal User Types'
 
 
 class AGOL(models.Model):
@@ -530,6 +539,7 @@ class ResponseProject(models.Model):
     portal = models.ForeignKey(AGOL, models.PROTECT, related_name='responses', verbose_name='Portal/AGOL')
     assignable_groups = models.ManyToManyField('AGOLGroup', related_name='response',
                                                verbose_name='Assignable Groups')
+    user_type = models.ForeignKey(UserType, models.PROTECT, 'responses')
     role = models.ForeignKey('AGOLRole', on_delete=models.PROTECT, verbose_name='Role',
                              limit_choices_to={'is_available': True}, related_name='responses')
     authoritative_group = models.ForeignKey('AGOLGroup', on_delete=models.PROTECT,

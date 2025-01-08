@@ -33,6 +33,7 @@ router.register('responses', account_views.ResponseProjectViewSet)
 router.register('sponsors', account_views.SponsorsViewSet)
 router.register('agol/groups', account_views.AGOLGroupViewSet)
 router.register('agol/roles', account_views.AGOLRoleViewSet)
+router.register('agol/usertypes', account_views.UserTypeViewSet)
 # router.register('notifications', account_views.PendingNotificationViewSet)
 
 admin.site.site_header = "EPA Account Request Tool"
