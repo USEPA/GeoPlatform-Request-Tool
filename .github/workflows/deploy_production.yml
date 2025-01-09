@@ -47,9 +47,7 @@ jobs:
         run: |
           If (Test-Path ..\..\..\..\app_backup) {Remove-Item -Recurse -Force ..\..\..\..\app_backup}
           Copy-Item -Path ..\..\..\..\app\ -Destination ..\..\..\..\app_backup\
-          Copy-Item ..\..\..\..\app\web.config .\web.config
-          Copy-Item ..\..\..\..\app\.env .\.env
-          Remove-Item -Path ..\..\..\..\app\* -Force -Recurse
+          Remove-Item -Path ..\..\..\..\app\* -Force -Recurse -Exclude ("web.config", ".env", "error.log")
           Copy-Item -Path .\* -Destination ..\..\..\..\app\ -Recurse -Exclude ("ui", ".git", ".github") -Force
       - name: run migrations and collectstatic
         working-directory: ..\..\..\..\app\
