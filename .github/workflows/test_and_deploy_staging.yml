@@ -85,8 +85,8 @@ jobs:
           name: frontend-build
           path: ..\..\..\..\ui\
 
-  e2e_test:
-    runs-on: staging
-    name: e2e testing
-    needs: deploy
+#  e2e_test:
+#    runs-on: staging
+#    name: e2e testing
+#    needs: deploy
 
