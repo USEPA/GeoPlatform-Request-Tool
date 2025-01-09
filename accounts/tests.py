@@ -6,7 +6,7 @@ from django.utils.timezone import now
 from django.db.models import Q
 
 import os
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, quote_plus
 import json
 
 from AGOLAccountRequestor.agol_auth import get_user_details
@@ -210,6 +210,8 @@ class TestAccounts(TestCase):
         for account in requests:
             if not account.is_enterprise_account() and account.response.portal.allow_external_accounts:
                 self.assertTrue(self.agol.create_user_account(account, 'password'))
+                mock_post.assert_called()
+
         # Any non-existing account requests should have been created with all fs GUID
         self.assertTrue(AccountRequests.objects.filter(agol_id='ffffffff-ffff-ffff-ffff-ffffffffffff').exists())
 
@@ -237,13 +239,18 @@ class TestAccounts(TestCase):
 
     @patch('accounts.models.requests.post', side_effect=mock_create_user)
     @patch('accounts.models.requests.get', side_effect=mock_get_user)
-    def test_create_account_without_passwords(self, mock_post, mock_get):
+    def test_create_account_without_passwords(self, mock_get, mock_post):
         # only test with non existing accounts, there should be account requests which already created
         requests = AccountRequests.objects.filter(agol_id=None)
         for account in requests:
             if account.is_enterprise_account() or (
                     not account.is_enterprise_account() and account.response.portal.allow_external_accounts):
                 self.assertTrue(self.agol.create_user_account(account))
+                mock_post.assert_called()
+
+                if not account.is_enterprise_account():
+                    encoded_signature = quote_plus(account.response.portal.email_signature_content)
+                    self.assertIn(encoded_signature, mock_post.call_args[1]['data'])
 
         # Any non-existing account requests should have been created with all fs GUID
         self.assertTrue(AccountRequests.objects.filter(agol_id='ffffffff-ffff-ffff-ffff-ffffffffffff').exists())
@@ -398,6 +405,17 @@ class TestAccounts(TestCase):
         self.assertTrue(enable_account(a, None))
         self.assertTrue(a.existing_account_enabled)
 
+    @patch('accounts.models.AGOL.enable_user_account')
+    def test_enable_account_emails(self, mock_enable_user_account):
+        mock_enable_user_account.return_value = True
+
+        a = AccountRequests.objects.get(id=101)
+        enable_account(a, None)
+        self.assertTrue(a.notifications.filter(content__icontains=a.response.portal.email_signature_content).exists())
+
+        b = AccountRequests.objects.get(id=202)
+        enable_account(b, None)
+        self.assertTrue(b.notifications.filter(content__icontains=b.response.portal.email_signature_content).exists())
 
     @patch('accounts.models.AGOL.create_user_account')
     def test_create_account_from_request(self, mock_create_user_account):
@@ -439,8 +457,6 @@ class TestAccounts(TestCase):
         mock_enable_account.return_value = True
         r = approve_account(a, None, User(id=1))
         self.assertTrue('Successfully' in r.data['success'])
-
-
 
 
 class TestGetUserDetails(TestCase):

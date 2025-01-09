@@ -49,6 +49,7 @@ urlpatterns = [
     # path('api/rest-auth/', include('rest_auth.urls')),
     path(f'{settings.URL_PREFIX}api/oauth2/', include('social_django.urls', namespace='social_django')),
     path(f'{settings.URL_PREFIX}api/current_user/', current_user),
+    path(f'{settings.URL_PREFIX}api/ckeditor5/', include('django_ckeditor_5.urls')),
     path(f'{settings.URL_PREFIX}api/auth/logout/', auth_views.LogoutView.as_view(), name='logout'),
 ]
 

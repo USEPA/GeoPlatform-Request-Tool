@@ -1,3 +1,4 @@
+from django_ckeditor_5.fields import CKEditor5Field
 from django.core.mail import send_mail
 from django.db import models
 from django.core.exceptions import ValidationError
@@ -139,6 +140,9 @@ class AGOLGroup(models.Model):
     def name(self):
         return self.title
 
+    class Meta:
+        verbose_name = 'AGOL/Portal Group'
+        verbose_name_plural = 'AGOL/Portal Groups'
 
 class GroupMembership(models.Model):
     id = models.AutoField(primary_key=True)
@@ -170,6 +174,9 @@ class AGOLRole(models.Model):
             if (self.pk and AGOLRole.objects.filter(system_default=True, agol=self.agol).exclude(pk=self.pk).exists()):
                 raise ValidationError({'system_default': 'You cannot have more than one system default. Remove current default to select a new one.'})
 
+    class Meta:
+        verbose_name = 'AGOL/Portals Role'
+        verbose_name_plural = 'AGOL/Portals Roles'
 
 class AGOL(models.Model):
     id = models.AutoField(primary_key=True)
@@ -182,6 +189,7 @@ class AGOL(models.Model):
     enterprise_precreate_domains = models.TextField(null=True, blank=True, verbose_name='Email domains for enterprise accounts',
                                                     help_text='Separate email domains with comma (e.g. gmail.com,hotmail.com). Value required if external account creation is not allowed')
     requires_auth_group = models.BooleanField(default=True)
+    email_signature_content = CKEditor5Field()
 
     @property
     def enterprise_precreate_domains_list(self):
@@ -493,6 +501,9 @@ class AGOL(models.Model):
             return response_json.get('success', False)
         return False
 
+    class Meta:
+        verbose_name = 'AGOL/Portal'
+        verbose_name_plural = 'AGOL/Portals'
 
 class AGOLUserFields(models.Model):
     id = models.AutoField(primary_key=True)
