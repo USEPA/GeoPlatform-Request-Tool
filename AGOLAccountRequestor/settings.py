@@ -237,4 +237,4 @@ CKEDITOR_5_CONFIGS = {
 
     }
 }
-CKEDITOR_5_CUSTOM_CSS = '/static/editor.css'
+CKEDITOR_5_CUSTOM_CSS = 'editor.css'
