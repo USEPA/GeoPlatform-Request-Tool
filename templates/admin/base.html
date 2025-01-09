@@ -14,7 +14,7 @@
     {% if user.has_usable_password %}
         <a href="{% url 'admin:password_change' %}">{% translate 'Change password' %}</a> /
     {% endif %}
-    <a href="\static\GPOAcctRequestAdminGuide.pdf" target="_blank" style="color:#D3D963">HELP</a> /
+    <a href="/request/static/GPOAcctRequestAdminGuide.pdf" target="_blank" style="color:#D3D963">HELP</a> /
 
     <form id="logout-form" method="post" action="{% url 'admin:logout' %}">
         {% csrf_token %}

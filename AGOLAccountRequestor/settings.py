@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     # 'drf_social_oauth2',
     'rangefilter',
     'django_admin_listfilter_dropdown',
+    'django_ckeditor_5',
     'accounts'
 ]
 INSTALLED_APPS += os.environ.get('INSTALLED_APPS', '').split(',') if os.environ.get('INSTALLED_APPS') else []
@@ -229,3 +230,11 @@ HOST_ADDRESS = os.environ.get('HOST_ADDRESS', '')
 
 COORDINATOR_ADMIN_GROUP_ID = os.environ.get('COORDINATOR_ADMIN_GROUP_ID', 0)
 
+CKEDITOR_5_CONFIGS = {
+    'default': {
+        'toolbar': ['bold', 'italic', 'link',
+                    'bulletedList', 'numberedList', 'blockQuote', 'sourceEditing' ],
+
+    }
+}
+CKEDITOR_5_CUSTOM_CSS = 'editor.css'

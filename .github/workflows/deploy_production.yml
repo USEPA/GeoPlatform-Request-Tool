@@ -44,13 +44,18 @@ jobs:
       - name: checkout
         uses: actions/checkout@v3
       - name: copy app
-        run: Copy-Item -Path .\* -Destination ..\..\..\..\app\ -Recurse -Exclude ("ui", ".git", ".github") -Force
+        run: |
+          If (Test-Path ..\..\..\..\app_backup) {Remove-Item -Recurse -Force ..\..\..\..\app_backup}
+          Copy-Item -Path ..\..\..\..\app\ -Destination ..\..\..\..\app_backup\
+          Remove-Item -Path ..\..\..\..\app\* -Force -Recurse -Exclude ("web.config", ".env", "error.log")
+          Copy-Item -Path .\* -Destination ..\..\..\..\app\ -Recurse -Exclude ("ui", ".git", ".github") -Force
       - name: run migrations and collectstatic
         working-directory: ..\..\..\..\app\
         env:
           conda_path: ${{ vars.CONDA_ENV_PATH }}
         run: |
           conda activate $env:conda_path
+          pip install -r requirements.txt
           python manage.py migrate
           python manage.py collectstatic --noinput
       - name: download ui

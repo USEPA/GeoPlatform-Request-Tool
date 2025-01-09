@@ -65,11 +65,18 @@ jobs:
       - name: checkout
         uses: actions/checkout@v3
       - name: copy app
-        run: Copy-Item -Path .\* -Destination ..\..\..\..\app\ -Recurse -Exclude ("ui", ".git", ".github") -Force
-      - name: run migrations and collectstatic
+        run: |
+          If (Test-Path ..\..\..\..\app_backup) {Remove-Item -Recurse -Force ..\..\..\..\app_backup}
+          Copy-Item -Path ..\..\..\..\app\ -Destination ..\..\..\..\app_backup\
+          Copy-Item ..\..\..\..\app\web.config .\web.config
+          Copy-Item ..\..\..\..\app\.env .\.env
+          Remove-Item -Path ..\..\..\..\app\* -Force -Recurse
+          Copy-Item -Path .\* -Destination ..\..\..\..\app\ -Recurse -Exclude ("ui", ".git", ".github") -Force
+      - name: install reqs, run migrations and collectstatic
         working-directory: ..\..\..\..\app\
         run: |
           conda activate ..\venv\
+          pip install -r requirements.txt
           python manage.py migrate
           python manage.py collectstatic --noinput
       - name: download ui
@@ -77,4 +84,9 @@ jobs:
         with:
           name: frontend-build
           path: ..\..\..\..\ui\
+
+#  e2e_test:
+#    runs-on: staging
+#    name: e2e testing
+#    needs: deploy
 

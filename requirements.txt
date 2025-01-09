@@ -15,4 +15,5 @@ python-dotenv
 django-admin-list-filter-dropdown
 django-admin-rangefilter
 django-autocomplete-light
+django-ckeditor-5
 
