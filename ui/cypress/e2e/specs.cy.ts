@@ -85,7 +85,7 @@ describe('approver workflow', () => {
     cy.get('app-tag-input[label="Groups"]').type('test');
     cy.get('mat-option').first().click();
     cy.get('mat-select[formcontrolname="role"]').click();
-    cy.get('mat-option').first().click();
+    cy.get('mat-option').contains('Limited External Collaborator').click();
     cy.wait(4000);
     cy.get('mat-select[formcontrolname="authoritative_group"]').click();
     cy.get('mat-option').first().click();
