@@ -180,6 +180,7 @@ class UserType(models.Model):
     name = models.CharField(max_length=200)
     portal = models.ForeignKey('AGOL', related_name='user_types', on_delete=models.PROTECT)
     compatible_roles = models.ManyToManyField('AGOLRole', related_name='user_types')
+    hierarchy = models.IntegerField(default=0, help_text='This controls if a users account needs to be given a higher user type when approved than what they currently have so that it is compatible with the roles they are assigned to.')
 
     def __str__(self):
         return f"{self.name} ({self.code})"
