@@ -137,14 +137,28 @@ def verify_account_can_be_approved(account):
             {'details': 'Provided email address is not associated with this existing username.'},
         )
 
+
+def update_user_type_and_role(account: AccountRequests):
+    new_user_type = account.new_user_type
+    if new_user_type:
+        account.response.portal.update_user_type(account.username, new_user_type.code)
+
+    new_role = account.new_role
+    if new_role:
+        account.response.portal.update_user_role(account.username, new_role.role_id)
+
+    account.created = now()  # mark created once created or enabled and added to groups
+    account.save()
+
+
 def approve_account(account, password, approved_by):
     # marked approved and capture who dun it (do we want to do this here, or after it's actually created?)
     account.approved = now()
     account.approved_by = approved_by
     account.save()
-
+    is_new_account = account.agol_id is None
     # create accounts that don't exist
-    if account.agol_id is None:
+    if is_new_account:
         create_success = account.create_account(password)
 
         if not create_success:
@@ -163,8 +177,12 @@ def approve_account(account, password, approved_by):
             'error': f"Error enabling {account.username} at {account.response.portal.portal_name}."
         }, status=500)
 
+    if not is_new_account:
+        # update user type and role
+        update_user_type_and_role(account)
+
     # add account to groups
-    if account.groupmembership_set.count() > 0:
+    if account.groupmembership_set.filter(is_member=False).count() > 0:
         group_success = add_account_to_groups(account)
         if not group_success:
             return Response({

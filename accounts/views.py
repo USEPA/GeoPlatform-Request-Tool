@@ -69,7 +69,7 @@ class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
     def perform_create(self, serializer):
         agol = ResponseProject.objects.get(id=self.request.data['response']).portal
         username = format_username(self.request.data, agol.enterprise_precreate_domains_list)
-        username_valid, agol_id, groups, existing_account_enabled, created = agol.check_username(username)
+        username_valid, agol_id, groups, existing_account_enabled, created, user_type, existing_role = agol.check_username(username)
         possible_accounts = agol.find_accounts_by_email(self.request.data['email'])
         is_existing_account = True if agol_id is not None else False
         # try to capture reason here but proceed if we can't
@@ -80,7 +80,9 @@ class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
         account_request = serializer.save(username_valid=username_valid, agol_id=agol_id, username=username,
                                           is_existing_account=is_existing_account,
                                           existing_account_enabled=existing_account_enabled,
-                                          possible_existing_account=possible_accounts, reason=reason)
+                                          possible_existing_account=possible_accounts, reason=reason,
+                                          existing_user_type=user_type,
+                                          existing_role=existing_role)
         update_requests_groups(account_request, groups)
 
 
@@ -133,13 +135,15 @@ class AccountViewSet(ModelViewSet):
         # needed in case the requestor updates the email address associated with the account they are requesting (issue #113)
         possible_accounts = agol.find_accounts_by_email(self.request.data['email'])
 
-        username_valid, agol_id, existing_groups, existing_account_enabled, created = agol.check_username(
+        username_valid, agol_id, existing_groups, existing_account_enabled, created, user_type, existing_role = agol.check_username(
             self.request.data['username'])
         is_existing_account = True if agol_id is not None else False
         account_request = serializer.save(username_valid=username_valid, agol_id=agol_id,
                                           is_existing_account=is_existing_account,
                                           existing_account_enabled=existing_account_enabled,
-                                          possible_existing_account=possible_accounts)
+                                          possible_existing_account=possible_accounts,
+                                          existing_user_type=user_type,
+                                          existing_role=existing_role)
         update_requests_groups(account_request, existing_groups, self.request.data['groups'])
 
     # create account (or queue up creation?)
@@ -365,3 +369,4 @@ class PortalsViewSet(ReadOnlyModelViewSet):
 class UserTypeViewSet(DALAutocompleteMixin, ReadOnlyModelViewSet):
     queryset = UserType.objects.all()
     serializer_class = UserTypeSerializer
+    autocomplete_config = {'field_walk': {'portal': 'agol'}}

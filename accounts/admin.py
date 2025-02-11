@@ -229,10 +229,11 @@ class RequestAdmin(admin.ModelAdmin):
                    ('submitted', DateRangeFilterBuilder()), ('approved', DateRangeFilterBuilder()),
                    ('created', DateRangeFilterBuilder())]
     fields = ['first_name', 'last_name', 'email', 'possible_existing_account', 'existing_account_enabled', 'organization', 'username',
-              'username_valid', 'user_type', 'role', 'auth_group', 'sponsor', 'sponsor_notified', 'reason',
+              'username_valid', 'existing_user_type', 'user_type', 'new_user_type', 'existing_role', 'role', 'new_role', 'auth_group', 'sponsor', 'sponsor_notified', 'reason',
               'approved', 'approved_by', 'created', 'response', 'is_existing_account']
     readonly_fields = ['possible_existing_account', 'username', 'username_valid', 'sponsor_notified', 'approved', 'created',
-                       'is_existing_account', 'existing_account_enabled', 'approved_by']
+                       'is_existing_account', 'existing_account_enabled', 'approved_by', 'existing_user_type', 'user_type',
+                       'new_user_type', 'new_role', 'existing_role']
     inlines = [GroupAdminInline, PendingNotificationInline]
     actions = ['disable_account_action']
 
@@ -262,6 +263,9 @@ class RequestAdmin(admin.ModelAdmin):
             if db_field.name == "sponsor":
                 kwargs["queryset"] = User.objects.filter(agol_info__portal_id=request.user.agol_info.portal_id)
 
+            if db_field.name == "user_type":
+                kwargs["queryset"] = UserType.objects.filter(portal_id=request.user.agol_info.portal_id)
+
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def get_queryset(self, request):
@@ -283,22 +287,25 @@ class AGOLRoleForm(ModelForm):
         super().__init__(*args, **kwargs)
         if kwargs.get('instance', False):
             self.fields['auth_groups'].required = kwargs['instance'].auth_group_required
+            self.fields['minimum_compatible_user_type'].queryset = UserType.objects.filter(portal=kwargs['instance'].agol)
 
     class Meta:
         model = AGOLRole
-        fields = ['name', 'id', 'description', 'agol', 'is_available', 'system_default', 'auth_groups']
+        fields = ['name', 'id', 'description', 'agol', 'is_available', 'system_default', 'auth_groups',
+                  'hierarchy', 'minimum_compatible_user_type']
 
 
 @admin.register(AGOLRole)
 class AGOLRoleAdmin(admin.ModelAdmin):
-    list_display = ['name', 'is_available', 'system_default', 'agol']
+    list_display = ['name', 'is_available', 'system_default', 'agol', 'hierarchy']
     search_fields = ['name', 'description']
     ordering = ['-is_available', 'agol', 'name']
     list_filter = ['is_available', 'agol']
     readonly_fields = ['name', 'id', 'description', 'agol']
     autocomplete_fields = ['auth_groups']
     form = AGOLRoleForm
-    fields = ['name', 'id', 'description', 'agol', 'is_available', 'system_default', 'auth_groups']
+    fields = ['name', 'id', 'description', 'agol', 'is_available', 'system_default', 'auth_groups', 'hierarchy',
+              'minimum_compatible_user_type']
     # actions = [set_system_default] removed b/c its more complicated with multiple agols
 
     def has_add_permission(self, request):
@@ -350,7 +357,6 @@ class ResponseProjectForm(ModelForm):
                                                                 forward=['portal']),
             'role': autocomplete.ModelSelect2(url='agolrole-autocomplete',
                                               forward=['portal', 'user_type']),
-            'user_type': autocomplete.ModelSelect2(url='usertype-autocomplete', forward=['portal']),
         }
 
     class Media:
@@ -361,7 +367,7 @@ class ResponseProjectAdmin(admin.ModelAdmin):
     list_display = ['name', 'portal', 'requester', 'sponsors', 'approved', 'disabled']
     search_fields = ['name']
     ordering = ['name']
-    fields = ['name', 'requester', 'users', 'assignable_groups', 'user_type', 'role', 'authoritative_group', 'default_reason',
+    fields = ['name', 'requester', 'users', 'assignable_groups', 'role', 'authoritative_group', 'default_reason',
               'approved', 'approved_by', 'disabled', 'disabled_by', 'request_url_link', 'disable_users_link', 'portal', 'protected_datasets']
     readonly_fields = ['approved', 'approved_by', 'disabled', 'disabled_by', 'request_url_link', 'disable_users_link']
     autocomplete_fields = ['users', 'assignable_groups', 'protected_datasets']
@@ -510,22 +516,22 @@ class ProtectedDatasetAdmin(admin.ModelAdmin):
     search_fields = ['name']
 
 
-class UserTypeAdminForm(ModelForm):
-    class Meta:
-        model = UserType
-        fields = '__all__'
-        widgets = {
-            'compatible_roles': autocomplete.ModelSelect2Multiple(url='agolrole-autocomplete',
-                                              forward=['portal'])
-        }
-
-    class Media:
-        js = ['admin/js/jquery.init.js', 'autocomplete.js']
-
+# class UserTypeAdminForm(ModelForm):
+#     class Meta:
+#         model = UserType
+#         fields = '__all__'
+#         widgets = {
+#             'compatible_roles': autocomplete.ModelSelect2Multiple(url='agolrole-autocomplete',
+#                                               forward=['portal'])
+#         }
+#
+#     class Media:
+#         js = ['admin/js/jquery.init.js', 'autocomplete.js']
+#
 
 @admin.register(UserType)
 class UserTypeAdmin(admin.ModelAdmin):
-    list_display = ['name', 'portal']
+    list_display = ['name', 'hierarchy', 'code',  'portal']
     search_fields = ['name']
     list_filter = ['portal']
-    form = UserTypeAdminForm
+    # form = UserTypeAdminForm
