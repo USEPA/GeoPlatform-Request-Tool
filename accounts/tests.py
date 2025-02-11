@@ -458,6 +458,34 @@ class TestAccounts(TestCase):
         r = approve_account(a, None, User(id=1))
         self.assertTrue('Successfully' in r.data['success'])
 
+    def test_user_type_with_no_existing_user_type(self):
+        a = AccountRequests.objects.get(id=101)
+        user_type = a.response.portal.user_types.get(code='creatorUT')
+        a.response.role.minimum_compatible_user_type = user_type
+        self.assertIsNone(a.new_user_type)
+        self.assertEqual(a.user_type, user_type)
+
+    def test_user_type_with_higher_existing_user_type(self):
+        a = AccountRequests.objects.get(id=101)
+        a.existing_user_type = 'creatorUT'
+        user_type = a.response.portal.user_types.get(code='creatorUT')
+        a.response.role.minimum_compatible_user_type = user_type
+        self.assertIsNone(a.new_user_type)
+
+    def test_user_type_with_lower_existing_user_type(self):
+        a = AccountRequests.objects.get(id=201)
+        a.existing_user_type = 'creatorUT'
+        user_type = a.response.portal.user_types.create(code='advancedUT', name='advancedUT', hierarchy=99)
+        a.response.role.minimum_compatible_user_type = user_type
+        self.assertEqual(a.new_user_type, user_type)
+
+    def test_user_type_with_no_agol_id(self):
+        a = AccountRequests.objects.get(id=202)
+        user_type = a.response.portal.user_types.create(code='answer', name='The Answer', hierarchy=42)
+        a.response.role.minimum_compatible_user_type = user_type
+        self.assertIsNone(a.new_user_type)
+
+
 
 class TestGetUserDetails(TestCase):
 

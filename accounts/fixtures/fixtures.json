@@ -16,7 +16,8 @@
       "groups": [],
       "user_permissions": []
     }
-  }, {
+  },
+  {
     "model": "auth.user",
     "pk": 2,
     "fields": {
@@ -33,7 +34,8 @@
       "groups": [],
       "user_permissions": []
     }
-  }, {
+  },
+  {
     "model": "auth.user",
     "pk": 3,
     "fields": {
@@ -50,7 +52,8 @@
       "groups": [],
       "user_permissions": []
     }
-  }, {
+  },
+  {
     "model": "auth.user",
     "pk": 4,
     "fields": {
@@ -68,7 +71,6 @@
       "user_permissions": []
     }
   },
-
   {
     "model": "accounts.agoluserfields",
     "pk": 1,
@@ -79,7 +81,8 @@
       "user": 1,
       "delegates": []
     }
-  }, {
+  },
+  {
     "model": "accounts.agoluserfields",
     "pk": 2,
     "fields": {
@@ -89,7 +92,8 @@
       "user": 2,
       "delegates": []
     }
-  }, {
+  },
+  {
     "model": "accounts.agoluserfields",
     "pk": 21,
     "fields": {
@@ -99,7 +103,8 @@
       "user": 3,
       "delegates": []
     }
-  }, {
+  },
+  {
     "model": "accounts.agoluserfields",
     "pk": 22,
     "fields": {
@@ -110,7 +115,6 @@
       "delegates": []
     }
   },
-
   {
     "model": "social_django.usersocialauth",
     "pk": 1,
@@ -122,7 +126,8 @@
       "created": "2018-12-15T19:22:26Z",
       "modified": "2018-12-15T19:22:26Z"
     }
-  }, {
+  },
+  {
     "model": "social_django.usersocialauth",
     "pk": 2,
     "fields": {
@@ -133,7 +138,8 @@
       "created": "2022-02-08T21:44:11Z",
       "modified": "2022-02-08T21:44:11Z"
     }
-  }, {
+  },
+  {
     "model": "social_django.usersocialauth",
     "pk": 3,
     "fields": {
@@ -144,7 +150,8 @@
       "created": "2021-03-17T18:35:05Z",
       "modified": "2021-03-17T18:35:05Z"
     }
-  }, {
+  },
+  {
     "model": "social_django.usersocialauth",
     "pk": 4,
     "fields": {
@@ -156,7 +163,36 @@
       "modified": "2023-03-17T21:07:02Z"
     }
   },
-
+  {
+    "model": "accounts.usertype",
+    "pk": 1,
+    "fields": {
+      "code": "creatorUT",
+      "name": "Creator",
+      "portal": 1,
+      "hierarchy": 0
+    }
+  },
+  {
+    "model": "accounts.usertype",
+    "pk": 2,
+    "fields": {
+      "code": "creatorUT",
+      "name": "Creator",
+      "portal": 36,
+      "hierarchy": 1
+    }
+  },
+  {
+    "model": "accounts.usertype",
+    "pk": 3,
+    "fields": {
+      "code": "viewerUT",
+      "name": "Viewer",
+      "portal": 1,
+      "hierarchy": 0
+    }
+  },
   {
     "model": "accounts.accountrequests",
     "pk": 101,
@@ -170,7 +206,7 @@
       "organization": "company",
       "username": "gapproved_EPAEXT",
       "username_valid": false,
-      "user_type": "creatorUT",
+      "user_type": 1,
       "role": 2,
       "auth_group": "ff6c119c-27f5-4870-b8cb-4a36253b6bb9",
       "sponsor": 1,
@@ -183,7 +219,8 @@
       "agol_id": "ed5b2bae-7e53-4efe-a8fa-15e5dc230d79",
       "response": 1001
     }
-  }, {
+  },
+  {
     "model": "accounts.accountrequests",
     "pk": 102,
     "fields": {
@@ -196,7 +233,7 @@
       "organization": "asdf",
       "username": "test.user",
       "username_valid": false,
-      "user_type": "creatorUT",
+      "user_type": 1,
       "role": 2,
       "auth_group": "ff6c119c-27f5-4870-b8cb-4a36253b6bb9",
       "sponsor": 1,
@@ -209,7 +246,8 @@
       "agol_id": null,
       "response": 1001
     }
-  }, {
+  },
+  {
     "model": "accounts.accountrequests",
     "pk": 103,
     "fields": {
@@ -222,7 +260,7 @@
       "organization": "test",
       "username": "samwise_gamgee",
       "username_valid": true,
-      "user_type": "creatorUT",
+      "user_type": 1,
       "role": 2,
       "auth_group": "ff6c119c-27f5-4870-b8cb-4a36253b6bb9",
       "sponsor": 1,
@@ -235,7 +273,8 @@
       "agol_id": null,
       "response": 1001
     }
-  }, {
+  },
+  {
     "model": "accounts.accountrequests",
     "pk": 201,
     "fields": {
@@ -248,7 +287,7 @@
       "organization": "asdf",
       "username": "geosecure_approved",
       "username_valid": true,
-      "user_type": "creatorUT",
+      "user_type": 2,
       "role": 5,
       "auth_group": "ad16a6c3-be08-4939-a23d-38d8e9f7b962",
       "sponsor": 4,
@@ -261,7 +300,8 @@
       "agol_id": "ed5b2bae-7e53-4efe-a8fa-15e5dc230d79",
       "response": 2001
     }
-  }, {
+  },
+  {
     "model": "accounts.accountrequests",
     "pk": 202,
     "fields": {
@@ -274,7 +314,7 @@
       "organization": "asdf",
       "username": "User.Test4_EPAEXT",
       "username_valid": true,
-      "user_type": "creatorUT",
+      "user_type": 2,
       "role": 5,
       "auth_group": "ad16a6c3-be08-4939-a23d-38d8e9f7b962",
       "sponsor": 3,
@@ -287,7 +327,8 @@
       "agol_id": null,
       "response": 2001
     }
-  }, {
+  },
+  {
     "model": "accounts.accountrequests",
     "pk": 203,
     "fields": {
@@ -300,7 +341,7 @@
       "organization": "The Shire",
       "username": "ptook_EPAEXT",
       "username_valid": true,
-      "user_type": "creatorUT",
+      "user_type": 2,
       "role": 5,
       "auth_group": "ad16a6c3-be08-4939-a23d-38d8e9f7b962",
       "sponsor": 3,
@@ -314,7 +355,6 @@
       "response": 2001
     }
   },
-
   {
     "model": "accounts.agolgroup",
     "pk": "ff6c119c-27f5-4870-b8cb-4a36253b6bb9",
@@ -323,7 +363,8 @@
       "agol": 1,
       "is_auth_group": true
     }
-  }, {
+  },
+  {
     "model": "accounts.agolgroup",
     "pk": "ff6c119c-bbe1-48df-84b6-ca80f489de84",
     "fields": {
@@ -331,7 +372,8 @@
       "agol": 1,
       "is_auth_group": false
     }
-  }, {
+  },
+  {
     "model": "accounts.agolgroup",
     "pk": "ff6c119c-d8c0-4f84-a4c9-fb49fa654064",
     "fields": {
@@ -339,7 +381,8 @@
       "agol": 1,
       "is_auth_group": false
     }
-  }, {
+  },
+  {
     "model": "accounts.agolgroup",
     "pk": "ad16a6c3-be08-4939-a23d-38d8e9f7b962",
     "fields": {
@@ -347,7 +390,8 @@
       "agol": 36,
       "is_auth_group": true
     }
-  }, {
+  },
+  {
     "model": "accounts.agolgroup",
     "pk": "ad16a6c3-c4bc-4935-a472-c7631f9acb7d",
     "fields": {
@@ -355,7 +399,8 @@
       "agol": 36,
       "is_auth_group": false
     }
-  }, {
+  },
+  {
     "model": "accounts.agolgroup",
     "pk": "ad16a6c3-13ca-4f72-baaa-ee46a1b60132",
     "fields": {
@@ -364,7 +409,6 @@
       "is_auth_group": false
     }
   },
-
   {
     "model": "accounts.groupmembership",
     "pk": 1001,
@@ -373,7 +417,8 @@
       "request": 101,
       "is_member": false
     }
-  }, {
+  },
+  {
     "model": "accounts.groupmembership",
     "pk": 1002,
     "fields": {
@@ -382,7 +427,6 @@
       "is_member": false
     }
   },
-
   {
     "model": "accounts.groupmembership",
     "pk": 2001,
@@ -391,7 +435,8 @@
       "request": 201,
       "is_member": false
     }
-  }, {
+  },
+  {
     "model": "accounts.groupmembership",
     "pk": 2002,
     "fields": {
@@ -400,8 +445,6 @@
       "is_member": false
     }
   },
-
-
   {
     "model": "accounts.agolrole",
     "pk": 1,
@@ -410,10 +453,15 @@
       "description": "Viewer",
       "is_available": true,
       "agol": 1,
+      "minimum_compatible_user_type": 1,
       "system_default": false,
-      "auth_groups": ["ff6c119c-27f5-4870-b8cb-4a36253b6bb9", "ad16a6c3-be08-4939-a23d-38d8e9f7b962"]
+      "auth_groups": [
+        "ff6c119c-27f5-4870-b8cb-4a36253b6bb9",
+        "ad16a6c3-be08-4939-a23d-38d8e9f7b962"
+      ]
     }
-  }, {
+  },
+  {
     "model": "accounts.agolrole",
     "pk": 2,
     "fields": {
@@ -421,10 +469,12 @@
       "description": "Data Editor",
       "is_available": true,
       "agol": 1,
+      "minimum_compatible_user_type": 1,
       "system_default": false,
       "auth_groups": []
     }
-  }, {
+  },
+  {
     "model": "accounts.agolrole",
     "pk": 3,
     "fields": {
@@ -432,10 +482,12 @@
       "description": "Facilitator",
       "is_available": false,
       "agol": 1,
+      "minimum_compatible_user_type": 1,
       "system_default": false,
       "auth_groups": []
     }
-  }, {
+  },
+  {
     "model": "accounts.agolrole",
     "pk": 4,
     "fields": {
@@ -443,10 +495,12 @@
       "description": "Viewer",
       "is_available": true,
       "agol": 36,
+      "minimum_compatible_user_type": 2,
       "system_default": false,
       "auth_groups": []
     }
-  }, {
+  },
+  {
     "model": "accounts.agolrole",
     "pk": 5,
     "fields": {
@@ -454,10 +508,12 @@
       "description": "Data Editor",
       "is_available": true,
       "agol": 36,
+      "minimum_compatible_user_type": 2,
       "system_default": false,
       "auth_groups": []
     }
-  }, {
+  },
+  {
     "model": "accounts.agolrole",
     "pk": 6,
     "fields": {
@@ -465,11 +521,11 @@
       "description": "Facilitator",
       "is_available": false,
       "agol": 36,
+      "minimum_compatible_user_type": 2,
       "system_default": false,
       "auth_groups": []
     }
   },
-
   {
     "model": "accounts.agol",
     "pk": 1,
@@ -482,7 +538,8 @@
       "enterprise_precreate_domains": "",
       "email_signature_content": "Geoplatform Email Signature"
     }
-  }, {
+  },
+  {
     "model": "accounts.agol",
     "pk": 36,
     "fields": {
@@ -495,7 +552,6 @@
       "email_signature_content": "Geosecure Email Signature"
     }
   },
-
   {
     "model": "accounts.responseproject",
     "pk": 1001,
@@ -510,10 +566,16 @@
       "approved": "2023-03-16T20:58:21.089Z",
       "approved_by": 1,
       "requester": 1,
-      "users": [1],
-      "assignable_groups": ["ff6c119c-d8c0-4f84-a4c9-fb49fa654064", "ff6c119c-bbe1-48df-84b6-ca80f489de84"]
+      "users": [
+        1
+      ],
+      "assignable_groups": [
+        "ff6c119c-d8c0-4f84-a4c9-fb49fa654064",
+        "ff6c119c-bbe1-48df-84b6-ca80f489de84"
+      ]
     }
-  }, {
+  },
+  {
     "model": "accounts.responseproject",
     "pk": 1002,
     "fields": {
@@ -527,10 +589,16 @@
       "approved": null,
       "approved_by": null,
       "requester": 1,
-      "users": [1],
-      "assignable_groups": ["ff6c119c-d8c0-4f84-a4c9-fb49fa654064", "ff6c119c-bbe1-48df-84b6-ca80f489de84"]
+      "users": [
+        1
+      ],
+      "assignable_groups": [
+        "ff6c119c-d8c0-4f84-a4c9-fb49fa654064",
+        "ff6c119c-bbe1-48df-84b6-ca80f489de84"
+      ]
     }
-  }, {
+  },
+  {
     "model": "accounts.responseproject",
     "pk": 1003,
     "fields": {
@@ -544,10 +612,16 @@
       "approved": "2021-12-10T17:04:59.017Z",
       "approved_by": 1,
       "requester": 1,
-      "users": [1],
-      "assignable_groups": ["ff6c119c-d8c0-4f84-a4c9-fb49fa654064", "ff6c119c-bbe1-48df-84b6-ca80f489de84"]
+      "users": [
+        1
+      ],
+      "assignable_groups": [
+        "ff6c119c-d8c0-4f84-a4c9-fb49fa654064",
+        "ff6c119c-bbe1-48df-84b6-ca80f489de84"
+      ]
     }
-  }, {
+  },
+  {
     "model": "accounts.responseproject",
     "pk": 2001,
     "fields": {
@@ -562,9 +636,13 @@
       "approved_by": 3,
       "requester": 3,
       "users": [],
-      "assignable_groups": ["ad16a6c3-c4bc-4935-a472-c7631f9acb7d", "ad16a6c3-13ca-4f72-baaa-ee46a1b60132"]
+      "assignable_groups": [
+        "ad16a6c3-c4bc-4935-a472-c7631f9acb7d",
+        "ad16a6c3-13ca-4f72-baaa-ee46a1b60132"
+      ]
     }
-  }, {
+  },
+  {
     "model": "accounts.responseproject",
     "pk": 2002,
     "fields": {
@@ -579,9 +657,13 @@
       "approved_by": 3,
       "requester": 3,
       "users": [],
-      "assignable_groups": ["ad16a6c3-c4bc-4935-a472-c7631f9acb7d", "ad16a6c3-13ca-4f72-baaa-ee46a1b60132"]
+      "assignable_groups": [
+        "ad16a6c3-c4bc-4935-a472-c7631f9acb7d",
+        "ad16a6c3-13ca-4f72-baaa-ee46a1b60132"
+      ]
     }
-  }, {
+  },
+  {
     "model": "accounts.responseproject",
     "pk": 2003,
     "fields": {
@@ -596,7 +678,10 @@
       "approved_by": 3,
       "requester": 3,
       "users": [],
-      "assignable_groups": ["ad16a6c3-c4bc-4935-a472-c7631f9acb7d", "ad16a6c3-13ca-4f72-baaa-ee46a1b60132"]
+      "assignable_groups": [
+        "ad16a6c3-c4bc-4935-a472-c7631f9acb7d",
+        "ad16a6c3-13ca-4f72-baaa-ee46a1b60132"
+      ]
     }
   }
 ]
