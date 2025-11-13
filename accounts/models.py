@@ -233,27 +233,33 @@ class AGOL(models.Model):
             org_query = 'orgid:{}'.format(self.org_id)
             q = org_query
             while total_records != len(all_records) and total_records > len(all_records):
-                r = requests.get(f'{self.portal_url}/sharing/rest/{url}',
-                                 params={'token': self.get_token(), 'f': 'json', 'q': q,
+                full_url = f'{self.portal_url}/sharing/rest/{url}'
+                payload = {'token': self.get_token(), 'f': 'json', 'q': q,
                                          'num': '100', 'start': next_record, 'sortField': 'created',
-                                         'sortOrder': 'asc'})
+                                         'sortOrder': 'asc'} 
+                r = requests.get(full_url, params=payload)
                 response_json = r.json(strict=False)
+                if 'total' in response_json:
 
-                if update_total:
-                    total_records = len(all_records) + response_json['total']
-                    update_total = False
+                    if update_total:
+                        total_records = len(all_records) + response_json['total']
+                        update_total = False
 
-                next_record = response_json['nextStart']
-                all_records += response_json[results_key]
-                sys.stdout.flush()
-                sys.stdout.write('\rFetched {} of {}\r'.format(len(all_records), total_records))
+                    next_record = response_json['nextStart']
+                    all_records += response_json[results_key]
+                    sys.stdout.flush()
+                    sys.stdout.write('\rFetched {} of {}\r'.format(len(all_records), total_records))
 
-                if (response_json['nextStart'] == -1 or response_json['nextStart'] == 0) and use_query:
-                    next_record = 1
-                    q = 'uploaded: [000000{} TO 000000{}000] AND {}'.format(all_records[-1]['created'] + 1,
-                                                                            int(time.time()),
-                                                                            org_query)
-                    update_total = True
+                    if (response_json['nextStart'] == -1 or response_json['nextStart'] == 0) and use_query:
+                        next_record = 1
+                        q = 'uploaded: [000000{} TO 000000{}000] AND {}'.format(all_records[-1]['created'] + 1,
+                                                                                int(time.time()),
+                                                                                org_query)
+                        update_total = True
+                else:
+                    logger.error(f'Unexpected response from get_list query. full_url: {full_url} payload: {payload}')
+                    logger.error(f'Portal response: {response_json}')
+                    break
 
             return all_records
 
