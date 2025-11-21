@@ -14,11 +14,12 @@ import requests
 from django.db.models import UniqueConstraint
 from social_django.utils import load_strategy
 import time
-from datetime import datetime
+from datetime import datetime, timedelta, UTC
 from django.contrib.auth.models import User, Group
 from urllib.parse import urlencode
 import json
-from django.utils.timezone import now
+from django.utils.timezone import now, make_aware
+from keyring import get_password
 
 import logging
 
@@ -184,12 +185,13 @@ class AGOL(models.Model):
                                                                                   ('geoplatform', 'GeoPlatform')])
     portal_url = models.URLField()
     org_id = models.CharField(max_length=50, blank=True, null=True)
-    user = models.ForeignKey(User, on_delete=models.PROTECT, null=True, blank=True)
     allow_external_accounts = models.BooleanField(default=False, help_text='Allow external (non-enterprise) accounts to be created.')
     enterprise_precreate_domains = models.TextField(null=True, blank=True, verbose_name='Email domains for enterprise accounts',
                                                     help_text='Separate email domains with comma (e.g. gmail.com,hotmail.com). Value required if external account creation is not allowed')
     requires_auth_group = models.BooleanField(default=True)
     email_signature_content = CKEditor5Field()
+    token = models.CharField(null=True, blank=True, max_length=2000)
+    token_expiration = models.DateTimeField(null=True, blank=True)
 
     @property
     def enterprise_precreate_domains_list(self):
@@ -197,26 +199,27 @@ class AGOL(models.Model):
             return self.enterprise_precreate_domains.split(',')
         return []
 
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-
-        if self.user:
-            if not self.org_id:
-                self.org_id = self.get_org_id()
-                super().save(*args, **kwargs)
-            if self.groups.count() == 0:
-                self.get_all_groups()
-                self.get_all_existing_user_group_memberships()
-            if self.roles.count() == 0:
-                self.get_all_roles()
-
     def __str__(self):
         return self.get_portal_name_display()
 
     def get_token(self):
-        social = self.user.social_auth.get()
-        return social.get_access_token(load_strategy())
+        if self.token and self.token_expiration and (self.token_expiration - timedelta(minutes=1)) > now():
+            return self.token
+
+        cred_string = get_password('request_tool_agol', self.portal_name)
+        if not cred_string:
+            raise Exception('No stored credentials found for portal {}'.format(self.portal_name))
+        creds = json.loads(cred_string)
+        r = requests.post('{}/sharing/rest/generateToken'.format(self.portal_url),
+                          data={'f': 'json',
+                                'referer': self.portal_url,
+                                'username': creds['username'],
+                                'password': creds['password']})
+        r_json = r.json()
+        self.token = r_json['token']
+        self.token_expiration = datetime.fromtimestamp(r_json['expires']/1000, UTC)
+        self.save()
+        return self.token
 
     def get_org_id(self):
         if not self.org_id:
@@ -238,6 +241,10 @@ class AGOL(models.Model):
                                          'num': '100', 'start': next_record, 'sortField': 'created',
                                          'sortOrder': 'asc'})
                 response_json = r.json(strict=False)
+
+                if 'error' in response_json:
+                    logger.error('Error in get_list for AGOL {}: {}'.format(self.portal_url, response_json), exc_info=True)
+                    raise Exception(response_json)
 
                 if update_total:
                     total_records = len(all_records) + response_json['total']

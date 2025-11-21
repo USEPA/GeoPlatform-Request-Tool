@@ -396,7 +396,7 @@ export class ApprovalListComponent implements OnInit {
         );
       } else if (responses.filter(response => 'warning' in response).length > 0) {
         this.matSnackBar.open(
-          'There was an issue added some groups to one or more accounts, please review accordingly',
+          'There was an issue adding to groups for one or more accounts, please review accordingly.',
           null,
           {duration: environment.snackbar_duration, panelClass: ['snackbar-warning']}
         );

@@ -16,4 +16,4 @@ django-admin-list-filter-dropdown
 django-admin-rangefilter
 django-autocomplete-light
 django-ckeditor-5
-
+keyring>=25.7.0,<=25.7.99
