@@ -577,7 +577,7 @@ class AGOLTokenTests(TestCase):
         agol.token = None
         agol.token_expiration = None
         agol.portal_name = 'geosecure'
-        with patch('accounts.models.get_password', return_value=None):
+        with patch('accounts.models.getenv', return_value=None):
             with self.assertRaises(Exception) as exc:
                 agol.get_token()
             self.assertIn('No stored credentials found for portal', str(exc.exception))
@@ -592,9 +592,10 @@ class AGOLTokenTests(TestCase):
         fake_creds = '{"username": "user", "password": "pass"}'
         fake_response = MagicMock()
         fake_response.json.return_value = {'token': 'new_token', 'expires': 1717430400000}
-        with patch('accounts.models.get_password', return_value=fake_creds), \
+        with patch('accounts.models.getenv', return_value=fake_creds), \
              patch('accounts.models.requests.post', return_value=fake_response), \
-             patch('accounts.models.datetime') as mock_datetime:
+             patch('accounts.models.datetime') as mock_datetime, \
+             patch('accounts.models.get_credential_cypher', return_value=MagicMock(decrypt=lambda x: fake_creds.encode())):
             mock_datetime.fromtimestamp.return_value = datetime(2024, 6, 4, tzinfo=UTC)
             agol.save = MagicMock()
             token = agol.get_token()
@@ -613,9 +614,10 @@ class AGOLTokenTests(TestCase):
         fake_creds = '{"username": "user", "password": "pass"}'
         fake_response = MagicMock()
         fake_response.json.return_value = {'token': 'refreshed_token', 'expires': 1717430400000}
-        with patch('accounts.models.get_password', return_value=fake_creds), \
+        with patch('accounts.models.getenv', return_value=fake_creds), \
              patch('accounts.models.requests.post', return_value=fake_response), \
-             patch('accounts.models.datetime') as mock_datetime:
+             patch('accounts.models.datetime') as mock_datetime, \
+             patch('accounts.models.get_credential_cypher', return_value=MagicMock(decrypt=lambda x: fake_creds.encode())):
             mock_datetime.fromtimestamp.return_value = datetime(2024, 6, 4, tzinfo=UTC)
             agol.save = MagicMock()
             token = agol.get_token()
