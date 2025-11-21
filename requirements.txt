@@ -1,7 +1,7 @@
 django>=4.2,<=4.2.99
 djangorestframework>=3.15,<=3.15.99
 django-filter>=22.1,<=22.9
-requests>=2.28.2,<=2.28.99
+requests
 wfastcgi>=3.0.0,<=3.0.99
 tqdm>=4.64.1,<=4.64.99
 drf-recaptcha>=2.2.2,<2.2.99
@@ -17,3 +17,4 @@ django-admin-rangefilter
 django-autocomplete-light
 django-ckeditor-5
 keyring>=25.7.0,<=25.7.99
+#pip-system-certs needed in staging and prod

@@ -1,3 +1,6 @@
+from base64 import urlsafe_b64encode
+
+from cryptography.fernet import Fernet
 from django_ckeditor_5.fields import CKEditor5Field
 from django.core.mail import send_mail
 from django.db import models
@@ -12,16 +15,21 @@ from django.urls import reverse
 import sys
 import requests
 from django.db.models import UniqueConstraint
-from social_django.utils import load_strategy
+from os import getenv
 import time
 from datetime import datetime, timedelta, UTC
 from django.contrib.auth.models import User, Group
 from urllib.parse import urlencode
 import json
 from django.utils.timezone import now, make_aware
-from keyring import get_password
+from dotenv import load_dotenv
 
 import logging
+
+
+def get_credential_cypher():
+    k = urlsafe_b64encode(settings.SECRET_KEY[:32].encode())
+    return Fernet(k)
 
 logger = logging.getLogger('django')
 
@@ -205,17 +213,24 @@ class AGOL(models.Model):
     def get_token(self):
         if self.token and self.token_expiration and (self.token_expiration - timedelta(minutes=1)) > now():
             return self.token
-
-        cred_string = get_password('request_tool_agol', self.portal_name)
+        # force reload of .env to ensure latest creds are used
+        load_dotenv(override=True)
+        cred_string = getenv(f"{self.portal_name.upper()}_PORTAL_CREDENTIALS")
         if not cred_string:
             raise Exception('No stored credentials found for portal {}'.format(self.portal_name))
-        creds = json.loads(cred_string)
+        cypher = get_credential_cypher()
+        creds = json.loads(cypher.decrypt(cred_string))
         r = requests.post('{}/sharing/rest/generateToken'.format(self.portal_url),
                           data={'f': 'json',
                                 'referer': self.portal_url,
                                 'username': creds['username'],
                                 'password': creds['password']})
         r_json = r.json()
+
+        if 'error' in r_json:
+            logging.error(r_json, exc_info=True)
+            raise Exception(r_json)
+
         self.token = r_json['token']
         self.token_expiration = datetime.fromtimestamp(r_json['expires']/1000, UTC)
         self.save()

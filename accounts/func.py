@@ -1,4 +1,8 @@
+from base64 import urlsafe_b64encode
+
+from cryptography.fernet import Fernet
 from django.urls import resolve
+from django.conf import settings
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from .models import AccountRequests, AGOL, GroupMembership, AGOLGroup, Notification, ResponseProject, AGOLRole
@@ -187,3 +191,4 @@ def approve_account(account, password, approved_by):
         'id': account.pk,
         'error': f"Unknown error with {account.username} at {account.response.portal.portal_name}"
     }, status=400)
+

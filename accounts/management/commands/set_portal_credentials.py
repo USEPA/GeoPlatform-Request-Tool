@@ -1,10 +1,13 @@
 import json
+from base64 import urlsafe_b64encode
 from getpass import getpass
 from keyring import set_password
 from django.core.management import BaseCommand
+from django.conf import settings
 
-from accounts.models import AGOL
-
+from accounts.models import AGOL, get_credential_cypher
+from cryptography.fernet import Fernet
+from dotenv import load_dotenv, set_key
 
 class Command(BaseCommand):
     help = "Set ArcGIS Online credentials for a user."
@@ -19,10 +22,17 @@ class Command(BaseCommand):
         print("Input username and password:")
         username = input("Username: ")
         password = getpass("Password: ")
-        set_password("request_tool_agol", selected_portal.portal_name, json.dumps({
+
+        # Encrypt credentials
+        cypher = get_credential_cypher()
+        encrypted_password = cypher.encrypt(json.dumps({
             "username": username,
             "password": password
-        }))
+        }).encode())
+
+        env_path = '.env'
+        load_dotenv(dotenv_path=env_path)
+        set_key(env_path, f"{selected_portal.portal_name.upper()}_PORTAL_CREDENTIALS",  encrypted_password.decode())
         print(f"Credentials for {selected_portal.get_portal_name_display()} set successfully.")
 
         if not selected_portal.org_id:
