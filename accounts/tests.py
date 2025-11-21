@@ -15,6 +15,8 @@ from .views import format_username, SponsorsViewSet, AccountViewSet
 from .permissions import IsSponsor
 from .func import *
 
+from datetime import datetime, timedelta, UTC
+
 
 def mock_check_username_empty(*args, **kwargs):
     class MockResponse:
@@ -557,3 +559,67 @@ class TestGetUserDetails(TestCase):
             'agol_groups': ['group1', 'group2']
         }
         self.assertEqual(get_user_details(response), expected)
+
+
+
+class AGOLTokenTests(TestCase):
+    def test_returns_cached_token_when_not_expired(self):
+        from accounts.models import AGOL
+        agol = AGOL()
+        agol.token = 'cached_token'
+        agol.token_expiration = datetime.now(UTC) + timedelta(minutes=2)
+        with patch('accounts.models.now', return_value=datetime.now(UTC)):
+            self.assertEqual(agol.get_token(), 'cached_token')
+
+    def test_raises_exception_when_no_credentials(self):
+        from accounts.models import AGOL
+        agol = AGOL()
+        agol.token = None
+        agol.token_expiration = None
+        agol.portal_name = 'geosecure'
+        with patch('accounts.models.get_password', return_value=None):
+            with self.assertRaises(Exception) as exc:
+                agol.get_token()
+            self.assertIn('No stored credentials found for portal', str(exc.exception))
+
+    def test_returns_new_token_and_sets_expiration(self):
+        from accounts.models import AGOL
+        agol = AGOL()
+        agol.token = None
+        agol.token_expiration = None
+        agol.portal_name = 'geosecure'
+        agol.portal_url = 'https://example.com'
+        fake_creds = '{"username": "user", "password": "pass"}'
+        fake_response = MagicMock()
+        fake_response.json.return_value = {'token': 'new_token', 'expires': 1717430400000}
+        with patch('accounts.models.get_password', return_value=fake_creds), \
+             patch('accounts.models.requests.post', return_value=fake_response), \
+             patch('accounts.models.datetime') as mock_datetime:
+            mock_datetime.fromtimestamp.return_value = datetime(2024, 6, 4, tzinfo=UTC)
+            agol.save = MagicMock()
+            token = agol.get_token()
+            self.assertEqual(token, 'new_token')
+            self.assertEqual(agol.token, 'new_token')
+            self.assertEqual(agol.token_expiration, datetime(2024, 6, 4, tzinfo=UTC))
+            agol.save.assert_called_once()
+
+    def test_refreshes_token_if_expired(self):
+        from accounts.models import AGOL
+        agol = AGOL()
+        agol.token = 'old_token'
+        agol.token_expiration = datetime.now(UTC) - timedelta(minutes=2)
+        agol.portal_name = 'geosecure'
+        agol.portal_url = 'https://example.com'
+        fake_creds = '{"username": "user", "password": "pass"}'
+        fake_response = MagicMock()
+        fake_response.json.return_value = {'token': 'refreshed_token', 'expires': 1717430400000}
+        with patch('accounts.models.get_password', return_value=fake_creds), \
+             patch('accounts.models.requests.post', return_value=fake_response), \
+             patch('accounts.models.datetime') as mock_datetime:
+            mock_datetime.fromtimestamp.return_value = datetime(2024, 6, 4, tzinfo=UTC)
+            agol.save = MagicMock()
+            token = agol.get_token()
+            self.assertEqual(token, 'refreshed_token')
+            self.assertEqual(agol.token, 'refreshed_token')
+            self.assertEqual(agol.token_expiration, datetime(2024, 6, 4, tzinfo=UTC))
+            agol.save.assert_called_once()
