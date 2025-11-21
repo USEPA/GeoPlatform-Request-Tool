@@ -33,6 +33,17 @@ class Command(BaseCommand):
         env_path = '.env'
         load_dotenv(dotenv_path=env_path)
         set_key(env_path, f"{selected_portal.portal_name.upper()}_PORTAL_CREDENTIALS",  encrypted_password.decode())
+
+        try:
+            # attempt to use credentials to validate them
+            selected_portal.token = None
+            selected_portal.save()
+            selected_portal.refresh_from_db()
+            selected_portal.get_token()
+        except:
+            print("Failed to validate credentials. Please check your username and password and try again.")
+            return
+
         print(f"Credentials for {selected_portal.get_portal_name_display()} set successfully.")
 
         if not selected_portal.org_id:
