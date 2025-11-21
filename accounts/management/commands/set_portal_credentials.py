@@ -14,7 +14,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         print("Select a portal:")
-        portals = list(AGOL.objects.all())
+        portals = list(AGOL.objects.order_by('pk'))
         for i, p in enumerate(portals, 1):
             print(f"{i}. {p.get_portal_name_display()}")
         choice = input("Enter the number of your choice: ")
