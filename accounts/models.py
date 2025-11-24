@@ -25,6 +25,7 @@ from django.utils.timezone import now, make_aware
 from dotenv import load_dotenv
 
 import logging
+from tqdm import tqdm
 
 
 def get_credential_cypher():
@@ -289,7 +290,7 @@ class AGOL(models.Model):
             all_groups = self.get_list('community/groups')
             sys.stdout.write(f'\nCreating/updating groups from {self.portal_url}...\n')
 
-            for group in all_groups:
+            for group in tqdm(all_groups, desc='Updating groups'):
                 AGOLGroup.objects.update_or_create(id=group['id'], defaults={'title': group['title'], 'agol': self})
 
         except:
@@ -298,7 +299,7 @@ class AGOL(models.Model):
 
     def get_all_existing_user_group_memberships(self):
         GroupMembership.objects.filter(user__isnull=False).delete()
-        for user in AGOLUserFields.objects.filter(portal=self):
+        for user in tqdm(AGOLUserFields.objects.filter(portal=self), desc='Updating user group memberships'):
             r = requests.get(f'{self.portal_url}/sharing/rest/community/users/{user.agol_username}',
                              params={'token': self.get_token(), 'f': 'json'})
             response_json = r.json(strict=False)
@@ -312,7 +313,7 @@ class AGOL(models.Model):
     def get_all_roles(self):
         all_roles = self.get_list('portals/self/roles', 'roles')
         sys.stdout.write(f'\nCreating/updating roles from {self.portal_url}...\n')
-        for role in all_roles:
+        for role in tqdm(all_roles, desc='Updating roles'):
             AGOLRole.objects.update_or_create(role_id=role['id'], agol=self,
                                               defaults={
                                                   'name': role['name'],
