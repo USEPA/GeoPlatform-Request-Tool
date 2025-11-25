@@ -1,8 +1,4 @@
-from base64 import urlsafe_b64encode
-
-from cryptography.fernet import Fernet
 from django.urls import resolve
-from django.conf import settings
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from .models import AccountRequests, AGOL, GroupMembership, AGOLGroup, Notification, ResponseProject, AGOLRole

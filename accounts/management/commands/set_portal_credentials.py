@@ -1,12 +1,7 @@
 import json
-from base64 import urlsafe_b64encode
 from getpass import getpass
-from keyring import set_password
 from django.core.management import BaseCommand
-from django.conf import settings
-
 from accounts.models import AGOL, get_credential_cypher
-from cryptography.fernet import Fernet
 from dotenv import load_dotenv, set_key
 
 class Command(BaseCommand):
