@@ -298,7 +298,7 @@ class AGOL(models.Model):
             raise
 
     def get_all_existing_user_group_memberships(self):
-        GroupMembership.objects.filter(user__isnull=False).delete()
+        GroupMembership.objects.filter(user__portal=self).delete()
         for user in tqdm(AGOLUserFields.objects.filter(portal=self), desc='Updating user group memberships'):
             r = requests.get(f'{self.portal_url}/sharing/rest/community/users/{user.agol_username}',
                              params={'token': self.get_token(), 'f': 'json'})
