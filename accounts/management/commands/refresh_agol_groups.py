@@ -15,6 +15,6 @@ class Command(BaseCommand):
                 agol.get_all_roles()
 
             except Exception as e:
-                logger.error(f'Error updating groups and roles for {agol.portal_name}: {e}')
+                logger.error(f'Error updating groups and roles for {agol.portal_name}: {e}', exc_info=e)
                 continue
             # todo: determine what happens if a group is removed but our tool has someone linked to it

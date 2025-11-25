@@ -1,0 +1,51 @@
+import json
+from getpass import getpass
+from django.core.management import BaseCommand
+from accounts.models import AGOL, get_credential_cypher
+from dotenv import load_dotenv, set_key
+
+class Command(BaseCommand):
+    help = "Set ArcGIS Online credentials for a user."
+
+    def handle(self, *args, **options):
+        print("Select a portal:")
+        portals = list(AGOL.objects.order_by('pk'))
+        for i, p in enumerate(portals, 1):
+            print(f"{i}. {p.get_portal_name_display()}")
+        choice = input("Enter the number of your choice: ")
+        selected_portal = portals[int(choice) - 1]
+        print("Input username and password:")
+        username = input("Username: ")
+        password = getpass("Password: ")
+
+        # Encrypt credentials
+        cypher = get_credential_cypher()
+        encrypted_password = cypher.encrypt(json.dumps({
+            "username": username,
+            "password": password
+        }).encode())
+
+        env_path = '.env'
+        load_dotenv(dotenv_path=env_path)
+        set_key(env_path, f"{selected_portal.portal_name.upper()}_PORTAL_CREDENTIALS",  encrypted_password.decode())
+
+        try:
+            # attempt to use credentials to validate them
+            selected_portal.token = None
+            selected_portal.save()
+            selected_portal.refresh_from_db()
+            selected_portal.get_token()
+        except:
+            print("Failed to validate credentials. Please check your username and password and try again.")
+            return
+
+        print(f"Credentials for {selected_portal.get_portal_name_display()} set successfully.")
+
+        if not selected_portal.org_id:
+            selected_portal.org_id = selected_portal.get_org_id()
+            selected_portal.save()
+        if selected_portal.groups.count() == 0:
+            selected_portal.get_all_groups()
+            selected_portal.get_all_existing_user_group_memberships()
+        if selected_portal.roles.count() == 0:
+            selected_portal.get_all_roles()

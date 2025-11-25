@@ -477,7 +477,6 @@
       "portal_name": "geoplatform",
       "portal_url": "https://fakey.maps.arcgis.com",
       "org_id": "oKenFxF8DE2Ek7Xt",
-      "user": 1,
       "allow_external_accounts": true,
       "enterprise_precreate_domains": "",
       "email_signature_content": "Geoplatform Email Signature"
@@ -489,7 +488,6 @@
       "portal_name": "geosecure",
       "portal_url": "https://gis.fakey.com/arcgis",
       "org_id": "0123456789ABCDEF",
-      "user": 3,
       "allow_external_accounts": false,
       "enterprise_precreate_domains": "dasg.com",
       "email_signature_content": "Geosecure Email Signature"

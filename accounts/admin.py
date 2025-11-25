@@ -48,7 +48,7 @@ class AGOLAdminForm(ModelForm):
 
     class Meta:
         model = AGOL
-        fields = ['portal_name', 'portal_url', 'user', 'allow_external_accounts', 'requires_auth_group',
+        fields = ['portal_name', 'portal_url', 'allow_external_accounts', 'requires_auth_group',
                   'enterprise_precreate_domains', 'email_signature_content']
 
 
@@ -56,7 +56,6 @@ class AGOLAdminForm(ModelForm):
 class AGOLAdmin(admin.ModelAdmin):
     list_display = ['portal_name', 'portal_url']
     form = AGOLAdminForm
-    autocomplete_fields = ['user']
 
 
 admin.site.unregister(User)
