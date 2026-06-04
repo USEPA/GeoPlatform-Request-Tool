@@ -89,8 +89,6 @@ jobs:
     runs-on: staging
     name: e2e testing
     needs: deploy
-    env:
-      PATH: ${{ env.NODE_PATH }};${{ env.PATH }}
     steps:
       - name: checkout
         uses: actions/checkout@v3
@@ -99,11 +97,15 @@ jobs:
         working-directory: ./ui
         env:
           NODE_OPTIONS: "--max_old_space_size=4096"
-        run: npm ci
+        run: |
+          $env:PATH = "${{ vars.NODE_PATH }};$env:PATH"
+          npm ci
 
       - name: run e2e tests
         working-directory: ./ui
-        run: npm run cypress:run
+        run: |
+          $env:PATH = "${{ vars.NODE_PATH }};$env:PATH"
+          npm run cypress:run
 
       - name: upload cypress videos
         if: failure()
