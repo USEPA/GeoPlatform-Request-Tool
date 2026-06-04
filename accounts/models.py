@@ -1,3 +1,6 @@
+from base64 import urlsafe_b64encode
+
+from cryptography.fernet import Fernet
 from django_ckeditor_5.fields import CKEditor5Field
 from django.core.mail import send_mail
 from django.db import models
@@ -12,15 +15,22 @@ from django.urls import reverse
 import sys
 import requests
 from django.db.models import UniqueConstraint
-from social_django.utils import load_strategy
+from os import getenv
 import time
-from datetime import datetime
+from datetime import datetime, timedelta, UTC
 from django.contrib.auth.models import User, Group
 from urllib.parse import urlencode
 import json
-from django.utils.timezone import now
+from django.utils.timezone import now, make_aware
+from dotenv import load_dotenv
 
 import logging
+from tqdm import tqdm
+
+
+def get_credential_cypher():
+    k = urlsafe_b64encode(settings.SECRET_KEY[:32].encode())
+    return Fernet(k)
 
 logger = logging.getLogger('django')
 
@@ -247,12 +257,13 @@ class AGOL(models.Model):
                                                                                   ('geoplatform', 'GeoPlatform')])
     portal_url = models.URLField()
     org_id = models.CharField(max_length=50, blank=True, null=True)
-    user = models.ForeignKey(User, on_delete=models.PROTECT, null=True, blank=True)
     allow_external_accounts = models.BooleanField(default=False, help_text='Allow external (non-enterprise) accounts to be created.')
     enterprise_precreate_domains = models.TextField(null=True, blank=True, verbose_name='Email domains for enterprise accounts',
                                                     help_text='Separate email domains with comma (e.g. gmail.com,hotmail.com). Value required if external account creation is not allowed')
     requires_auth_group = models.BooleanField(default=True)
     email_signature_content = CKEditor5Field()
+    token = models.CharField(null=True, blank=True, max_length=2000)
+    token_expiration = models.DateTimeField(null=True, blank=True)
 
     @property
     def enterprise_precreate_domains_list(self):
@@ -260,26 +271,34 @@ class AGOL(models.Model):
             return self.enterprise_precreate_domains.split(',')
         return []
 
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-
-        if self.user:
-            if not self.org_id:
-                self.org_id = self.get_org_id()
-                super().save(*args, **kwargs)
-            if self.groups.count() == 0:
-                self.get_all_groups()
-                self.get_all_existing_user_group_memberships()
-            if self.roles.count() == 0:
-                self.get_all_roles()
-
     def __str__(self):
         return self.get_portal_name_display()
 
     def get_token(self):
-        social = self.user.social_auth.get()
-        return social.get_access_token(load_strategy())
+        if self.token and self.token_expiration and (self.token_expiration - timedelta(minutes=1)) > now():
+            return self.token
+        # force reload of .env to ensure latest creds are used
+        load_dotenv(override=True)
+        cred_string = getenv(f"{self.portal_name.upper()}_PORTAL_CREDENTIALS")
+        if not cred_string:
+            raise Exception('No stored credentials found for portal {}'.format(self.portal_name))
+        cypher = get_credential_cypher()
+        creds = json.loads(cypher.decrypt(cred_string))
+        r = requests.post('{}/sharing/rest/generateToken'.format(self.portal_url),
+                          data={'f': 'json',
+                                'referer': self.portal_url,
+                                'username': creds['username'],
+                                'password': creds['password']})
+        r_json = r.json()
+
+        if 'error' in r_json:
+            logging.error(r_json, exc_info=True)
+            raise Exception(r_json)
+
+        self.token = r_json['token']
+        self.token_expiration = datetime.fromtimestamp(r_json['expires']/1000, UTC)
+        self.save()
+        return self.token
 
     def get_org_id(self):
         if not self.org_id:
@@ -301,6 +320,10 @@ class AGOL(models.Model):
                                          'num': '100', 'start': next_record, 'sortField': 'created',
                                          'sortOrder': 'asc'})
                 response_json = r.json(strict=False)
+
+                if 'error' in response_json:
+                    logger.error('Error in get_list for AGOL {}: {}'.format(self.portal_url, response_json), exc_info=True)
+                    raise Exception(response_json)
 
                 if update_total:
                     total_records = len(all_records) + response_json['total']
@@ -330,7 +353,7 @@ class AGOL(models.Model):
             all_groups = self.get_list('community/groups')
             sys.stdout.write(f'\nCreating/updating groups from {self.portal_url}...\n')
 
-            for group in all_groups:
+            for group in tqdm(all_groups, desc='Updating groups'):
                 AGOLGroup.objects.update_or_create(id=group['id'], defaults={'title': group['title'], 'agol': self})
 
         except:
@@ -338,8 +361,8 @@ class AGOL(models.Model):
             raise
 
     def get_all_existing_user_group_memberships(self):
-        GroupMembership.objects.filter(user__isnull=False).delete()
-        for user in AGOLUserFields.objects.filter(portal=self):
+        GroupMembership.objects.filter(user__portal=self).delete()
+        for user in tqdm(AGOLUserFields.objects.filter(portal=self), desc='Updating user group memberships'):
             r = requests.get(f'{self.portal_url}/sharing/rest/community/users/{user.agol_username}',
                              params={'token': self.get_token(), 'f': 'json'})
             response_json = r.json(strict=False)
@@ -353,7 +376,7 @@ class AGOL(models.Model):
     def get_all_roles(self):
         all_roles = self.get_list('portals/self/roles', 'roles')
         sys.stdout.write(f'\nCreating/updating roles from {self.portal_url}...\n')
-        for role in all_roles:
+        for role in tqdm(all_roles, desc='Updating roles'):
             AGOLRole.objects.update_or_create(role_id=role['id'], agol=self,
                                               defaults={
                                                   'name': role['name'],

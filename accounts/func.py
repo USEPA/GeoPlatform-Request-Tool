@@ -205,3 +205,4 @@ def approve_account(account, password, approved_by):
         'id': account.pk,
         'error': f"Unknown error with {account.username} at {account.response.portal.portal_name}"
     }, status=400)
+

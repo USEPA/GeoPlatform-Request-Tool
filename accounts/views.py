@@ -316,7 +316,7 @@ class SponsorsViewSet(DALAutocompleteMixin, ReadOnlyModelViewSet):
     ordering = ['last_name']
     permission_classes = [IsAuthenticated]
     search_fields = ['last_name', 'first_name', 'email']
-    filterset_fields = ['response', 'agol_info__delegates', 'agol_info__portal__user', 'agol_info__sponsor']
+    filterset_fields = ['response', 'agol_info__delegates', 'agol_info__sponsor']
     autocomplete_config = {'field_walk': {'portal': 'agol_info__portal'}}
 
     # superuser can change portal so need broader access
