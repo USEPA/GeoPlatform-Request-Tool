@@ -210,7 +210,7 @@ LOGGING['handlers']['file'] = {
     'level': 'ERROR',
     'filters': ['require_debug_false'],
     'class': 'logging.FileHandler',
-    'filename': os.path.join(BASE_DIR, 'error.log')
+    'filename': os.path.join(BASE_DIR, '..', 'error.log')
 }
 
 LOGGING['loggers']['django'] = {
