@@ -89,4 +89,24 @@ jobs:
     runs-on: staging
     name: e2e testing
     needs: deploy
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: install frontend deps
+        working-directory: ./ui
+        env:
+          NODE_OPTIONS: "--max_old_space_size=4096"
+        run: npm ci
+
+      - name: run e2e tests
+        working-directory: ./ui
+        run: npm run cypress:run
+
+      - name: upload cypress videos
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos
+          path: ./ui/cypress/videos/
 
