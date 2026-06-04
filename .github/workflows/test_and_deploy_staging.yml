@@ -89,6 +89,7 @@ jobs:
     runs-on: staging
     name: e2e testing
     needs: deploy
+    environment: staging
     steps:
       - name: checkout
         uses: actions/checkout@v3
