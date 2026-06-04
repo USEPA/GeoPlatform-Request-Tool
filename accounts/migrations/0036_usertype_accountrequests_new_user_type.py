@@ -20,7 +20,7 @@ def revert_user_types(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0034_agol_email_signature_content'),
+        ('accounts', '0035_alter_agol_options_alter_agolgroup_options_and_more'),
     ]
 
     operations = [
