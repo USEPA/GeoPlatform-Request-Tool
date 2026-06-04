@@ -89,6 +89,8 @@ jobs:
     runs-on: staging
     name: e2e testing
     needs: deploy
+    env:
+      PATH: ${{ env.NODE_PATH }};${{ env.PATH }}
     steps:
       - name: checkout
         uses: actions/checkout@v3
