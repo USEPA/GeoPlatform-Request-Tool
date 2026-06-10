@@ -104,11 +104,26 @@ jobs:
           $env:PATH = "${{ vars.NODE_PATH }};$env:PATH"
           npm ci
 
+      - name: add recaptcha testing settings
+        run: |
+          $settingsFile = "AGOLAccountRequestor/settings.py"
+          $backupFile = "AGOLAccountRequestor/settings.py.backup"
+          Copy-Item -Path $settingsFile -Destination $backupFile
+          Add-Content -Path $settingsFile -Value "`n`n# Temporary recaptcha testing settings`nDRF_RECAPTCHA_TESTING = True`nDRF_RECAPTCHA_TESTING_PASS = True"
+
       - name: run e2e tests
         working-directory: ./ui
         run: |
           $env:PATH = "${{ vars.NODE_PATH }};$env:PATH"
           npm run cypress:run
+
+      - name: restore original settings
+        if: always()
+        run: |
+          $settingsFile = "AGOLAccountRequestor/settings.py"
+          $backupFile = "AGOLAccountRequestor/settings.py.backup"
+          Copy-Item -Path $backupFile -Destination $settingsFile -Force
+          Remove-Item -Path $backupFile
 
       - name: upload cypress videos
         if: failure()
