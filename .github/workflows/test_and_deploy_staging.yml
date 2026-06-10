@@ -96,6 +96,12 @@ jobs:
       - name: checkout
         uses: actions/checkout@v3
 
+      - name: create cypress env file from secret
+        env:
+          TESTING_CREDS: ${{ secrets.TESTING_CREDS }}
+        run: |
+          Set-Content -Path ".\ui\cypress.env.json" -Value $env:TESTING_CREDS -NoNewline
+
       - name: install frontend deps
         working-directory: ./ui
         env:
