@@ -75,7 +75,7 @@ jobs:
       - name: install reqs, run migrations and collectstatic
         working-directory: ..\..\..\..\
         run: |
-          $env:Path = "$PWD\venv\Scripts;$env:Path"
+          $env:Path = "$PWD\venv;$PWD\venv\Scripts;$env:Path"
           cd .\app
           pip install -r requirements.txt
           python manage.py migrate
