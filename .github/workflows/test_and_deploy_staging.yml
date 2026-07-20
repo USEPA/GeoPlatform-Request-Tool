@@ -73,9 +73,10 @@ jobs:
           Remove-Item -Path ..\..\..\..\app\* -Force -Recurse
           Copy-Item -Path .\* -Destination ..\..\..\..\app\ -Recurse -Exclude ("ui", ".git", ".github") -Force
       - name: install reqs, run migrations and collectstatic
-        working-directory: ..\..\..\..\app\
+        working-directory: ..\..\..\..\
         run: |
           $env:Path = "$PWD\venv;$env:Path"
+          cd .\app
           pip install -r requirements.txt
           python manage.py migrate
           python manage.py collectstatic --noinput
