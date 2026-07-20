@@ -75,7 +75,7 @@ jobs:
       - name: install reqs, run migrations and collectstatic
         working-directory: ..\..\..\..\app\
         run: |
-          conda activate ..\venv\
+          $env:Path = "$PWD\venv;$env:Path"
           pip install -r requirements.txt
           python manage.py migrate
           python manage.py collectstatic --noinput
