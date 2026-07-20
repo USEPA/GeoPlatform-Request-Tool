@@ -4,10 +4,10 @@ describe("reponse admin", () => {
   beforeEach(() => {
     cy.loginWithCredentials(Cypress.env('approver_username'), Cypress.env('approver_password'));
 
-    cy.visit('http://localhost:8000/api/admin/')
+    cy.visit('/api/admin/')
   })
   it('changing portal should clear selections', () => {
-    cy.visit('http://localhost:8000/api/admin/accounts/responseproject/3/change/')
+    cy.visit('/api/admin/accounts/responseproject/3/change/')
     cy.get("select[name='requester']").should('contain.value', '3')
     cy.get("select[name='users']").should('contain.value', '3')
     // expect(cy.get("select[name='assignable_groups']").invoke('val')).to.include(3)
@@ -26,7 +26,7 @@ describe("reponse admin", () => {
   })
 
   it('should only require auth group for certain portal', () => {
-    cy.visit('http://localhost:8000/api/admin/accounts/responseproject/3/change/');
+    cy.visit('/api/admin/accounts/responseproject/3/change/');
     cy.get("select[name='portal']").select('GeoPlatform');
     cy.get('input').contains('Save and continue editing').click();
     cy.get('.field-authoritative_group li').should('contain', 'The Authoritative Group must be available under the selected Role. Check the Role\'s allowed Authoritative Groups.')

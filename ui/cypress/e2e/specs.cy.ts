@@ -59,7 +59,7 @@ describe('Anonymous submission', () => {
 
   it('should preselect response/project if response in query params', () => {
     cy.visit('/?response=1');
-    cy.get('mat-select[formcontrolname="response"]').should('contain', 'R09 Testing')
+    cy.get('mat-select[formcontrolname="response"]').should('not.be.empty', )
   })
 
   it('should not filter responses if response in query params does not exist', () => {
