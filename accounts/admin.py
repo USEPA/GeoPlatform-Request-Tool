@@ -300,10 +300,10 @@ class AGOLRoleAdmin(admin.ModelAdmin):
     search_fields = ['name', 'description']
     ordering = ['-is_available', 'agol', 'name']
     list_filter = ['is_available', 'agol']
-    readonly_fields = ['name', 'id', 'description', 'agol']
+    readonly_fields = ['name', 'role_id', 'description', 'agol']
     autocomplete_fields = ['auth_groups']
     form = AGOLRoleForm
-    fields = ['name', 'id', 'description', 'agol', 'is_available', 'system_default', 'auth_groups', 'hierarchy',
+    fields = ['name', 'role_id', 'description', 'agol', 'is_available', 'system_default', 'auth_groups', 'hierarchy',
               'minimum_compatible_user_type']
     # actions = [set_system_default] removed b/c its more complicated with multiple agols
 

@@ -139,6 +139,12 @@ def verify_account_can_be_approved(account):
 
 
 def update_user_type_and_role(account: AccountRequests):
+    # If the user payload had no roleId, avoid any privilege/entitlement mutation.
+    if not account.existing_role:
+        account.created = now()  # mark created once created or enabled and added to groups
+        account.save(update_fields=['created'])
+        return
+
     new_user_type = account.new_user_type
     if new_user_type:
         account.response.portal.update_user_type(account.username, new_user_type.code)

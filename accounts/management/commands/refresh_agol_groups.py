@@ -13,6 +13,7 @@ class Command(BaseCommand):
                 agol.get_all_groups()
                 agol.get_all_existing_user_group_memberships()
                 agol.get_all_roles()
+                agol.get_all_user_types()
 
             except Exception as e:
                 logger.error(f'Error updating groups and roles for {agol.portal_name}: {e}', exc_info=e)

@@ -8,7 +8,7 @@ def convert_user_types(apps, schema_editor):
     AccountRequests = apps.get_model('accounts', 'AccountRequests')
     AGOL = apps.get_model('accounts', 'AGOL')
     for portal in AGOL.objects.all():
-        roles = portal.roles.filter(is_available=True)
+        roles = portal.roles.all()
         creator = UserType.objects.create(code='creatorUT', name='Creator', portal=portal)
         roles.update(minimum_compatible_user_type=creator)
         AccountRequests.objects.filter(user_type='creatorUT', response__portal=portal).update(new_user_type=creator)
@@ -139,6 +139,12 @@ class Migration(migrations.Migration):
             name='user_type',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING,
                                     to='accounts.usertype', verbose_name='Requested User Type'),
+        ),
+        migrations.AlterField(
+            model_name='agolrole',
+            name='minimum_compatible_user_type',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT,
+                                    related_name='roles', to='accounts.usertype'),
         ),
 
     ]

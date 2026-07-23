@@ -46,6 +46,11 @@ REASON_CHOICES = (('Emergency Response', 'Emergency Response'),
 
 
 class AccountRequests(models.Model):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Track response linkage to detect when response actually changes.
+        self._response_id = self.response_id
+
     id = models.AutoField(primary_key=True)
     first_name = models.CharField(max_length=200)
     last_name = models.CharField(max_length=200)
@@ -112,14 +117,21 @@ class AccountRequests(models.Model):
         # self.role
 
     def save(self, *args, **kwargs):
-        # this resets role and auth_group if the response changes
-        if self.response:
+        # Keep role/user_type/auth_group in sync only when response is first set or changed.
+        update_fields = kwargs.get('update_fields')
+        response_in_update_fields = update_fields is None or 'response' in update_fields or 'response_id' in update_fields
+        response_changed = self.pk is None or self._response_id != self.response_id
+
+        if self.response and response_in_update_fields and response_changed:
             self.role = self.response.role
             self.user_type = self.response.role.minimum_compatible_user_type
             self.auth_group = self.response.authoritative_group
+            if update_fields is not None:
+                kwargs['update_fields'] = set(update_fields) | {'role', 'user_type', 'auth_group'}
 
         send_notification = self.pk is None
         super().save(*args, **kwargs)
+        self._response_id = self.response_id
         if send_notification:
             self.create_new_notification()
 
@@ -217,7 +229,7 @@ class AGOLRole(models.Model):
     system_default = models.BooleanField(default=False)
     auth_groups = models.ManyToManyField(AGOLGroup, verbose_name='Allowed Authoritative Groups',
                                          related_name='roles', limit_choices_to={'is_auth_group': True})
-    minimum_compatible_user_type = models.ForeignKey('UserType', on_delete=models.PROTECT, null=True, blank=True, related_name='roles')
+    minimum_compatible_user_type = models.ForeignKey('UserType', on_delete=models.PROTECT, related_name='roles')
     hierarchy = models.IntegerField(default=0, help_text='This controls if a users account needs to be given a higher role when approved than what they currently have so that it is compatible with the groups they are assigned to.')
 
     def __str__(self):
@@ -381,6 +393,13 @@ class AGOL(models.Model):
                                               defaults={
                                                   'name': role['name'],
                                                   'description': role['description']})
+    def get_all_user_types(self):
+        all_user_types = self.get_list('portals/self/userLicenseTypes', 'userLicenseTypes')
+        sys.stdout.write(f'\nCreating/updating user types from {self.portal_url}...\n')
+        for user_type in tqdm(all_user_types, desc='Updating user types'):
+            UserType.objects.update_or_create(code=user_type['id'], portal=self,
+                                              defaults={'name': user_type['name']})
+
 
     def get_group(self, group_id):
         r = requests.get(f'{self.portal_url}/sharing/rest/community/groups/{group_id}',
@@ -422,7 +441,7 @@ class AGOL(models.Model):
             url = f'{self.portal_url}/portaladmin/security/users/createUser'
             user_request_data.update({
                 "provider": "enterprise",
-                "userLicenseTypeId": "creatorUT",
+                "userLicenseTypeId": account_request.user_type.code,
                 "f": "json",
                 "token": token,
             })
