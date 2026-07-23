@@ -355,7 +355,7 @@ class ResponseProjectForm(ModelForm):
             'assignable_groups': autocomplete.ModelSelect2Multiple(url='agolgroup-autocomplete',
                                                                 forward=['portal']),
             'role': autocomplete.ModelSelect2(url='agolrole-autocomplete',
-                                              forward=['portal', 'user_type']),
+                                              forward=['portal']),
         }
 
     class Media:

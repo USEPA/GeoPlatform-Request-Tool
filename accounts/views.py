@@ -338,7 +338,7 @@ class AGOLRoleViewSet(DALAutocompleteMixin, ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]  # todo: can we remove this adn just assign read permission now?
     search_fields = ['name', 'description']
     filterset_fields = ['system_default', 'is_available']
-    autocomplete_config = {'display_field': F('name'), 'field_walk': {'portal': 'agol', 'user_type': 'user_types'}}
+    autocomplete_config = {'display_field': F('name'), 'field_walk': {'portal': 'agol', 'user_type': 'minimum_compatible_user_type'}}
 
     def get_queryset(self):
         if self.request.user.is_superuser:
