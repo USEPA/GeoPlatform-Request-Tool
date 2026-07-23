@@ -108,7 +108,7 @@ describe('ApprovalListComponent', () => {
     const errorResponse = new HttpErrorResponse({error: 'error', status: 403});
     req.flush('', errorResponse);
     expect(matSnackBar.open).toHaveBeenCalledWith(
-      'There was and error with one or more account requests', null, {
+      'Http failure response for /api/v1/account/approvals/approve/: 403 Unknown Error', null, {
         duration: 6000,
         panelClass: ['snackbar-error']
       });
