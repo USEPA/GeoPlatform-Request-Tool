@@ -169,12 +169,12 @@ class AccountViewSet(ModelViewSet):
     #         options.append({'display': display, 'value': value})
     #     return Response(options)
 
-    @action(['GET'], detail=False)
-    def user_types(self, request):
-        options = list()
-        for value, display in AccountRequests.USER_TYPE_CHOICES:
-            options.append({'display': display, 'value': value})
-        return Response(options)
+    # @action(['GET'], detail=False)
+    # def user_types(self, request):
+    #     options = list()
+    #     for value, display in AccountRequests.USER_TYPE_CHOICES:
+    #         options.append({'display': display, 'value': value})
+    #     return Response(options)
 
     # @action(['GET'], detail=False)
     # def sponsors(self, request):

@@ -68,8 +68,8 @@ export class ApprovalListComponent implements OnInit {
   allChecked: boolean;
   needsEditing: boolean;
   isApprovalReady: boolean;
-  roles: Observable<[]>;
-  user_types: Observable<[]>;
+  // roles: Observable<[]>;
+  // user_types: Observable<[]>;
   responses: Observable<any[]>;
   searchInput = new FormControl(null);
 
@@ -96,8 +96,8 @@ export class ApprovalListComponent implements OnInit {
       tap(response => this.setAccountsListProps(response))
     ).subscribe();
     this.accounts.getItems().subscribe();
-    this.roles = this.http.get<[]>(`${environment.local_service_endpoint}/v1/account/approvals/roles`).pipe(share());
-    this.user_types = this.http.get<[]>(`${environment.local_service_endpoint}/v1/account/approvals/user_types`).pipe(share());
+    // this.roles = this.http.get<[]>(`${environment.local_service_endpoint}/v1/account/approvals/roles`).pipe(share());
+    // this.user_types = this.http.get<[]>(`${environment.local_service_endpoint}/v1/account/approvals/user_types`).pipe(share());
     this.responses = this.http.get<[]>(`${environment.local_service_endpoint}/v1/responses/`, {params: {for_approver: true}}).pipe(share());
 
     this.searchInput.valueChanges.pipe(
