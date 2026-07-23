@@ -147,11 +147,31 @@ def update_user_type_and_role(account: AccountRequests):
 
     new_user_type = account.new_user_type
     if new_user_type:
-        account.response.portal.update_user_type(account.username, new_user_type.code)
+        try:
+            account.response.portal.update_user_type(account.username, new_user_type.code)
+        except Exception as e:
+            logger.error(
+                f"Failed to update user type for {account.username} "
+                f"at {account.response.portal.portal_name}: {e}"
+            )
+            raise Exception(
+                f"Failed to update user type for {account.username} "
+                f"at {account.response.portal.portal_name}."
+            ) from e
 
     new_role = account.new_role
     if new_role:
-        account.response.portal.update_user_role(account.username, new_role.role_id)
+        try:
+            account.response.portal.update_user_role(account.username, new_role.role_id)
+        except Exception as e:
+            logger.error(
+                f"Failed to update user role for {account.username} "
+                f"at {account.response.portal.portal_name}: {e}"
+            )
+            raise Exception(
+                f"Failed to update user role for {account.username} "
+                f"at {account.response.portal.portal_name}."
+            ) from e
 
     account.created = now()  # mark created once created or enabled and added to groups
     account.save()
@@ -185,7 +205,14 @@ def approve_account(account, password, approved_by):
 
     if not is_new_account:
         # update user type and role
-        update_user_type_and_role(account)
+        try:
+            update_user_type_and_role(account)
+        except Exception as e:
+            logger.error(f"update_user_type_and_role failed for {account.username}: {e}")
+            return Response({
+                'id': account.pk,
+                'error': str(e)
+            }, status=500)
 
     # add account to groups
     if account.groupmembership_set.filter(is_member=False).count() > 0:
