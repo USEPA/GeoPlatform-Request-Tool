@@ -33,8 +33,8 @@ function editRecordToApproveableState() {
   cy.get('mat-cell').first().click();
   cy.get('button#editBtn').click();
   // wait for groups dropdown to become enabled (response must be selected first)
-  cy.get('mat-select[formcontrolname="groups"].mat-select-disabled').should('not.exist');
-  cy.get('mat-select[formcontrolname="groups"]', {timeout: 30000}).click();
+  cy.get('mat-select[formcontrolname="groups"].mat-select-disabled', {timeout: 30000}).should('not.exist');
+  cy.get('mat-select[formcontrolname="groups"]').click();
   cy.get('.mat-option-text').contains('Test').click();
   cy.get('body').click();
   cy.wait(1000); // submit button is briefly disabled
