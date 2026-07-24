@@ -82,7 +82,7 @@ Cypress.Commands.add('loginWithCredentials' as any, (username: string, password:
     log.snapshot('before');
 
     loginCreds(username, password);
-
+    cy.get('body').contains('Welcome')
     log.snapshot('after');
     log.end();
   }, {
