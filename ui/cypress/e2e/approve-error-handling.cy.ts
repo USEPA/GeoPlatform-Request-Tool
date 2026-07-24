@@ -80,7 +80,8 @@ describe('Approve – update_user_type_and_role error handling', () => {
     cy.get('input[formcontrolname="last_name"]').type(TEST.last_name);
     cy.get('input[formcontrolname="email"]').type(TEST.email);
     cy.get('input[formcontrolname="organization"]').type(TEST.organization);
-    cy.wait(2000) // other test triggers error before getting tot his point so lets wait b/c it keeps failing at response selection
+    cy.get('body').click();
+    cy.wait(5000) // other test triggers error before getting tot his point so lets wait b/c it keeps failing at response selection
     cy.get('mat-select[formcontrolname="response"]').click();
     cy.get('mat-option', {timeout: 30000}).contains(TEST.response).click();
     cy.get('button').contains('Submit').click();
