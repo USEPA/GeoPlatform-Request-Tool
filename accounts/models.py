@@ -274,6 +274,8 @@ class AGOL(models.Model):
                                                     help_text='Separate email domains with comma (e.g. gmail.com,hotmail.com). Value required if external account creation is not allowed')
     requires_auth_group = models.BooleanField(default=True)
     email_signature_content = CKEditor5Field()
+    default_user_type = models.ForeignKey('UserType', on_delete=models.PROTECT, null=True, blank=True,
+                                          related_name='default_for_portals')
     token = models.CharField(null=True, blank=True, max_length=2000)
     token_expiration = models.DateTimeField(null=True, blank=True)
 
@@ -388,11 +390,26 @@ class AGOL(models.Model):
     def get_all_roles(self):
         all_roles = self.get_list('portals/self/roles', 'roles')
         sys.stdout.write(f'\nCreating/updating roles from {self.portal_url}...\n')
+
+        default_user_type = self.default_user_type
+        if default_user_type is None:
+            raise ValidationError('A default user type must be set on the portal before importing roles.')
+
         for role in tqdm(all_roles, desc='Updating roles'):
-            AGOLRole.objects.update_or_create(role_id=role['id'], agol=self,
-                                              defaults={
-                                                  'name': role['name'],
-                                                  'description': role['description']})
+            role_obj, created = AGOLRole.objects.get_or_create(
+                role_id=role['id'],
+                agol=self,
+                defaults={
+                    'name': role['name'],
+                    'description': role['description'],
+                    'minimum_compatible_user_type': default_user_type,
+                }
+            )
+            if not created:
+                role_obj.name = role['name']
+                role_obj.description = role['description']
+                role_obj.save(update_fields=['name', 'description'])
+
     def get_all_user_types(self):
         all_user_types = self.get_list('portals/self/userLicenseTypes', 'userLicenseTypes')
         sys.stdout.write(f'\nCreating/updating user types from {self.portal_url}...\n')
@@ -638,9 +655,15 @@ class AGOL(models.Model):
 
         return r.json().get('success', False)
 
+    def clean(self):
+        super().clean()
+        if self.pk and self.default_user_type and self.default_user_type.portal_id != self.id:
+            raise ValidationError({'default_user_type': 'Default user type must belong to this portal.'})
+
     class Meta:
         verbose_name = 'AGOL/Portal'
         verbose_name_plural = 'AGOL/Portals'
+
 
 class AGOLUserFields(models.Model):
     id = models.AutoField(primary_key=True)

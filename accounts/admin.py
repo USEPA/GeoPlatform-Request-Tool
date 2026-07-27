@@ -48,7 +48,7 @@ class AGOLAdminForm(ModelForm):
 
     class Meta:
         model = AGOL
-        fields = ['portal_name', 'portal_url', 'allow_external_accounts', 'requires_auth_group',
+        fields = ['portal_name', 'portal_url', 'allow_external_accounts', 'requires_auth_group', 'default_user_type',
                   'enterprise_precreate_domains', 'email_signature_content']
 
 
