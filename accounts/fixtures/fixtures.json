@@ -549,7 +549,7 @@
       "allow_external_accounts": false,
       "enterprise_precreate_domains": "dasg.com",
       "email_signature_content": "Geosecure Email Signature",
-      "default_user_type": 1
+      "default_user_type": 2
     }
   },
   {
