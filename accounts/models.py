@@ -254,9 +254,15 @@ class UserType(models.Model):
     name = models.CharField(max_length=200)
     portal = models.ForeignKey('AGOL', related_name='user_types', on_delete=models.PROTECT)
     hierarchy = models.IntegerField(default=0, help_text='This controls if a users account needs to be given a higher user type when approved than what they currently have so that it is compatible with the roles they are assigned to.')
+    system_default = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.name} ({self.code})"
+
+    def clean(self):
+        if self.system_default:
+            if (self.pk and UserType.objects.filter(system_default=True, portal=self.portal).exclude(pk=self.pk).exists()):
+                raise ValidationError({'system_default': 'You cannot have more than one system default. Remove current default to select a new one.'})
 
     class Meta:
         verbose_name = 'AGOL/Portal User Type'
@@ -274,8 +280,6 @@ class AGOL(models.Model):
                                                     help_text='Separate email domains with comma (e.g. gmail.com,hotmail.com). Value required if external account creation is not allowed')
     requires_auth_group = models.BooleanField(default=True)
     email_signature_content = CKEditor5Field()
-    default_user_type = models.ForeignKey('UserType', on_delete=models.PROTECT, null=True, blank=True,
-                                          related_name='default_for_portals')
     token = models.CharField(null=True, blank=True, max_length=2000)
     token_expiration = models.DateTimeField(null=True, blank=True)
 
@@ -391,9 +395,9 @@ class AGOL(models.Model):
         all_roles = self.get_list('portals/self/roles', 'roles')
         sys.stdout.write(f'\nCreating/updating roles from {self.portal_url}...\n')
 
-        default_user_type = self.default_user_type
+        default_user_type = self.user_types.filter(system_default=True).first()
         if default_user_type is None:
-            raise ValidationError('A default user type must be set on the portal before importing roles.')
+            raise ValidationError('A system default user type must be set on the portal before importing roles.')
 
         for role in tqdm(all_roles, desc='Updating roles'):
             role_obj, created = AGOLRole.objects.get_or_create(
@@ -655,10 +659,6 @@ class AGOL(models.Model):
 
         return r.json().get('success', False)
 
-    def clean(self):
-        super().clean()
-        if self.pk and self.default_user_type and self.default_user_type.portal_id != self.id:
-            raise ValidationError({'default_user_type': 'Default user type must belong to this portal.'})
 
     class Meta:
         verbose_name = 'AGOL/Portal'

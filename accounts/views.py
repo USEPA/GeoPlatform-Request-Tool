@@ -369,4 +369,6 @@ class PortalsViewSet(ReadOnlyModelViewSet):
 class UserTypeViewSet(DALAutocompleteMixin, ReadOnlyModelViewSet):
     queryset = UserType.objects.all()
     serializer_class = UserTypeSerializer
+    ordering = ['system_default', 'name']
+    filterset_fields = ['system_default']
     autocomplete_config = {'field_walk': {'portal': 'agol'}}

@@ -34,14 +34,6 @@ def _get_short_name_(user_instance):
 User.get_short_name = _get_short_name_
 
 class AGOLAdminForm(ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Limit default user type options to user types for this AGOL record.
-        if self.instance and self.instance.pk:
-            self.fields['default_user_type'].queryset = UserType.objects.filter(portal=self.instance)
-        else:
-            self.fields['default_user_type'].queryset = UserType.objects.none()
-
     def clean_enterprise_precreate_domains(self):
         valid_emails = []
         for email in self.cleaned_data['enterprise_precreate_domains'].split(','):
@@ -56,7 +48,7 @@ class AGOLAdminForm(ModelForm):
 
     class Meta:
         model = AGOL
-        fields = ['portal_name', 'portal_url', 'allow_external_accounts', 'requires_auth_group', 'default_user_type',
+        fields = ['portal_name', 'portal_url', 'allow_external_accounts', 'requires_auth_group',
                   'enterprise_precreate_domains', 'email_signature_content']
 
 
@@ -538,7 +530,8 @@ class ProtectedDatasetAdmin(admin.ModelAdmin):
 
 @admin.register(UserType)
 class UserTypeAdmin(admin.ModelAdmin):
-    list_display = ['name', 'hierarchy', 'code',  'portal']
+    list_display = ['name', 'hierarchy', 'code', 'system_default', 'portal']
     search_fields = ['name']
-    list_filter = ['portal']
+    list_filter = ['portal', 'system_default']
+    fields = ['name', 'code', 'hierarchy', 'system_default', 'portal']
     # form = UserTypeAdminForm
