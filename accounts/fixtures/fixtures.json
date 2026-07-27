@@ -535,7 +535,8 @@
       "org_id": "oKenFxF8DE2Ek7Xt",
       "allow_external_accounts": true,
       "enterprise_precreate_domains": "",
-      "email_signature_content": "Geoplatform Email Signature"
+      "email_signature_content": "Geoplatform Email Signature",
+      "default_user_type": 1
     }
   },
   {
@@ -547,7 +548,8 @@
       "org_id": "0123456789ABCDEF",
       "allow_external_accounts": false,
       "enterprise_precreate_domains": "dasg.com",
-      "email_signature_content": "Geosecure Email Signature"
+      "email_signature_content": "Geosecure Email Signature",
+      "default_user_type": 1
     }
   },
   {
