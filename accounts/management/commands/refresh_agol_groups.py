@@ -7,11 +7,11 @@ class Command(BaseCommand):
     help = 'Update groups and roles from all portals/agols'
 
     def handle(self, *args, **options):
-        #agol = AGOL.objects.get(portal_url='https://epa.maps.arcgis.com')
         for agol in AGOL.objects.all():
             try:
                 agol.get_all_groups()
                 agol.get_all_existing_user_group_memberships()
+                agol.get_all_user_types()
                 agol.get_all_roles()
 
             except Exception as e:

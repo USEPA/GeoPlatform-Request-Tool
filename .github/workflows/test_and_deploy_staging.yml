@@ -73,9 +73,10 @@ jobs:
           Remove-Item -Path ..\..\..\..\app\* -Force -Recurse
           Copy-Item -Path .\* -Destination ..\..\..\..\app\ -Recurse -Exclude ("ui", ".git", ".github") -Force
       - name: install reqs, run migrations and collectstatic
-        working-directory: ..\..\..\..\app\
+        working-directory: ..\..\..\..\
         run: |
-          conda activate ..\venv\
+          $env:Path = "$PWD\venv;$PWD\venv\Scripts;$env:Path"
+          cd .\app
           pip install -r requirements.txt
           python manage.py migrate
           python manage.py collectstatic --noinput
@@ -85,8 +86,56 @@ jobs:
           name: frontend-build
           path: ..\..\..\..\ui\
 
-#  e2e_test:
-#    runs-on: staging
-#    name: e2e testing
-#    needs: deploy
+  e2e_test:
+    runs-on: staging
+    name: e2e testing
+    needs: deploy
+    environment: staging
+    env:
+      CYPRESS_BASE_URL: ${{ vars.CYPRESS_BASE_URL }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: create cypress env file from secret
+        env:
+          TESTING_CREDS: ${{ secrets.TESTING_CREDS }}
+        run: |
+          Set-Content -Path ".\ui\cypress.env.json" -Value $env:TESTING_CREDS -NoNewline
+
+      - name: install frontend deps
+        working-directory: ./ui
+        env:
+          NODE_OPTIONS: "--max_old_space_size=4096"
+        run: |
+          $env:PATH = "${{ vars.NODE_PATH }};$env:PATH"
+          npm ci
+
+      - name: add recaptcha testing settings
+        run: |
+          $settingsFile = "AGOLAccountRequestor/settings.py"
+          $backupFile = "AGOLAccountRequestor/settings.py.backup"
+          Copy-Item -Path $settingsFile -Destination $backupFile
+          Add-Content -Path $settingsFile -Value "`n`n# Temporary recaptcha testing settings`nDRF_RECAPTCHA_TESTING = True`nDRF_RECAPTCHA_TESTING_PASS = True"
+
+      - name: run e2e tests
+        working-directory: ./ui
+        run: |
+          $env:PATH = "${{ vars.NODE_PATH }};$env:PATH"
+          npm run cypress:run
+
+      - name: restore original settings
+        if: always()
+        run: |
+          $settingsFile = "AGOLAccountRequestor/settings.py"
+          $backupFile = "AGOLAccountRequestor/settings.py.backup"
+          Copy-Item -Path $backupFile -Destination $settingsFile -Force
+          Remove-Item -Path $backupFile
+
+      - name: upload cypress videos
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos
+          path: ./ui/cypress/videos/
 

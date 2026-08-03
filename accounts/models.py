@@ -46,11 +46,12 @@ REASON_CHOICES = (('Emergency Response', 'Emergency Response'),
 
 
 class AccountRequests(models.Model):
-    id = models.AutoField(primary_key=True)
-    USER_TYPE_CHOICES = (('creatorUT', 'Creator'),)
-    # ROLE_CHOICES = (('jmc1ObdWfBTH6NAN', 'EPA Publisher'),
-    #                 ('71yacZLdeuDirQ6K', 'EPA Viewer'))
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Track response linkage to detect when response actually changes.
+        self._response_id = self.response_id
 
+    id = models.AutoField(primary_key=True)
     first_name = models.CharField(max_length=200)
     last_name = models.CharField(max_length=200)
     email = models.EmailField()
@@ -60,8 +61,10 @@ class AccountRequests(models.Model):
     organization = models.CharField(max_length=200)
     username = models.CharField(max_length=200, help_text='User frontend to modify username.')
     username_valid = models.BooleanField(default=False)
-    user_type = models.CharField(max_length=200, choices=USER_TYPE_CHOICES, default='creatorUT')
-    role = models.ForeignKey('AGOLRole', on_delete=models.DO_NOTHING, blank=True, null=True, related_name='account_requests')
+    user_type = models.ForeignKey('UserType', on_delete=models.DO_NOTHING, blank=True, null=True,
+                                  verbose_name='Requested User Type')
+    role = models.ForeignKey('AGOLRole', on_delete=models.DO_NOTHING, blank=True, null=True, related_name='account_requests',
+                             verbose_name='Requested Role')
     groups = models.ManyToManyField('AGOLGroup', blank=True, related_name='account_requests', through='GroupMembership')
     auth_group = models.ForeignKey('AGOLGroup', on_delete=models.DO_NOTHING, blank=True, null=True)
     sponsor = models.ForeignKey(User, on_delete=models.PROTECT, blank=True, null=True)
@@ -74,6 +77,8 @@ class AccountRequests(models.Model):
                                     related_name='accounts_approved')
     created = models.DateTimeField(null=True, blank=True)
     agol_id = models.UUIDField(blank=True, null=True)
+    existing_user_type = models.CharField(max_length=200, blank=True, null=True)
+    existing_role = models.CharField(max_length=200, blank=True, null=True)
     response = models.ForeignKey('ResponseProject', on_delete=models.PROTECT, blank=True, null=True,
                                  related_name='requests')
     notifications = GenericRelation('Notification')
@@ -108,16 +113,69 @@ class AccountRequests(models.Model):
             self.save()
         return create_success
 
+    # def get_required_user_type(self):
+        # self.role
+
     def save(self, *args, **kwargs):
-        # this resets role and auth_group if the response changes
-        if self.response:
+        # Keep role/user_type/auth_group in sync only when response is first set or changed.
+        update_fields = kwargs.get('update_fields')
+        response_in_update_fields = update_fields is None or 'response' in update_fields or 'response_id' in update_fields
+        response_changed = self.pk is None or self._response_id != self.response_id
+
+        if self.response and response_in_update_fields and response_changed:
             self.role = self.response.role
+            self.user_type = self.response.role.minimum_compatible_user_type
             self.auth_group = self.response.authoritative_group
+            if update_fields is not None:
+                kwargs['update_fields'] = set(update_fields) | {'role', 'user_type', 'auth_group'}
 
         send_notification = self.pk is None
         super().save(*args, **kwargs)
+        self._response_id = self.response_id
         if send_notification:
             self.create_new_notification()
+
+    @property
+    def new_user_type(self):
+        """
+        Determines the user type for the account request based on the existing user type and the response portal's user types.
+
+        Returns:
+            UserType: The user type if it meets the required hierarchy, otherwise None.
+        """
+        if self.agol_id:
+            # Check if the existing user type is valid and exists in the portal's user types
+            if self.existing_user_type and self.response.portal.user_types.filter(code=self.existing_user_type).exists():
+                existing_user_type = self.response.portal.user_types.get(code=self.existing_user_type)
+                min_required_user_type = self.response.role.minimum_compatible_user_type
+                # Return None if the existing user type is valid and meets the required hierarchy
+                if existing_user_type.hierarchy < min_required_user_type.hierarchy:
+                    return min_required_user_type
+
+            # Return the user type with the lowest hierarchy if no existing user type is found or valid
+        return None
+
+    @property
+    def new_role(self):
+        """
+        Determines the new role for the account request based on the existing role and the response portal's roles.
+
+        Returns:
+            AGOLRole: The new role if it meets the required hierarchy, otherwise None.
+        """
+        if self.agol_id:
+            # Check if the existing role is valid and exists in the portal's roles
+            if self.existing_role and self.response.portal.roles.filter(role_id=self.existing_role).exists():
+                existing_role = self.response.portal.roles.get(role_id=self.existing_role)
+                min_required_role = self.response.role
+                if existing_role.hierarchy < min_required_role.hierarchy:
+                    return min_required_role
+
+        # # Check if the current role meets the required hierarchy
+        # if self.role and self.role.hierarchy >= self.response.role.hierarchy:
+        #     return None
+        # Return the response role if no existing role is found or valid
+        return None
 
     class Meta:
         verbose_name_plural = 'Account Requests'
@@ -171,6 +229,8 @@ class AGOLRole(models.Model):
     system_default = models.BooleanField(default=False)
     auth_groups = models.ManyToManyField(AGOLGroup, verbose_name='Allowed Authoritative Groups',
                                          related_name='roles', limit_choices_to={'is_auth_group': True})
+    minimum_compatible_user_type = models.ForeignKey('UserType', on_delete=models.PROTECT, related_name='roles')
+    hierarchy = models.IntegerField(default=0, help_text='This controls if a users account needs to be given a higher role when approved than what they currently have so that it is compatible with the groups they are assigned to.')
 
     def __str__(self):
         return self.name
@@ -187,6 +247,27 @@ class AGOLRole(models.Model):
     class Meta:
         verbose_name = 'AGOL/Portals Role'
         verbose_name_plural = 'AGOL/Portals Roles'
+
+
+class UserType(models.Model):
+    code = models.CharField(max_length=200)
+    name = models.CharField(max_length=200)
+    portal = models.ForeignKey('AGOL', related_name='user_types', on_delete=models.PROTECT)
+    hierarchy = models.IntegerField(default=0, help_text='This controls if a users account needs to be given a higher user type when approved than what they currently have so that it is compatible with the roles they are assigned to.')
+    system_default = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.name} ({self.code})"
+
+    def clean(self):
+        if self.system_default:
+            if (self.pk and UserType.objects.filter(system_default=True, portal=self.portal).exclude(pk=self.pk).exists()):
+                raise ValidationError({'system_default': 'You cannot have more than one system default. Remove current default to select a new one.'})
+
+    class Meta:
+        verbose_name = 'AGOL/Portal User Type'
+        verbose_name_plural = 'AGOL/Portal User Types'
+
 
 class AGOL(models.Model):
     id = models.AutoField(primary_key=True)
@@ -313,11 +394,33 @@ class AGOL(models.Model):
     def get_all_roles(self):
         all_roles = self.get_list('portals/self/roles', 'roles')
         sys.stdout.write(f'\nCreating/updating roles from {self.portal_url}...\n')
+
+        default_user_type = self.user_types.filter(system_default=True).first()
+        if default_user_type is None:
+            raise ValidationError('A system default user type must be set on the portal before importing roles.')
+
         for role in tqdm(all_roles, desc='Updating roles'):
-            AGOLRole.objects.update_or_create(role_id=role['id'], agol=self,
-                                              defaults={
-                                                  'name': role['name'],
-                                                  'description': role['description']})
+            role_obj, created = AGOLRole.objects.get_or_create(
+                role_id=role['id'],
+                agol=self,
+                defaults={
+                    'name': role['name'],
+                    'description': role['description'],
+                    'minimum_compatible_user_type': default_user_type,
+                }
+            )
+            if not created:
+                role_obj.name = role['name']
+                role_obj.description = role['description']
+                role_obj.save(update_fields=['name', 'description'])
+
+    def get_all_user_types(self):
+        all_user_types = self.get_list('portals/self/userLicenseTypes', 'userLicenseTypes')
+        sys.stdout.write(f'\nCreating/updating user types from {self.portal_url}...\n')
+        for user_type in tqdm(all_user_types, desc='Updating user types'):
+            UserType.objects.update_or_create(code=user_type['id'], portal=self,
+                                              defaults={'name': user_type['name']})
+
 
     def get_group(self, group_id):
         r = requests.get(f'{self.portal_url}/sharing/rest/community/groups/{group_id}',
@@ -336,9 +439,8 @@ class AGOL(models.Model):
             "lastname": account_request.last_name,
             "username": account_request.username,
             "role": account_request.role.role_id,
-            "userLicenseType": account_request.user_type,
+            "userLicenseType": account_request.user_type.code,
             "fullname": f"{account_request.first_name} {account_request.last_name}",
-            "userType": "creatorUT",
             "userCreditAssignment": 2000
         }
         if initial_password:
@@ -360,7 +462,7 @@ class AGOL(models.Model):
             url = f'{self.portal_url}/portaladmin/security/users/createUser'
             user_request_data.update({
                 "provider": "enterprise",
-                "userLicenseTypeId": "creatorUT",
+                "userLicenseTypeId": account_request.user_type.code,
                 "f": "json",
                 "token": token,
             })
@@ -418,6 +520,7 @@ class AGOL(models.Model):
         if 'error' in r_json:
             raise Exception(r_json)
 
+
     def _username_check(self, username: list[str], token: str):
         url = f'{self.portal_url}/sharing/rest/community/checkUsernames'
 
@@ -437,14 +540,14 @@ class AGOL(models.Model):
 
         # error or missing usernames will fail everything so bail here and mark invalid
         if 'error' in response or 'usernames' not in response:
-            return False, None, [], False, None
+            return False, None, [], False, None, None, None
 
         # if it suggested matches requested...great this is normal for new accounts
         if response['usernames'] and response['usernames'][0]['requested'] == response['usernames'][0]['suggested']:
-            return True, None, [], False, None
+            return True, None, [], False, None, None, None
         # if list is blank the account appears to not exist but may have been previously deleted
         elif len(response['usernames']) == 0:
-            return True, None, [], False, None
+            return True, None, [], False, None, None, None
         else:
             # else check actual username endpoint and see if user exists
             user_url = f'{self.portal_url}/sharing/rest/community/users/{username}'
@@ -452,7 +555,7 @@ class AGOL(models.Model):
             user_response = requests.get(user_url, params={'token': token, 'f': 'json'})
             user_response_json = user_response.json()
             if 'error' in user_response_json or 'disabled' not in user_response_json:
-                return False, None, [], False, None
+                return False, None, [], False, None, None, None
             else:
                 # fixes issue #34
                 group_ids = list(x['id'] for x in user_response_json.get('groups', []))
@@ -460,7 +563,9 @@ class AGOL(models.Model):
                     self.get_group(group_id)
                 return False, user_response_json['id'], group_ids, \
                     not user_response_json['disabled'], \
-                    datetime.utcfromtimestamp(user_response_json['created'] / 1000)
+                    datetime.utcfromtimestamp(user_response_json['created'] / 1000), \
+                    user_response_json['userLicenseTypeId'], \
+                    user_response_json.get('roleId', None)
 
     def add_to_group(self, user, group):
         token = self.get_token()
@@ -524,9 +629,41 @@ class AGOL(models.Model):
             return response_json.get('success', False)
         return False
 
+    def update_user_type(self, username, user_type):
+        url = f'{self.portal_url}/sharing/rest/portals/self/updateUserLicenseType'
+        data = {
+            'users': [username],
+            'userLicenseType': user_type,
+            'f': 'json',
+            'token': self.get_token()
+        }
+        r = requests.post(url, data=data)
+
+        if 'error' in r.json():
+            raise Exception(r.json())
+
+        return r.json().get('success', False)
+
+    def update_user_role(self, username, role):
+        url = f'{self.portal_url}/sharing/rest/portals/self/updateUserRole'
+        data = {
+            'user': username,
+            'role': role,
+            'f': 'json',
+            'token': self.get_token()
+        }
+        r = requests.post(url, data=data)
+
+        if 'error' in r.json():
+            raise Exception(r.json())
+
+        return r.json().get('success', False)
+
+
     class Meta:
         verbose_name = 'AGOL/Portal'
         verbose_name_plural = 'AGOL/Portals'
+
 
 class AGOLUserFields(models.Model):
     id = models.AutoField(primary_key=True)

@@ -202,19 +202,19 @@
             </mat-icon>
           </mat-cell>
         </ng-container>
-        <!-- User Types -->
-        <ng-container cdkColumnDef="user_type">
-          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
-            User Type
-          </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">
-            <mat-select [(ngModel)]="row.user_type" (selectionChange)="row.changed = true">
-              <mat-option *ngFor="let user_type of user_types | async" [value]="user_type.value">
-                {{ user_type.display }}
-              </mat-option>
-            </mat-select>
-          </mat-cell>
-        </ng-container>
+        <!-- User Types NOT IN USE -->
+<!--        <ng-container cdkColumnDef="user_type">-->
+<!--          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">-->
+<!--            User Type-->
+<!--          </mat-header-cell>-->
+<!--          <mat-cell *cdkCellDef="let row" class="cell">-->
+<!--            <mat-select [(ngModel)]="row.user_type" (selectionChange)="row.changed = true">-->
+<!--              <mat-option *ngFor="let user_type of user_types | async" [value]="user_type.value">-->
+<!--                {{ user_type.display }}-->
+<!--              </mat-option>-->
+<!--            </mat-select>-->
+<!--          </mat-cell>-->
+<!--        </ng-container>-->
         <!-- Approved -->
         <ng-container cdkColumnDef="approved">
           <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">

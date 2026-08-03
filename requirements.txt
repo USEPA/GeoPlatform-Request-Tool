@@ -15,4 +15,4 @@ django-admin-list-filter-dropdown
 django-admin-rangefilter
 django-autocomplete-light
 django-ckeditor-5
-#pip-system-certs needed in staging and prod
+pip-system-certs #needed in staging and prod

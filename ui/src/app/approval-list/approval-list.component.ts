@@ -68,8 +68,8 @@ export class ApprovalListComponent implements OnInit {
   allChecked: boolean;
   needsEditing: boolean;
   isApprovalReady: boolean;
-  roles: Observable<[]>;
-  user_types: Observable<[]>;
+  // roles: Observable<[]>;
+  // user_types: Observable<[]>;
   responses: Observable<any[]>;
   searchInput = new FormControl(null);
 
@@ -96,8 +96,8 @@ export class ApprovalListComponent implements OnInit {
       tap(response => this.setAccountsListProps(response))
     ).subscribe();
     this.accounts.getItems().subscribe();
-    this.roles = this.http.get<[]>(`${environment.local_service_endpoint}/v1/account/approvals/roles`).pipe(share());
-    this.user_types = this.http.get<[]>(`${environment.local_service_endpoint}/v1/account/approvals/user_types`).pipe(share());
+    // this.roles = this.http.get<[]>(`${environment.local_service_endpoint}/v1/account/approvals/roles`).pipe(share());
+    // this.user_types = this.http.get<[]>(`${environment.local_service_endpoint}/v1/account/approvals/user_types`).pipe(share());
     this.responses = this.http.get<[]>(`${environment.local_service_endpoint}/v1/responses/`, {params: {for_approver: true}}).pipe(share());
 
     this.searchInput.valueChanges.pipe(
@@ -388,13 +388,26 @@ export class ApprovalListComponent implements OnInit {
     });
 
     forkJoin(requests).subscribe(responses => {
-      if (responses.filter(response => 'error' in response).length > 0) {
+      const errorResponses = responses.filter(r => r instanceof HttpErrorResponse || 'error' in r);
+      const warningResponses = responses.filter(r => !(r instanceof HttpErrorResponse) && 'warning' in r);
+
+      if (errorResponses.length > 0) {
+        const messages = errorResponses.map(r => {
+          if (r instanceof HttpErrorResponse) {
+            // structured Django error body: { id, error: "..." } or { detail: "..." }
+            return r.error?.error || r.error?.detail || r.message || 'Unknown error';
+          }
+          return r.error;
+        }).filter(Boolean);
+        const displayMessage = messages.length > 0
+          ? messages.join(' | ')
+          : 'There was an error with one or more account requests';
         this.matSnackBar.open(
-          'There was and error with one or more account requests',
+          displayMessage,
           null,
           {duration: environment.snackbar_duration, panelClass: ['snackbar-error']}
         );
-      } else if (responses.filter(response => 'warning' in response).length > 0) {
+      } else if (warningResponses.length > 0) {
         this.matSnackBar.open(
           'There was an issue adding to groups for one or more accounts, please review accordingly.',
           null,

@@ -10,7 +10,7 @@ from urllib.parse import parse_qs, quote_plus
 import json
 
 from AGOLAccountRequestor.agol_auth import get_user_details
-from .models import AGOL, AGOLUserFields, AccountRequests
+from .models import AGOL, AGOLRole, AGOLUserFields, AccountRequests, GroupMembership, ResponseProject, UserType
 from .views import format_username, SponsorsViewSet, AccountViewSet
 from .permissions import IsSponsor
 from .func import *
@@ -69,6 +69,20 @@ def mock_get_user(*args, **kwargs):
             return {
                 'id': 'ffffffff-ffff-ffff-ffff-ffffffffffff',
                 'groups': []
+            }
+
+    return MockResponse()
+
+
+def mock_get_existing_user_without_role_id(*args, **kwargs):
+    class MockResponse:
+        def json(self):
+            return {
+                'id': 'ffffffff-ffff-ffff-ffff-ffffffffffff',
+                'groups': [],
+                'disabled': False,
+                'created': 1700000000000,
+                'userLicenseTypeId': 'creatorUT'
             }
 
     return MockResponse()
@@ -172,6 +186,15 @@ class TestAccounts(TestCase):
         results = self.agol.check_username('doesntmatter')
         self.assertFalse(results[0])
 
+    @patch('accounts.models.requests.post', side_effect=mock_existing_check_username)
+    @patch('accounts.models.requests.get', side_effect=mock_get_existing_user_without_role_id)
+    def test_check_existing_username_without_role_id(self, mock_post, mock_get):
+        results = self.agol.check_username('doesntmatter')
+        self.assertFalse(results[0])
+        self.assertEqual(results[1], 'ffffffff-ffff-ffff-ffff-ffffffffffff')
+        self.assertEqual(results[5], 'creatorUT')
+        self.assertIsNone(results[6])
+
     @patch('accounts.models.requests.post', side_effect=mock_check_username_empty)
     @patch('accounts.models.requests.get', side_effect=mock_get_user)
     def test_check_existing_username_empty(self, mock_post, mock_get):
@@ -265,6 +288,7 @@ class TestAccounts(TestCase):
         # get all requests
         AccountRequests.objects.filter(agol_id__isnull=True).update(agol_id='ffffffffffffffffffffffffffffffff')
         requests = AccountRequests.objects.all()
+        expected_pending_groups = GroupMembership.objects.filter(request__in=requests, is_member=False).count()
 
         # there are 4 group requests in fixtures
         # in this test, all add_to_group requests should fail, results should empty
@@ -272,14 +296,15 @@ class TestAccounts(TestCase):
         results = []
         for account in requests:
             results += add_account_to_groups(account)
-        self.assertTrue(len(results) == 0)
+        self.assertEqual(len(results), 0)
 
         # in this test, 4 groups should be added as defined in fixtures
         # results should be empty to start and finish with 4 GUIDs (len =4)
         mock_add_to_group.return_value = True
+        results = []
         for account in requests:
             results += add_account_to_groups(account)
-        self.assertTrue(len(results) == 4)
+        self.assertEqual(len(results), expected_pending_groups)
 
     @patch('requests.post')
     def test_add_to_group(self, mock_post):
@@ -459,6 +484,108 @@ class TestAccounts(TestCase):
         mock_enable_account.return_value = True
         r = approve_account(a, None, User(id=1))
         self.assertTrue('Successfully' in r.data['success'])
+
+    def test_user_type_with_no_existing_user_type(self):
+        a = AccountRequests.objects.get(id=101)
+        user_type = a.response.portal.user_types.get(code='creatorUT')
+        a.response.role.minimum_compatible_user_type = user_type
+        self.assertIsNone(a.new_user_type)
+        self.assertEqual(a.user_type, user_type)
+
+    def test_user_type_with_higher_existing_user_type(self):
+        a = AccountRequests.objects.get(id=101)
+        a.existing_user_type = 'creatorUT'
+        user_type = a.response.portal.user_types.get(code='creatorUT')
+        a.response.role.minimum_compatible_user_type = user_type
+        self.assertIsNone(a.new_user_type)
+
+    def test_user_type_with_lower_existing_user_type(self):
+        a = AccountRequests.objects.get(id=201)
+        a.existing_user_type = 'creatorUT'
+        user_type = a.response.portal.user_types.create(code='advancedUT', name='advancedUT', hierarchy=99)
+        a.response.role.minimum_compatible_user_type = user_type
+        self.assertEqual(a.new_user_type, user_type)
+
+    def test_user_type_with_no_agol_id(self):
+        a = AccountRequests.objects.get(id=202)
+        user_type = a.response.portal.user_types.create(code='answer', name='The Answer', hierarchy=42)
+        a.response.role.minimum_compatible_user_type = user_type
+        self.assertIsNone(a.new_user_type)
+
+    def test_missing_role_id_does_not_modify_role_or_user_type(self):
+        a = AccountRequests.objects.get(id=201)
+        a.existing_role = None
+        a.existing_user_type = 'creatorUT'
+        a.save(update_fields=['existing_role', 'existing_user_type'])
+
+        required_user_type = a.response.portal.user_types.create(code='advancedUT', name='advancedUT', hierarchy=99)
+        a.response.role.minimum_compatible_user_type = required_user_type
+        a.response.role.save(update_fields=['minimum_compatible_user_type'])
+
+        original_role_id = a.role_id
+        original_user_type_id = a.user_type_id
+        a.response.portal.update_user_type = MagicMock(return_value=True)
+        a.response.portal.update_user_role = MagicMock(return_value=True)
+
+        update_user_type_and_role(a)
+
+        a.response.portal.update_user_type.assert_not_called()
+        a.response.portal.update_user_role.assert_not_called()
+        a.refresh_from_db()
+        self.assertEqual(a.role_id, original_role_id)
+        self.assertEqual(a.user_type_id, original_user_type_id)
+
+    def test_account_request_save_does_not_reset_role_or_user_type_when_response_unchanged(self):
+        a = AccountRequests.objects.get(id=201)
+        original_role_id = a.role_id
+        original_user_type_id = a.user_type_id
+
+        # Make response defaults different so an unintended reset is detectable.
+        elevated_type = a.response.portal.user_types.create(code='advancedUT_unchanged', name='advancedUT_unchanged', hierarchy=999)
+        a.response.role.minimum_compatible_user_type = elevated_type
+        a.response.role.save(update_fields=['minimum_compatible_user_type'])
+
+        a.created = now()
+        a.save(update_fields=['created'])
+        a.refresh_from_db()
+
+        self.assertEqual(a.role_id, original_role_id)
+        self.assertEqual(a.user_type_id, original_user_type_id)
+
+    def test_account_request_save_resets_role_and_user_type_when_response_changes(self):
+        a = AccountRequests.objects.get(id=201)
+        original_response_id = a.response_id
+        target_response = ResponseProject.objects.exclude(id=original_response_id).first()
+        self.assertIsNotNone(target_response)
+
+        required_type = UserType.objects.create(
+            code='responseChangeUT',
+            name='responseChangeUT',
+            portal=target_response.portal,
+            hierarchy=250
+        )
+        required_role = AGOLRole.objects.create(
+            role_id='responseRole1',
+            name='responseChangeRole',
+            description='test role for response change',
+            is_available=True,
+            agol=target_response.portal,
+            system_default=False,
+            minimum_compatible_user_type=required_type,
+            hierarchy=250
+        )
+        target_response.role = required_role
+        target_response.save(update_fields=['role'])
+
+        a.response = target_response
+        a.save(update_fields=['response'])
+        a.refresh_from_db()
+
+        self.assertEqual(a.response_id, target_response.id)
+        self.assertEqual(a.role_id, required_role.id)
+        self.assertEqual(a.user_type_id, required_type.id)
+        self.assertEqual(a.auth_group_id, target_response.authoritative_group_id)
+
 
 
 class TestGetUserDetails(TestCase):
