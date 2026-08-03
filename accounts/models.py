@@ -1,4 +1,5 @@
 from base64 import urlsafe_b64encode
+from smtplib import SMTPRecipientsRefused
 
 from cryptography.fernet import Fernet
 from django_ckeditor_5.fields import CKEditor5Field
@@ -869,17 +870,20 @@ class Notification(models.Model):
         return n
 
     def send(self):
-        results = send_mail(
-            self.subject,
-            self.content,
-            settings.EMAIL_FROM,
-            list(set(self.to_emails)),
-            fail_silently=False,
-            html_message=self.content,
-        )
-        if results == 1:
-            self.sent = datetime.now()
-            self.save()
+        try:
+            results = send_mail(
+                self.subject,
+                self.content,
+                settings.EMAIL_FROM,
+                list(set(self.to_emails)),
+                fail_silently=False,
+                html_message=self.content,
+            )
+            if results == 1:
+                self.sent = datetime.now()
+                self.save()
+        except Exception as e:
+            logger.error(e)
 
 
 class ProtectedDataset(models.Model):
