@@ -84,6 +84,28 @@ class AGOLUserFieldsInline(admin.StackedInline):
         if not request.user.is_superuser:
             return self.readonly_fields + ['portal']
         return self.readonly_fields
+
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        if request.user.is_superuser:
+            return formset
+
+        # portal is read-only for these users, so the admin neither renders an
+        # input for it nor reads one back from the POST, and a new row reached
+        # the database with portal unset. Fill it from the administrator's own
+        # portal, which is the only one they can act on anyway: get_queryset
+        # already restricts them to it. Editing an existing user is unaffected,
+        # since a read-only field leaves the stored value in place.
+        portal = getattr(getattr(request.user, 'agol_info', None), 'portal', None)
+        if portal is None:
+            return formset
+
+        class PortalFromRequestFormSet(formset):
+            def save_new(self, form, commit=True):
+                form.instance.portal = portal
+                return super().save_new(form, commit=commit)
+
+        return PortalFromRequestFormSet
     # form = AGOLUserFieldsForm
 
 
