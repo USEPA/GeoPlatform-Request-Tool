@@ -41,7 +41,8 @@ class AGOLOAuth2Geoplatform(BaseOAuth2):
         ('refresh_token', 'refresh_token'),
         ('expires_in', 'expires'),
         ('username', 'username'),
-        ('email', 'email')
+        ('email', 'email'),
+        ('refresh_token_expires_in', 'refresh_token_expires_in')
     ]
 
     def _base_url(self):
