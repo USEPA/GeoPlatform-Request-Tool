@@ -1,7 +1,7 @@
 from django.db.models.functions import Concat
 from django.db.models import Value
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
-from rest_framework.mixins import CreateModelMixin
+from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin
 from rest_framework.permissions import AllowAny, BasePermission, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -43,13 +43,21 @@ class DALAutocompleteMixin:
             self.request.query_params._mutable = True
             self.request.query_params['search'] = self.request.query_params.pop('q')[0]
         forwarded = json.loads(self.request.query_params.get('forward', '{}'))
+        # only allow configured fields to be forwarded to the filterset
         autocomplete_config = getattr(self, 'autocomplete_config', {})
+        search_fields = getattr(self, 'search_fields', [])
+        filterset_fields = getattr(self, 'filterset_fields', [])
         # covert incoming fields to target filters
+        target = {}
         for f, t in autocomplete_config.get('field_walk', {}).items():
             if f in forwarded:
-                forwarded[t] = forwarded.pop(f)
+                target[t] = forwarded.pop(f)
+            if f in search_fields:
+                target[t] = forwarded.pop(f)
+            if f in filterset_fields:
+                target[t] = forwarded.pop(f)
         try:
-            groups_qs = self.filter_queryset(self.get_queryset()).filter(**forwarded)
+            groups_qs = self.filter_queryset(self.get_queryset()).filter(**target)
             if 'display_field' in autocomplete_config:
                 groups_qs = groups_qs.annotate(text=autocomplete_config['display_field'])
         except ValueError:
@@ -278,7 +286,7 @@ class AGOLGroupViewSet(DALAutocompleteMixin, ReadOnlyModelViewSet):
         return Response(sorted_group_list)
 
 
-class ResponseProjectViewSet(ModelViewSet):
+class ResponseProjectViewSet(CreateModelMixin, RetrieveModelMixin, ListModelMixin, GenericViewSet):
     queryset = ResponseProject.objects.filter(approved__isnull=False)
     serializer_class = ResponseProjectSerializer
     ordering = ['name']

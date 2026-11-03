@@ -14,6 +14,7 @@ from django.utils.timezone import now
 from rangefilter.filters import DateRangeFilterBuilder
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
 from django.utils.translation import gettext_lazy as _
+from django.urls import path, reverse
 import re
 import logging
 from .func import get_response_from_request, get_role_from_request
@@ -56,6 +57,55 @@ class AGOLAdminForm(ModelForm):
 class AGOLAdmin(admin.ModelAdmin):
     list_display = ['portal_name', 'portal_url']
     form = AGOLAdminForm
+    change_list_template = 'admin/accounts/agol/change_list.html'
+
+    def get_urls(self):
+        urls = super().get_urls()
+        info = self.model._meta.app_label, self.model._meta.model_name
+        custom_urls = [
+            path('refresh-all/', self.admin_site.admin_view(self.refresh_all_view), name='%s_%s_refresh_all' % info),
+        ]
+        return custom_urls + urls
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        info = self.model._meta.app_label, self.model._meta.model_name
+        extra_context['refresh_all_url'] = reverse('admin:%s_%s_refresh_all' % info)
+        return super().changelist_view(request, extra_context=extra_context)
+
+    def refresh_all_view(self, request):
+        if not self.has_change_permission(request):
+            self.message_user(request, 'You do not have permission to refresh AGOL/Portal metadata.', level=messages.ERROR)
+            return HttpResponseRedirect(reverse('admin:accounts_agol_changelist'))
+
+        if request.method != 'POST':
+            return HttpResponseRedirect(reverse('admin:accounts_agol_changelist'))
+
+        success_count = 0
+        failed_portals = []
+
+        for agol in AGOL.objects.all():
+            try:
+                agol.get_all_groups()
+                agol.get_all_existing_user_group_memberships()
+                agol.get_all_user_types()
+                agol.get_all_roles()
+                success_count += 1
+            except Exception as e:
+                logger.error(f'Error updating groups and roles for {agol.portal_name}: {e}', exc_info=e)
+                failed_portals.append(agol.portal_name or str(agol.id))
+
+        if success_count:
+            self.message_user(request, f'Refreshed AGOL/Portal metadata for {success_count} portal(s).', level=messages.SUCCESS)
+
+        if failed_portals:
+            self.message_user(
+                request,
+                f'Failed to refresh {len(failed_portals)} portal(s): {", ".join(failed_portals)}',
+                level=messages.WARNING
+            )
+
+        return HttpResponseRedirect(reverse('admin:accounts_agol_changelist'))
 
 
 admin.site.unregister(User)
