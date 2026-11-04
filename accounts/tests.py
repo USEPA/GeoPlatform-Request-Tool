@@ -4,6 +4,10 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils.timezone import now
 from django.db.models import Q
+from django.urls import reverse
+from rest_framework.permissions import AllowAny
+from rest_framework.test import APIClient
+from rest_framework.viewsets import GenericViewSet
 
 import os
 from urllib.parse import parse_qs, quote_plus
@@ -11,7 +15,7 @@ import json
 
 from AGOLAccountRequestor.agol_auth import get_user_details
 from .models import AGOL, AGOLRole, AGOLUserFields, AccountRequests, GroupMembership, ResponseProject, UserType
-from .views import format_username, SponsorsViewSet, AccountViewSet
+from .views import format_username, SponsorsViewSet, AccountViewSet, DALAutocompleteMixin
 from .permissions import IsSponsor
 from .func import *
 
@@ -158,6 +162,77 @@ def mock_add_to_group(response, *args, **kwargs):
     return MockResponse()
 
 
+class AutocompleteTestView(DALAutocompleteMixin, GenericViewSet):
+    queryset = ResponseProject.objects.all()
+    authentication_classes = ()
+    permission_classes = (AllowAny,)
+    filter_backends = []
+    autocomplete_config = {'field_walk': {'portal': 'portal'}}
+
+
+class TestResponseProjectViewSet(TestCase):
+    fixtures = ['fixtures.json']
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.get(pk=1)
+        self.response_project = ResponseProject.objects.filter(approved__isnull=False).first()
+        self.list_url = reverse('responseproject-list')
+        self.detail_url = reverse('responseproject-detail', args=[self.response_project.pk])
+
+    def test_list_and_retrieve_are_available(self):
+        for user in (None, self.user):
+            self.client.force_authenticate(user=user)
+            with self.subTest(authenticated=user is not None):
+                response = self.client.get(self.list_url)
+                self.assertEqual(response.status_code, 200, response.data)
+                self.assertIn(self.response_project.pk, [item['id'] for item in response.data])
+
+                response = self.client.get(self.detail_url)
+                self.assertEqual(response.status_code, 200, response.data)
+                self.assertEqual(response.data['id'], self.response_project.pk)
+
+    def test_authenticated_user_can_create(self):
+        self.client.force_authenticate(user=self.user)
+        payload = {
+            'name': 'New response project',
+            'portal': self.response_project.portal_id,
+            'role': self.response_project.role_id,
+            'requester': self.user.pk,
+            'users': [self.user.pk],
+            'assignable_groups': [
+                str(group.pk) for group in self.response_project.assignable_groups.all()
+            ],
+            'authoritative_group': None,
+            'default_reason': 'Other',
+        }
+        original_count = ResponseProject.objects.count()
+
+        response = self.client.post(self.list_url, payload, format='json')
+
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertEqual(ResponseProject.objects.count(), original_count + 1)
+        created = ResponseProject.objects.get(pk=response.data['id'])
+        self.assertEqual(created.name, payload['name'])
+        self.assertEqual(created.requester, self.user)
+
+    def test_update_partial_update_and_delete_are_not_allowed(self):
+        self.client.force_authenticate(user=self.user)
+        original_name = self.response_project.name
+        original_count = ResponseProject.objects.count()
+
+        for method in ('put', 'patch', 'delete'):
+            with self.subTest(method=method):
+                response = getattr(self.client, method)(
+                    self.detail_url, {'name': 'Changed response project'}, format='json'
+                )
+
+                self.assertEqual(response.status_code, 405, response.data)
+                self.response_project.refresh_from_db()
+                self.assertEqual(self.response_project.name, original_name)
+                self.assertEqual(ResponseProject.objects.count(), original_count)
+
+
 class TestAccounts(TestCase):
     fixtures = ['fixtures.json']
 
@@ -165,6 +240,46 @@ class TestAccounts(TestCase):
         self.agol = AGOL.objects.get(pk=1)
         self.agol.get_token = MagicMock(return_value='token')
         self.factory = RequestFactory()
+
+    def test_autocomplete_ignores_unapproved_forwarded_filters(self):
+        response_ids = set(ResponseProject.objects.values_list('id', flat=True))
+        self.assertGreater(len(response_ids), 1)
+
+        request = self.factory.get(
+            '/autocomplete/',
+            {
+                'forward': json.dumps({
+                    'id': next(iter(response_ids)),
+                    'name__icontains': 'no matching response'
+                })
+            }
+        )
+        response = AutocompleteTestView.as_view({'get': 'autocomplete'})(request)
+
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertEqual(
+            {result['id'] for result in response.data['results']},
+            response_ids
+        )
+
+    def test_autocomplete_applies_approved_forwarded_filter(self):
+        portal_id = ResponseProject.objects.values_list('portal_id', flat=True).first()
+        expected_ids = set(
+            ResponseProject.objects.filter(portal_id=portal_id).values_list('id', flat=True)
+        )
+        self.assertTrue(expected_ids)
+        self.assertTrue(expected_ids < set(ResponseProject.objects.values_list('id', flat=True)))
+        request = self.factory.get(
+            '/autocomplete/',
+            {'forward': json.dumps({'portal': portal_id})}
+        )
+        response = AutocompleteTestView.as_view({'get': 'autocomplete'})(request)
+
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertEqual(
+            {result['id'] for result in response.data['results']},
+            expected_ids
+        )
 
     def test_username_formatting(self):
         data = {'email': 'myname@epa.gov', 'first_name': 'Joe', 'last_name': 'Smo'}
