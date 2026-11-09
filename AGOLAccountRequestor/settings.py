@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'drf_recaptcha',
     'django_filters',
     'social_django',
-    # 'drf_social_oauth2',
     'rangefilter',
     'django_admin_listfilter_dropdown',
     'django_ckeditor_5',
@@ -54,7 +53,7 @@ INSTALLED_APPS += os.environ.get('INSTALLED_APPS', '').split(',') if os.environ.
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-] + (os.environ.get('CORS_MIDDLEWARE', '').split(',') if 'CORS_MIDDLEWARE' in os.environ else []) + [
+# ] + (os.environ.get('CORS_MIDDLEWARE', '').split(',') if 'CORS_MIDDLEWARE' in os.environ else []) + [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -183,12 +182,12 @@ DRF_RECAPTCHA_SECRET_KEY = os.environ.get('DRF_RECAPTCHA_SECRET_KEY', 'fakey')
 DRF_RECAPTCHA_MINIMUM_SCORE = float(os.environ.get('DRF_RECAPTCHA_MINIMUM_SCORE', '1.0'))
 
 
-CORS_ORIGIN_WHITELIST = os.environ.get('CORS_ORIGIN_WHITELIST', '').split(',') if 'CORS_ORIGIN_WHITELIST' in os.environ else []
-CORS_ALLOW_CREDENTIALS = os.environ.get('CORS_ALLOW_CREDENTIALS', False) == 'True'
+# CORS_ORIGIN_WHITELIST = os.environ.get('CORS_ORIGIN_WHITELIST', '').split(',') if 'CORS_ORIGIN_WHITELIST' in os.environ else []
+# CORS_ALLOW_CREDENTIALS = os.environ.get('CORS_ALLOW_CREDENTIALS', False) == 'True'
 
 CSRF_COOKIE_NAME = 'requestcsrftoken'
 CSRF_COOKIE_DOMAIN = os.environ.get('CSRF_COOKIE_DOMAIN', '')
-CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if 'CSRF_TRUSTED_ORIGINS' in os.environ else CORS_ORIGIN_WHITELIST
+# CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if 'CSRF_TRUSTED_ORIGINS' in os.environ else CORS_ORIGIN_WHITELIST
 
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'localhost')

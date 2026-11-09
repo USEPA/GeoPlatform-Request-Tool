@@ -206,4 +206,68 @@ describe('ApprovalListComponent', () => {
     })
     expect(component.accountsListProps[1].needsEditing).toBeFalse();
   })
+
+  it('should hide the denied column when denied requests are not shown', () => {
+    component.accounts.filter = {is_denied: false};
+    component.displayedColumns.push('denied');
+
+    component.handleDeniedVisibility();
+
+    expect(component.displayedColumns).not.toContain('denied');
+  });
+
+  it('should add the denied column before delete when denied requests are shown', () => {
+    component.accounts.filter = {is_denied: true};
+
+    component.handleDeniedVisibility();
+
+    expect(component.displayedColumns[component.displayedColumns.length - 2]).toBe('denied');
+    expect(component.displayedColumns.filter(column => column === 'denied').length).toBe(1);
+  });
+
+  it('should not add the denied column more than once', () => {
+    component.accounts.filter = {is_denied: true};
+    component.displayedColumns.splice(-1, 0, 'denied');
+
+    component.handleDeniedVisibility();
+
+    expect(component.displayedColumns.filter(column => column === 'denied').length).toBe(1);
+  });
+
+  it('should deny selected requests after confirmation and refresh the list', () => {
+    const dialogOpen = spyOn(component.dialog, 'open').and.returnValue({
+      afterClosed: () => of(true)
+    } as any);
+    spyOn(component.accounts, 'getItems').and.returnValue(of([]));
+    const setAccountsListProps = spyOn(component, 'setAccountsListProps');
+    const clearAllSelected = spyOn(component, 'clearAllSelected');
+    spyOn(matSnackBar, 'open');
+    component.selectedAccountIds = [1, 2];
+
+    component.denyRequests();
+
+    expect(dialogOpen).toHaveBeenCalledWith(jasmine.anything(), {
+      width: '400px',
+      data: {message: 'Confirm you want to deny the selected requests.'}
+    });
+    const req = httpTestingController.expectOne('/api/v1/account/approvals/deny/');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ids: [1, 2]});
+    req.flush({});
+
+    expect(setAccountsListProps).toHaveBeenCalledWith([]);
+    expect(clearAllSelected).toHaveBeenCalled();
+    expect(matSnackBar.open).toHaveBeenCalledWith('Success');
+  });
+
+  it('should not deny selected requests when confirmation is declined', () => {
+    spyOn(component.dialog, 'open').and.returnValue({
+      afterClosed: () => of(false)
+    } as any);
+    component.selectedAccountIds = [1];
+
+    component.denyRequests();
+
+    httpTestingController.expectNone('/api/v1/account/approvals/deny/');
+  });
 });

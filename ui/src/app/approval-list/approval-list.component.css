@@ -25,6 +25,7 @@
 .header-cell.cdk-column-reason,
 .header-cell.cdk-column-description,
 .header-cell.cdk-column-delete,
+.header-cell.cdk-column-denied,
 .cell.cdk-column-created,
 .cell.cdk-column-approved,
 .cell.cdk-column-groups,
@@ -32,7 +33,8 @@
 .cell.cdk-column-sponsor,
 .cell.cdk-column-reason,
 .cell.cdk-column-description,
-.cell.cdk-column-delete {
+.cell.cdk-column-delete,
+.cell.cdk-column-denied {
   max-width: 70px;
   /*text-align: center;*/
   justify-content: center;

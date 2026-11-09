@@ -1,8 +1,8 @@
+from django_filters import DateFilter
 from django_filters.rest_framework import FilterSet, BooleanFilter, BaseCSVFilter
 from django.contrib.auth.models import User
 from django.db.models import Q
-from .models import ResponseProject
-
+from .models import ResponseProject, AccountRequests
 
 from accounts.models import AGOLGroup
 
@@ -33,3 +33,18 @@ class ResponseProjectFilterSet(FilterSet):
     class Meta:
         model = ResponseProject
         fields = ['disabled']
+
+
+class AccountFilterSet(FilterSet):
+    approved_and_created = BooleanFilter(method='approved_and_created_func')
+    approved = BooleanFilter(field_name='approved', lookup_expr='isnull', exclude=True)
+    approved_gte = DateFilter(field_name='approved', lookup_expr='gte')
+    created = BooleanFilter(field_name='created', lookup_expr='isnull', exclude=True)
+    is_denied = BooleanFilter(field_name='denied', lookup_expr='isnull', exclude=True)
+
+    def approved_and_created_func(self, queryset, name, value):
+        return queryset.exclude(created__isnull=value).exclude(approved__isnull=value)
+
+    class Meta:
+        model = AccountRequests
+        fields = ['approved_and_created', 'approved', 'response', 'is_denied']
