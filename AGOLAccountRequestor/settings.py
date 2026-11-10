@@ -187,7 +187,7 @@ DRF_RECAPTCHA_MINIMUM_SCORE = float(os.environ.get('DRF_RECAPTCHA_MINIMUM_SCORE'
 
 CSRF_COOKIE_NAME = 'requestcsrftoken'
 CSRF_COOKIE_DOMAIN = os.environ.get('CSRF_COOKIE_DOMAIN', '')
-# CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if 'CSRF_TRUSTED_ORIGINS' in os.environ else CORS_ORIGIN_WHITELIST
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if 'CSRF_TRUSTED_ORIGINS' in os.environ else CORS_ORIGIN_WHITELIST
 
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'localhost')

@@ -503,7 +503,13 @@ export class ApprovalListComponent implements OnInit {
           ids: this.selectedAccountIds
         })
       ),
-      switchMap(() => this.accounts.getItems()),
+      switchMap(() => {
+        // reset to page 1 if the current page has no more items after the deletion
+        if (this.accounts.data.length === this.selectedAccountIds.length) {
+          this.accounts.filter.page = 1;
+        }
+        return this.accounts.getItems();
+      }),
       tap((accountRequests) => {
         this.setAccountsListProps(accountRequests);
         this.clearAllSelected();
