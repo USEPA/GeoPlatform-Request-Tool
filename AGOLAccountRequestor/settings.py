@@ -182,8 +182,8 @@ DRF_RECAPTCHA_SECRET_KEY = os.environ.get('DRF_RECAPTCHA_SECRET_KEY', 'fakey')
 DRF_RECAPTCHA_MINIMUM_SCORE = float(os.environ.get('DRF_RECAPTCHA_MINIMUM_SCORE', '1.0'))
 
 
-# CORS_ORIGIN_WHITELIST = os.environ.get('CORS_ORIGIN_WHITELIST', '').split(',') if 'CORS_ORIGIN_WHITELIST' in os.environ else []
-# CORS_ALLOW_CREDENTIALS = os.environ.get('CORS_ALLOW_CREDENTIALS', False) == 'True'
+CORS_ORIGIN_WHITELIST = os.environ.get('CORS_ORIGIN_WHITELIST', '').split(',') if 'CORS_ORIGIN_WHITELIST' in os.environ else []
+CORS_ALLOW_CREDENTIALS = os.environ.get('CORS_ALLOW_CREDENTIALS', False) == 'True'
 
 CSRF_COOKIE_NAME = 'requestcsrftoken'
 CSRF_COOKIE_DOMAIN = os.environ.get('CSRF_COOKIE_DOMAIN', '')
