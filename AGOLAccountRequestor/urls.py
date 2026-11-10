@@ -54,7 +54,7 @@ urlpatterns = [
     path(f'{settings.URL_PREFIX}api/auth/logout/', auth_views.LogoutView.as_view(), name='logout'),
 ]
 
-if settings.DEBUG:
+if settings.DEBUG and 'debug_toolbar' in settings.INSTALLED_APPS:
     def test_error(request):
         raise Exception('testing')
 
