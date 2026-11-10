@@ -750,9 +750,6 @@ class ResponseProject(models.Model):
     def auth_group_required(self):
         return self.portal.requires_auth_group if self.pk else False
 
-    def can_be_disabled(self):
-        return not self.requests.filter(approved__isnull=True).exists()
-
     def clean(self):
         if self.auth_group_required and not self.role.auth_groups.filter(id=self.authoritative_group_id).exists():
             raise ValidationError({"authoritative_group": "The Authoritative Group must be available under the selected Role. "

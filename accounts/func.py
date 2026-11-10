@@ -45,7 +45,7 @@ def update_requests_groups(account_request: AccountRequests, existing_groups: [s
 def has_outstanding_request(request_data):
     return AccountRequests.objects.filter(email=request_data['email'],
                                           response=request_data['response'],
-                                          approved__isnull=True).exists()
+                                          approved__isnull=True, denied__isnull=True).exists()
 
 
 def email_allowed_for_portal(request_data):
