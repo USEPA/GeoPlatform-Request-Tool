@@ -27,7 +27,7 @@ Root files: `README.md` (purpose), `requirements.txt`, `.gitignore`, `Dockerfile
 
 Use a clean disposable checkout without deployment `.env`/databases. Settings call `load_dotenv()`; `DATABASES` is JSON, otherwise SQLite applies. Unit tests need no PostgreSQL/OAuth credentials. Never include secrets/dumps in Docker contexts: `Dockerfile.api` copies everything; no `.dockerignore` exists.
 
-Validated through **Ubuntu WSL inside Docker**, using `python:3.11` and `node:20-bookworm`. On Windows invoke Docker through `wsl -d Ubuntu`, not host Python/npm; never reuse an existing database. Following Bash commands run inside these containers or equivalent cloud Ubuntu environments. Versions exercised: Python 3.11.18, Django 4.2.30, Node 20.20.2 (CI uses 20), npm 10.8.2, Chromium 156, locked Cypress 12.8.1.
+Validated through **Ubuntu WSL inside Docker**, using `python:3.11`. On Windows invoke Docker through `wsl -d Ubuntu`, not host Python/npm; never reuse an existing database. Following Bash commands run inside these containers or equivalent cloud Ubuntu environments. Versions exercised: Python 3.11.18, Django 4.2.30.
 
 From the repository root, always install dependencies before checks:
 

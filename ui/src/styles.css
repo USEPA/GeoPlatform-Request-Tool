@@ -96,18 +96,6 @@ mat-form-field {
   margin-bottom: 6px;
 }
 
-.snackbar-success {
-  background-color: green !important;
-}
-
-.snackbar-error {
-  background-color: darkorange !important;
-  color: black !important;
-  .mat-mdc-snack-bar-action {
-    color: black;
-  }
-}
-
 div.mat-mdc-dialog-actions {
   justify-content: flex-end;
 }

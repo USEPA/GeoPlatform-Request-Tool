@@ -59,7 +59,7 @@ describe('Anonymous submission', () => {
 
   it('should preselect response/project if response in query params', () => {
     cy.visit('/?response=1');
-    cy.get('mat-select[formcontrolname="response"]').should('not.be.empty', )
+    cy.get('mat-select[formcontrolname="response"]').should('not.be.empty',)
   })
 
   it('should not filter responses if response in query params does not exist', () => {
@@ -72,7 +72,10 @@ describe('Anonymous submission', () => {
 
 describe('approver workflow', () => {
   beforeEach(() => {
-    cy.env(['approver_username', 'approver_password']).then(({approver_username: username, approver_password: password}) => {
+    cy.env(['approver_username', 'approver_password']).then(({
+                                                               approver_username: username,
+                                                               approver_password: password
+                                                             }) => {
       cy.loginWithCredentials(username, password);
       cy.visit('/');
     });
@@ -151,8 +154,45 @@ describe('approver workflow', () => {
     cy.get('app-choose-creation-method').should('exist')
   })
 
+  it('should allow approver to deny the request', () => {
+    cy.visit('/accounts/list');
+    cy.get('input#searchInput').type('Test User{enter}')
+    cy.wait(1000);
+    cy.get('mat-cell').first().click();
+    cy.get('button#denyBtn').click()
+    cy.get('button').contains('Confirm').click();
+    cy.get('simple-snack-bar').should('contain', 'Success');
+  });
+
+  it('should not show denied requests by default', () => {
+    cy.visit('/accounts/list');
+    cy.get('input#searchInput').type('Test User{enter}')
+    cy.wait(1000);
+    cy.contains('mat-cell', 'Test').should('not.exist')
+  });
+
+  it('should show denied requests when filter is toggled', () => {
+    cy.visit('/accounts/list');
+    cy.get('button#filterBtn').click();
+    // select True from Denied dropdown
+    cy.get('filter-input[label="Denied"]').click();
+    cy.get('mat-option').contains('True').click();
+    cy.get('button#applyFilterBtn').click();
+    cy.wait(1000);
+    cy.get('mat-cell').should('contain', 'Test')
+    cy.get('input#searchInput').type('Test User{enter}')
+    cy.wait(1000);
+    cy.get('mat-cell').should('contain', 'Test')
+  });
+
   it('should allow apporver to delete the request', () => {
     cy.visit('/accounts/list');
+    // select True from Denied dropdown
+    cy.get('button#filterBtn').click();
+    cy.get('filter-input[label="Denied"]').click();
+    cy.get('mat-option').contains('True').click();
+    cy.get('button#applyFilterBtn').click();
+    cy.wait(1000);
     cy.get('input#searchInput').type('Test User{enter}')
     cy.wait(1000);
     cy.get('mat-cell').first().click();
@@ -161,5 +201,6 @@ describe('approver workflow', () => {
     cy.get('simple-snack-bar').should('contain', 'Deleted User.Test_EPA')
 
   })
+
 
 })
