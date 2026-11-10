@@ -1,23 +1,25 @@
-import {TestBed, inject} from '@angular/core/testing';
+import { beforeEach, describe, expect, it } from "vitest";
+import { TestBed, inject } from '@angular/core/testing';
 
-import {BaseService} from './base.service';
-import {HttpClientTestingModule} from '@angular/common/http/testing';
-import {B} from '@angular/cdk/keycodes';
-import {HttpClient} from '@angular/common/http';
-import {LoadingService} from '@services/loading.service';
+import { BaseService } from './base.service';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { B } from '@angular/cdk/keycodes';
+import { HttpClient, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { LoadingService } from '@services/loading.service';
 
 let service: BaseService;
 
 describe('BaseService', () => {
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule]
+    beforeEach(() => {
+        TestBed.configureTestingModule({
+            imports: [],
+            providers: [provideHttpClient(withXhr(), withInterceptorsFromDi()), provideHttpClientTesting()]
+        });
+        service = new BaseService('', {} as HttpClient, {} as LoadingService);
     });
-    service = new BaseService('', {} as HttpClient, {} as LoadingService)
-  });
 
-  it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
+    it('should be created', () => {
+        expect(service).toBeTruthy();
+    });
 });

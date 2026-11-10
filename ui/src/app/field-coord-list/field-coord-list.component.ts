@@ -1,6 +1,6 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, ChangeDetectionStrategy} from '@angular/core';
 import {BaseService} from '../services/base.service';
-import {HttpClient} from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import {LoadingService} from '../services/loading.service';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -26,15 +26,17 @@ export interface FieldCoordinator {
 }
 
 @Component({
-  selector: 'app-field-coord-list',
-  templateUrl: './field-coord-list.component.html',
-  styleUrls: ['./field-coord-list.component.css']
+    selector: 'app-field-coord-list',
+    templateUrl: './field-coord-list.component.html',
+    styleUrls: ['./field-coord-list.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class FieldCoordListComponent implements OnInit {
   sponsors: BaseService;
   // sponsors: Observable<[]>;
   displayedColumns = ['first_name', 'last_name', 'email', 'phone_number'];
-  field_coordinator: FieldCoordinator;
+  field_coordinator!: FieldCoordinator;
   searchInput = new UntypedFormControl(null);
 
   constructor(public http: HttpClient, loadingService: LoadingService, public snackBar: MatSnackBar,
@@ -84,9 +86,9 @@ export class FieldCoordListComponent implements OnInit {
   async emailFieldCoordRequest() {
       const result = await this.http.post(`${environment.local_service_endpoint}/v1/email_field_coordinator_request/`, this.field_coordinator).toPromise();
     if (result === true) {
-      this.snackBar.open('Email sent', null, {duration: 2000});
+      this.snackBar.open('Email sent', '', {duration: 2000});
     } else {
-      this.snackBar.open('Email failed. Try again later.', null, {duration: 2000});
+      this.snackBar.open('Email failed. Try again later.', '', {duration: 2000});
     }
   }
 

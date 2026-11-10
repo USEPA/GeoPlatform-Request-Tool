@@ -1,13 +1,21 @@
 <!--<h1 mat-dialog-title style="text-align: center">Please choose</h1>-->
 <div mat-dialog-content>
-  Existing account will be added to the selected groups. <span *ngIf="!data.existing_only">For new account requests choose setup method.</span>
-  <br>
+  Existing account will be added to the selected groups. @if (!data.existing_only) {
+  <span>For new account requests choose setup method.</span>
+}
+<br>
 
   <button mat-raised-button color="primary" (click)="dialogRef.close('invitation')">
-    <span *ngIf="!data.existing_only">Send Email Invitation(s)</span>
-    <span *ngIf="data.existing_only">Confirm Approval</span>
+    @if (!data.existing_only) {
+      <span>Send Email Invitation(s)</span>
+    }
+    @if (data.existing_only) {
+      <span>Confirm Approval</span>
+    }
   </button>
-  <button *ngIf="!data.existing_only" mat-raised-button color="primary" (click)="dialogRef.close('password')">Set Password Manually</button>
+  @if (!data.existing_only) {
+    <button mat-raised-button color="primary" (click)="dialogRef.close('password')">Set Password Manually</button>
+  }
 
   <button mat-raised-button color="accent" (click)="dialogRef.close()" cdkFocusInitial>Cancel</button>
 

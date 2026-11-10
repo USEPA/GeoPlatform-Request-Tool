@@ -1,24 +1,26 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import {beforeEach, describe, expect, it} from "vitest";
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { FieldCoordErRequestFormComponent } from './field-coord-er-request-form.component';
-import {HttpClientTestingModule} from '@angular/common/http/testing';
-import {MatSnackBarModule} from '@angular/material/snack-bar';
+import {FieldCoordErRequestFormComponent} from './field-coord-er-request-form.component';
+import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {LoadingService} from '@services/loading.service';
+import {provideHttpClient, withInterceptorsFromDi, withXhr} from '@angular/common/http';
 
 describe('FieldCoordErRequestFormComponent', () => {
   let component: FieldCoordErRequestFormComponent;
   let fixture: ComponentFixture<FieldCoordErRequestFormComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ FieldCoordErRequestFormComponent ],
-      imports: [HttpClientTestingModule, MatSnackBarModule],
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [FieldCoordErRequestFormComponent],
       providers: [
-        {provide: LoadingService, useValue: {}}
+        {provide: LoadingService, useValue: {}},
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting()
       ]
     })
-    .compileComponents();
-  }));
+      .compileComponents();
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(FieldCoordErRequestFormComponent);

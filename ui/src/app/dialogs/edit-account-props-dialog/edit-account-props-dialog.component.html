@@ -1,75 +1,89 @@
 <h1 mat-dialog-title>Edit Account Properties</h1>
 <br>
-<div mat-dialog-content>
-  <form novalidate [formGroup]="editAccountPropsForm">
-    <mat-error *ngIf="customerFormError">
-      {{ customerFormError }}
-    </mat-error>
-    <!--username-->
-    <mat-form-field *ngIf="!data.isBulkEdit">
-      <mat-label>Username</mat-label>
-      <input matInput required [(ngModel)]="data.username" type="text" formControlName="username">
-      <mat-error *ngIf="editAccountPropsForm.controls.username.errors?.username">
-        {{editAccountPropsForm.controls.username.errors.username}}
-      </mat-error>
-    </mat-form-field>
-    <!--group-->
-    <!--response-->
-    <mat-form-field>
-      <mat-label>Response / Project</mat-label>
-      <mat-select required [(ngModel)]="data.response" formControlName="response"
-                  (ngModelChange)="getGroups($event)">
-        <mat-option *ngFor="let response of responses | async" [value]="response.id">
-          {{ response.name }}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-        <!--sponsor-->
-    <mat-form-field>
-      <mat-label>Team Coordinator / Sponsor</mat-label>
-      <mat-select required [(ngModel)]="data.sponsor" formControlName="sponsor">
-        <mat-option *ngFor="let sponsor of sponsors | async" [value]="sponsor.id">
-          {{ sponsor.first_name }} {{ sponsor.last_name }}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-    <!-- GeoPlatform groups -->
+  <div mat-dialog-content>
+    <form novalidate [formGroup]="editAccountPropsForm">
+      @if (customerFormError) {
+        <mat-error>
+          {{ customerFormError }}
+        </mat-error>
+      }
+      <!--username-->
+      @if (!data.isBulkEdit) {
+        <mat-form-field>
+          <mat-label>Username</mat-label>
+          <input matInput required [(ngModel)]="data.username" type="text" formControlName="username">
+          @if (editAccountPropsForm.controls.username.errors?.username) {
+            <mat-error>
+              {{editAccountPropsForm.controls.username.errors.username}}
+            </mat-error>
+          }
+        </mat-form-field>
+      }
+      <!--group-->
+      <!--response-->
+      <mat-form-field>
+        <mat-label>Response / Project</mat-label>
+        <mat-select required [(ngModel)]="data.response" formControlName="response"
+          (ngModelChange)="getGroups($event)">
+          @for (response of responses | async; track response) {
+            <mat-option [value]="response.id">
+              {{ response.name }}
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <!--sponsor-->
+      <mat-form-field>
+        <mat-label>Team Coordinator / Sponsor</mat-label>
+        <mat-select required [(ngModel)]="data.sponsor" formControlName="sponsor">
+          @for (sponsor of sponsors | async; track sponsor) {
+            <mat-option [value]="sponsor.id">
+              {{ sponsor.first_name }} {{ sponsor.last_name }}
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <!-- GeoPlatform groups -->
 
-    <mat-form-field>
-      <mat-label>Groups</mat-label>
-      <mat-hint>These groups will be assigned to the user.</mat-hint>
-      <mat-select [(ngModel)]="data.groups" formControlName="groups" multiple>
-        <mat-option *ngFor="let group of groups | async" [value]="group.id">
-          {{ group.title }}
-        </mat-option>
-      </mat-select>
-      <mat-progress-bar *ngIf="!editAccountPropsForm.controls.groups.enabled" mode="indeterminate"
-                        class="input-progress-bar"></mat-progress-bar>
-    </mat-form-field>
+      <mat-form-field>
+        <mat-label>Groups</mat-label>
+        <mat-hint>These groups will be assigned to the user.</mat-hint>
+        <mat-select [(ngModel)]="data.groups" formControlName="groups" multiple>
+          @for (group of groups | async; track group) {
+            <mat-option [value]="group.id">
+              {{ group.title }}
+            </mat-option>
+          }
+        </mat-select>
+        @if (!editAccountPropsForm.controls.groups.enabled) {
+          <mat-progress-bar mode="indeterminate"
+          class="input-progress-bar"></mat-progress-bar>
+        }
+      </mat-form-field>
 
-    <!--reason for account-->
-    <mat-form-field>
-      <mat-label>Reason / Affiliation</mat-label>
-      <mat-select required [(ngModel)]="data.reason" formControlName="reason">
-        <mat-option value='Emergency Response'>Emergency Response</mat-option>
-        <mat-option value='Other Federal Agency'>Other Federal Agency</mat-option>
-        <mat-option value='State Agency'>State Agency</mat-option>
-        <mat-option value='University'>University</mat-option>
-        <mat-option value='Long Term GIS Support'>Long Term GIS Support</mat-option>
-        <mat-option value='Non Government Organization'>Non Government Organization</mat-option>
-        <mat-option value='Tribal Government'>Tribal Government</mat-option>
-        <mat-option value='Citizen Advisor'>Citizen Advisor</mat-option>
-        <mat-option value='Other'>Other</mat-option>
-      </mat-select>
-    </mat-form-field>
+      <!--reason for account-->
+      <mat-form-field>
+        <mat-label>Reason / Affiliation</mat-label>
+        <mat-select required [(ngModel)]="data.reason" formControlName="reason">
+          <mat-option value='Emergency Response'>Emergency Response</mat-option>
+          <mat-option value='Other Federal Agency'>Other Federal Agency</mat-option>
+          <mat-option value='State Agency'>State Agency</mat-option>
+          <mat-option value='University'>University</mat-option>
+          <mat-option value='Long Term GIS Support'>Long Term GIS Support</mat-option>
+          <mat-option value='Non Government Organization'>Non Government Organization</mat-option>
+          <mat-option value='Tribal Government'>Tribal Government</mat-option>
+          <mat-option value='Citizen Advisor'>Citizen Advisor</mat-option>
+          <mat-option value='Other'>Other</mat-option>
+        </mat-select>
+      </mat-form-field>
 
-  </form>
-</div>
-<div mat-dialog-actions>
-  <button mat-raised-button color="accent" (click)="dismiss()">Cancel</button>
-  <button mat-raised-button color="primary"
-          [disabled]="!editAccountPropsForm.valid"
-          (click)="submit()">
-    Submit
-  </button>
-</div>
+    </form>
+  </div>
+  <div mat-dialog-actions>
+    <button mat-raised-button color="accent" (click)="dismiss()">Cancel</button>
+    <button mat-raised-button color="primary"
+      [disabled]="!editAccountPropsForm.valid"
+      (click)="submit()">
+      Submit
+    </button>
+  </div>

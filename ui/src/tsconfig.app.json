@@ -2,15 +2,19 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "outDir": "../out-tsc/app",
-    "types": [],
-    "paths": {
-      "@services/*": ["src/app/services/*"],
-      "@components/*": ["src/app/components/*"],
-      "@environments/*": ["src/environments/*"]
-    }
+    "types": []
   },
   "exclude": [
     "test.ts",
     "**/*.spec.ts"
-  ]
+  ],
+  "angularCompilerOptions": {
+//    "extendedDiagnostics": {
+//      "checks": {
+//        "nullishCoalescingNotNullable": "suppress",
+//        "optionalChainNotNullable": "suppress"
+//      }
+//    },
+    "strictTemplates": false
+  }
 }

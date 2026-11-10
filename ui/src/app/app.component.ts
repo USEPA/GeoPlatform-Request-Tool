@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, ChangeDetectionStrategy} from '@angular/core';
 import {LoginService} from './auth/login.service';
 import {BehaviorSubject, Observable, ReplaySubject, Subject} from 'rxjs';
 import {NavigationEnd, Router, ActivatedRoute} from '@angular/router';
@@ -7,16 +7,17 @@ import {environment} from '../environments/environment';
 import {filter, tap} from 'rxjs/operators';
 import {MatSnackBar} from '@angular/material/snack-bar';
 
-declare var gtag;
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class AppComponent implements OnInit {
-  admin_url: string;
-  config: Observable<UserConfig>;
+  admin_url!: string;
+  config!: Observable<UserConfig>;
 
   constructor(
     public loginService: LoginService,
@@ -29,6 +30,7 @@ export class AppComponent implements OnInit {
       filter(e => e instanceof NavigationEnd)
     );
     navEndEvent$.subscribe((e: NavigationEnd) => {
+      // @ts-ignore
       window['dataLayer'].push({
         event: 'navigation',
         pageName: e.url

@@ -1,35 +1,35 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { beforeEach, describe, expect, it } from "vitest";
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { EditAccountPropsDialogComponent } from './edit-account-props-dialog.component';
-import {HttpClientTestingModule} from '@angular/common/http/testing';
-import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 
 describe('EditAccountPropsDialogComponent', () => {
-  let component: EditAccountPropsDialogComponent;
-  let fixture: ComponentFixture<EditAccountPropsDialogComponent>;
+    let component: EditAccountPropsDialogComponent;
+    let fixture: ComponentFixture<EditAccountPropsDialogComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ EditAccountPropsDialogComponent ],
-      imports: [
-        HttpClientTestingModule,
-        MatDialogModule,
-      ],
-      providers: [
-        {provide: MatDialogRef, useValue: {}},
-        {provide: MAT_DIALOG_DATA, useValue: {}}
-      ]
-    })
-    .compileComponents();
-  }));
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            imports: [EditAccountPropsDialogComponent],
+            providers: [
+                { provide: MatDialogRef, useValue: {} },
+                { provide: MAT_DIALOG_DATA, useValue: {} },
+                provideHttpClient(withXhr(), withInterceptorsFromDi()),
+                provideHttpClientTesting()
+            ]
+        })
+            .compileComponents();
+    });
 
-  beforeEach(() => {
-    fixture = TestBed.createComponent(EditAccountPropsDialogComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+    beforeEach(() => {
+        fixture = TestBed.createComponent(EditAccountPropsDialogComponent);
+        component = fixture.componentInstance;
+        fixture.detectChanges();
+    });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+    it('should create', () => {
+        expect(component).toBeTruthy();
+    });
 });

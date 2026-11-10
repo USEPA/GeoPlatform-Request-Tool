@@ -21,7 +21,7 @@ const TEST = {
 };
 
 const APPROVE_ENDPOINT = '**/v1/account/approvals/approve/';
-const SNACKBAR = 'span[class="mat-simple-snack-bar-content"]';
+const SNACKBAR = 'simple-snack-bar'; // snackbar container class
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -36,7 +36,7 @@ function editRecordToApproveableState() {
   cy.wait(1000);
   cy.get('mat-select[formcontrolname="groups"].mat-select-disabled', {timeout: 30000}).should('not.exist');
   cy.get('mat-select[formcontrolname="groups"]').click();
-  cy.get('.mat-option-text').contains('Test').click();
+  cy.get('mat-option').contains('Test').click();
   cy.get('body').click();
   cy.wait(1000); // submit button is briefly disabled
   cy.get('button').contains('Submit').click();
@@ -88,13 +88,17 @@ describe('Approve – update_user_type_and_role error handling', () => {
     cy.get(SNACKBAR, {timeout: 30000}).should('contain', 'Request has been successfully submitted');
 
     // 2. Log in as approver and edit the record to satisfy approval requirements
-    cy.loginWithCredentials(Cypress.env('approver_username'), Cypress.env('approver_password'));
+    cy.env(['approver_username', 'approver_password']).then(({approver_username: username, approver_password: password}) => {
+      cy.loginWithCredentials(username, password);
+    });
     editRecordToApproveableState();
   });
 
   // ── one-time teardown: delete the record ──────────────────────────────────
   after(() => {
-    cy.loginWithCredentials(Cypress.env('approver_username'), Cypress.env('approver_password'));
+    cy.env(['approver_username', 'approver_password']).then(({approver_username: username, approver_password: password}) => {
+      cy.loginWithCredentials(username, password);
+    });
     cy.visit('/accounts/list');
     cy.get('input#searchInput').type(`${TEST.first_name} ${TEST.last_name}{enter}`);
     cy.wait(1000);
@@ -106,7 +110,9 @@ describe('Approve – update_user_type_and_role error handling', () => {
 
   // ── per-test login ─────────────────────────────────────────────────────────
   beforeEach(() => {
-    cy.loginWithCredentials(Cypress.env('approver_username'), Cypress.env('approver_password'));
+    cy.env(['approver_username', 'approver_password']).then(({approver_username: username, approver_password: password}) => {
+      cy.loginWithCredentials(username, password);
+    });
   });
 
   // ── tests ──────────────────────────────────────────────────────────────────

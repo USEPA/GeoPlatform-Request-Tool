@@ -2,22 +2,28 @@
   <div>
     <mat-card appearance="outlined" style="display: flex; flex-direction: column; align-items: center;">
       <div style="max-width: 400px; text-align: center;margin-bottom: 10px;">
-        <ng-container *ngIf="showNewUserMessage">Please proceed to be able to submit a new response / project request.
-        </ng-container>
-        <ng-container *ngIf="!showNewUserMessage && !geoportal && !geosecure">Please select the environment in which you
+        @if (showNewUserMessage) {
+          Please proceed to be able to submit a new response / project request.
+        }
+        @if (!showNewUserMessage && !geoportal && !geosecure) {
+          Please select the environment in which you
           will be creating a response / project or approving requests.
-        </ng-container>
+        }
       </div>
-      <form ngNoForm *ngIf="!geosecure" method="post" [action]="getLoginUrl('geoplatform')" style="padding-bottom: 10px">
-        <input type="hidden" name="next" [value]="nextUrl">
-        <input type="hidden" name="csrfmiddlewaretoken" [value]="csrfToken">
-        <button mat-raised-button color="primary" type="submit">Login using EPA GeoPlatform</button>
-      </form>
-      <form ngNoForm *ngIf="!geoportal" method="post" [action]="getLoginUrl('geosecure')">
-        <input type="hidden" name="next" [value]="nextUrl">
-        <input type="hidden" name="csrfmiddlewaretoken" [value]="csrfToken">
-        <button mat-raised-button color="primary" type="submit">Login using EPA GeoSecure</button>
-      </form>
+      @if (!geosecure) {
+        <form ngNoForm method="post" [action]="getLoginUrl('geoplatform')" style="padding-bottom: 10px">
+          <input type="hidden" name="next" [value]="nextUrl">
+          <input type="hidden" name="csrfmiddlewaretoken" [value]="csrfToken">
+          <button mat-raised-button color="primary" type="submit">Login using EPA GeoPlatform</button>
+        </form>
+      }
+      @if (!geoportal) {
+        <form ngNoForm method="post" [action]="getLoginUrl('geosecure')">
+          <input type="hidden" name="next" [value]="nextUrl">
+          <input type="hidden" name="csrfmiddlewaretoken" [value]="csrfToken">
+          <button mat-raised-button color="primary" type="submit">Login using EPA GeoSecure</button>
+        </form>
+      }
     </mat-card>
   </div>
 </div>

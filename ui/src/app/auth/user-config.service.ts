@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import {Observable, ReplaySubject} from 'rxjs';
 import {map, share, tap} from 'rxjs/operators';
 import {environment} from "@environments/environment";
@@ -24,7 +24,7 @@ export interface UserConfig {
 })
 export class UserConfigService {
   config: ReplaySubject<UserConfig> = new ReplaySubject<UserConfig>();
-  private current_config: UserConfig;
+  private current_config!: UserConfig;
   public authenticated = false;
   constructor(public http: HttpClient) {
     this.config.pipe(share()).subscribe(config => this.current_config = config);
@@ -39,7 +39,7 @@ export class UserConfigService {
   }
 
   clearConfig() {
-    this.config.next(null);
+    this.config.next({} as UserConfig);
     this.authenticated = false;
   }
 

@@ -3,21 +3,23 @@
   "compilerOptions": {
     "outDir": "../out-tsc/spec",
     "types": [
-      "jasmine",
       "node"
-    ],
-    "paths": {
-      "@services/*": ["src/app/services/*"],
-      "@components/*": ["src/app/components/*"],
-      "@environments/*": ["src/environments/*"]
-    }
+    ]
   },
   "files": [
-    "test.ts",
-    "polyfills.ts"
+    "./polyfills.ts"
   ],
   "include": [
     "**/*.spec.ts",
     "**/*.d.ts"
-  ]
+  ],
+  "angularCompilerOptions": {
+//    "extendedDiagnostics": {
+//      "checks": {
+//        "nullishCoalescingNotNullable": "suppress",
+//        "optionalChainNotNullable": "suppress"
+//      }
+//    },
+    "strictTemplates": false
+  }
 }

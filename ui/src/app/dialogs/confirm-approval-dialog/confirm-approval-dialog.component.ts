@@ -1,6 +1,13 @@
-import {Component, Inject, OnInit} from '@angular/core';
+import {Component, Inject, OnInit, ChangeDetectionStrategy} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import {UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
+import {
+  AbstractControl,
+  UntypedFormControl,
+  UntypedFormGroup,
+  ValidationErrors,
+  ValidatorFn,
+  Validators
+} from '@angular/forms';
 import {AccountProps} from '../../approval-list/approval-list.component';
 
 export interface ConfirmDialogData {
@@ -9,7 +16,7 @@ export interface ConfirmDialogData {
   selected_request?: AccountProps;
 }
 
-export const passwordMatchValidator: ValidatorFn = (control: UntypedFormGroup): ValidationErrors | null => {
+export const passwordMatchValidator: (control: AbstractControl) => (ValidationErrors | null) = (control: AbstractControl): ValidationErrors | null => {
   const password = control.get('passwordInput');
   const confirm = control.get('passwordConfirm');
 
@@ -17,9 +24,11 @@ export const passwordMatchValidator: ValidatorFn = (control: UntypedFormGroup): 
 };
 
 @Component({
-  selector: 'app-confirm-approval-dialog',
-  templateUrl: './confirm-approval-dialog.component.html',
-  styleUrls: ['./confirm-approval-dialog.component.css']
+    selector: 'app-confirm-approval-dialog',
+    templateUrl: './confirm-approval-dialog.component.html',
+    styleUrls: ['./confirm-approval-dialog.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 
 export class ConfirmApprovalDialogComponent implements OnInit {

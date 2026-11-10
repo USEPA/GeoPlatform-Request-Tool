@@ -1,9 +1,9 @@
 <mat-card appearance="outlined" style="flex-basis: 500px; height: 100%">
   <mat-card-title>User Account Request Form</mat-card-title>
   <mat-card-subtitle>Use the form below to request an EPA account and/or to request access to groups for a specific
-    emergency response or project.</mat-card-subtitle>
+  emergency response or project.</mat-card-subtitle>
   <form novalidate [formGroup]="requestForm"
-        style="display: flex; flex-direction: column; justify-content: center;">
+    style="display: flex; flex-direction: column; justify-content: center;">
     <mat-form-field>
       <mat-label>First Name</mat-label>
       <input matInput type="text" required formControlName="first_name">
@@ -15,10 +15,12 @@
     <mat-form-field>
       <mat-label>Email</mat-label>
       <input matInput type="email" required formControlName="email">
-      <mat-error *ngIf="requestForm.controls.email.invalid">
-        {{ requestForm.controls.email.hasError('email') ? 'Not a valid email' : '' }}
-      </mat-error>
-       <mat-hint>This email will be associated with your account.</mat-hint>
+      @if (requestForm.controls.email.invalid) {
+        <mat-error>
+          {{ requestForm.controls.email.hasError('email') ? 'Not a valid email' : '' }}
+        </mat-error>
+      }
+      <mat-hint>This email will be associated with your account.</mat-hint>
     </mat-form-field>
     <mat-form-field>
       <mat-label>Organization</mat-label>
@@ -27,16 +29,18 @@
     <mat-form-field>
       <mat-label>Response / Project</mat-label>
       <mat-select formControlName="response" required>
-        <mat-option *ngFor="let response of responses | async" [value]="response.id">
-          {{ response.name }}
-        </mat-option>
+        @for (response of responses | async; track response) {
+          <mat-option [value]="response.id">
+            {{ response.name }}
+          </mat-option>
+        }
       </mat-select>
       <mat-hint>You will be assigned to this response / project.</mat-hint>
     </mat-form-field>
     <br>
-  </form>
-  <button mat-raised-button color="primary" [disabled]="!requestForm.valid || (submitting | async)" (click)="submit()"
-          style="align-self: flex-end; margin-top: -36px">
-    Submit
-  </button>
-</mat-card>
+    </form>
+    <button mat-raised-button color="primary" [disabled]="!requestForm.valid || (submitting | async)" (click)="submit()"
+      style="align-self: flex-end; margin-top: -36px">
+      Submit
+    </button>
+  </mat-card>
