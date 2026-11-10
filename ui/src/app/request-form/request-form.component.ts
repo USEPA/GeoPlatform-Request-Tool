@@ -1,17 +1,19 @@
 import {Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {HttpClient, HttpErrorResponse, HttpParams} from '@angular/common/http';
-import {BehaviorSubject, iif, Observable, of, switchMap, take} from 'rxjs';
+import {BehaviorSubject, from, iif, Observable, of, switchMap, take} from 'rxjs';
 import {catchError, finalize, map, share, tap} from 'rxjs/operators';
-import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-bar';
+import {MatSnackBar} from '@angular/material/snack-bar';
 import {environment} from '../../environments/environment';
 import {ActivatedRoute} from '@angular/router';
-import {ReCaptchaV3Service} from 'ng-recaptcha';
+import {fromPromise} from "rxjs/internal/observable/innerFrom";
 
 interface Response {
   id: number;
   name: string;
 }
+
+declare const grecaptcha: any;
 
 @Component({
   selector: 'app-request-form',
@@ -30,8 +32,7 @@ export class RequestFormComponent implements OnInit {
     recaptcha: new FormControl(null)
   });
 
-  constructor(public http: HttpClient, public matSnackBar: MatSnackBar, private activatedRoute: ActivatedRoute,
-              private recaptchaV3Service: ReCaptchaV3Service) {
+  constructor(public http: HttpClient, public matSnackBar: MatSnackBar, private activatedRoute: ActivatedRoute) {
   }
 
   ngOnInit() {
@@ -81,11 +82,17 @@ export class RequestFormComponent implements OnInit {
     ).subscribe();
   }
 
-  getRecaptureToken(): Observable<string> {
+  getRecaptureToken(): Observable<void> {
     // new way of getting recaptcha token into form
-    return this.recaptchaV3Service.execute('submit').pipe(
-      tap(recaptcha => this.requestForm.patchValue({recaptcha}))
-    )
+    return new Observable((obs) => {
+      grecaptcha.ready(() => {
+        grecaptcha.execute(environment.recaptcha_siteKey, {action: 'submit'}).then((token) => {
+          this.requestForm.patchValue({recaptcha: token});
+          obs.next();
+          obs.complete();
+        });
+      });
+    });
   }
 
   submitForm() {

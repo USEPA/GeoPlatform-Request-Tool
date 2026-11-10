@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {catchError, map, switchMap} from 'rxjs/operators';
 import {BehaviorSubject, Observable} from 'rxjs';
-import {Router, ActivatedRouteSnapshot, CanActivateChild, RouterStateSnapshot, CanActivate} from '@angular/router';
+import { Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import {environment} from '../../environments/environment';
 import {UserConfigService} from './user-config.service';
 import {Location} from '@angular/common';
@@ -17,7 +17,7 @@ import {Location} from '@angular/common';
 // }
 
 @Injectable()
-export class LoginService implements CanActivateChild, CanActivate {
+export class LoginService  {
   // login service type event
   public loginTypeSource: BehaviorSubject<string> = new BehaviorSubject<string>('');
   public loginTypeEvent: Observable<string> = this.loginTypeSource.asObservable();
@@ -92,8 +92,8 @@ export class LoginService implements CanActivateChild, CanActivate {
     });
   }
 
-  sendToLogin(provider: string, next: string = '') {
-    window.location.href = `${environment.oauth_url}/login/${provider}/?next=${next}`;
+  getLoginUrl(provider: string): string {
+    return `${environment.oauth_url}/login/${provider}/`;
   }
 
   // convertToken(accessToken: string) {

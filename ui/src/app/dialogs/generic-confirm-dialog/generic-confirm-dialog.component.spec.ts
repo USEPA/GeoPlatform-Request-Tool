@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { GenericConfirmDialogComponent } from './generic-confirm-dialog.component';
-import {MAT_LEGACY_DIALOG_DATA, MatLegacyDialogModule, MatLegacyDialogRef} from '@angular/material/legacy-dialog';
+import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
 
 describe('GenericConfirmDialogComponent', () => {
@@ -12,11 +12,11 @@ describe('GenericConfirmDialogComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [ GenericConfirmDialogComponent ],
       imports: [
-        MatLegacyDialogModule
+        MatDialogModule
       ],
       providers: [
-        {provide: MatLegacyDialogRef, useValue: {}},
-        {provide: MAT_LEGACY_DIALOG_DATA, useValue: {}}
+        {provide: MatDialogRef, useValue: {}},
+        {provide: MAT_DIALOG_DATA, useValue: {}}
       ]
     })
     .compileComponents();

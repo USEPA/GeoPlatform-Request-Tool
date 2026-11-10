@@ -2,7 +2,7 @@ import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {HomeComponent} from './home.component';
 import {LoginService} from '../auth/login.service';
-import {MatLegacyDialog} from '@angular/material/legacy-dialog';
+import {MatDialog} from '@angular/material/dialog';
 import {RouterTestingModule} from '@angular/router/testing';
 import {HttpClientTestingModule} from '@angular/common/http/testing';
 
@@ -21,7 +21,7 @@ describe('HomeComponent', () => {
       ],
       providers: [
         {provide: LoginService, useValue: {}},
-        {provide: MatLegacyDialog, useValue: {}},
+        {provide: MatDialog, useValue: {}},
       ]
     })
       .compileComponents();

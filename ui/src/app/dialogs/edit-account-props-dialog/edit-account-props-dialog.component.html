@@ -7,7 +7,8 @@
     </mat-error>
     <!--username-->
     <mat-form-field *ngIf="!data.isBulkEdit">
-      <input matInput required [(ngModel)]="data.username" type="text" formControlName="username" placeholder="Username">
+      <mat-label>Username</mat-label>
+      <input matInput required [(ngModel)]="data.username" type="text" formControlName="username">
       <mat-error *ngIf="editAccountPropsForm.controls.username.errors?.username">
         {{editAccountPropsForm.controls.username.errors.username}}
       </mat-error>
@@ -15,7 +16,8 @@
     <!--group-->
     <!--response-->
     <mat-form-field>
-      <mat-select required [(ngModel)]="data.response" formControlName="response" placeholder="Response / Project"
+      <mat-label>Response / Project</mat-label>
+      <mat-select required [(ngModel)]="data.response" formControlName="response"
                   (ngModelChange)="getGroups($event)">
         <mat-option *ngFor="let response of responses | async" [value]="response.id">
           {{ response.name }}
@@ -24,7 +26,8 @@
     </mat-form-field>
         <!--sponsor-->
     <mat-form-field>
-      <mat-select required [(ngModel)]="data.sponsor" formControlName="sponsor" placeholder="Team Coordinator / Sponsor">
+      <mat-label>Team Coordinator / Sponsor</mat-label>
+      <mat-select required [(ngModel)]="data.sponsor" formControlName="sponsor">
         <mat-option *ngFor="let sponsor of sponsors | async" [value]="sponsor.id">
           {{ sponsor.first_name }} {{ sponsor.last_name }}
         </mat-option>
@@ -33,7 +36,9 @@
     <!-- GeoPlatform groups -->
 
     <mat-form-field>
-      <mat-select [(ngModel)]="data.groups" formControlName="groups" multiple placeholder="Groups">
+      <mat-label>Groups</mat-label>
+      <mat-hint>These groups will be assigned to the user.</mat-hint>
+      <mat-select [(ngModel)]="data.groups" formControlName="groups" multiple>
         <mat-option *ngFor="let group of groups | async" [value]="group.id">
           {{ group.title }}
         </mat-option>
@@ -44,7 +49,8 @@
 
     <!--reason for account-->
     <mat-form-field>
-      <mat-select required [(ngModel)]="data.reason" required formControlName="reason" placeholder="Reason / Affiliation">
+      <mat-label>Reason / Affiliation</mat-label>
+      <mat-select required [(ngModel)]="data.reason" formControlName="reason">
         <mat-option value='Emergency Response'>Emergency Response</mat-option>
         <mat-option value='Other Federal Agency'>Other Federal Agency</mat-option>
         <mat-option value='State Agency'>State Agency</mat-option>

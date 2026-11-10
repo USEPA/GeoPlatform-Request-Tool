@@ -2,7 +2,7 @@ import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {Accounts, ApprovalListComponent} from './approval-list.component';
 import {Observable, of} from 'rxjs';
-import {MatLegacyDialog as MatDialog} from '@angular/material/legacy-dialog';
+import {MatDialog} from '@angular/material/dialog';
 import {FilterInputComponent} from '../filter-input/filter-input.component';
 import {CustomMaterialModule} from '../core/material.module';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
@@ -12,7 +12,7 @@ import {HttpClientTestingModule, HttpTestingController} from '@angular/common/ht
 import {LoadingService} from '@services/loading.service';
 import {LoginService} from '../auth/login.service';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-bar';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 import {environment} from '@environments/environment';
 import {UpdateApprovalTest} from './approval-list-mock-data';

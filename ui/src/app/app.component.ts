@@ -5,7 +5,7 @@ import {NavigationEnd, Router, ActivatedRoute} from '@angular/router';
 import {UserConfig, UserConfigService} from './auth/user-config.service';
 import {environment} from '../environments/environment';
 import {filter, tap} from 'rxjs/operators';
-import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-bar';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 declare var gtag;
 
@@ -37,6 +37,7 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadRecaptchaScript();
     this.admin_url = `${environment.local_service_endpoint}/admin/`;
     this.config = this.userConfig.config;
     this.route.queryParams.pipe(
@@ -50,8 +51,9 @@ export class AppComponent implements OnInit {
   }
 
   switch_portal() {
-    this.loginService.logout().subscribe(()=>this.router.navigate(['login'], {queryParams: {next: this.router.url}}))
+    this.loginService.logout().subscribe(() => this.router.navigate(['login'], {queryParams: {next: this.router.url}}))
   }
+
   close_warning() {
     this.router.navigate([]);
   }
@@ -62,5 +64,11 @@ export class AppComponent implements OnInit {
       'The Account Request Tool has a new home. Please update your bookmarks to https://gpdashboard.epa.gov/request/',
       'Dismiss',
       {verticalPosition: 'top', panelClass: ['snackbar-error']})
+  }
+
+  loadRecaptchaScript() {
+    const script = document.createElement("script");
+    script.src = `https://www.google.com/recaptcha/api.js?render=${environment.recaptcha_siteKey}`;
+    document.head.appendChild(script);
   }
 }

@@ -6,7 +6,7 @@ import {LoginService} from './auth/login.service';
 import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {MatToolbarModule} from '@angular/material/toolbar';
 import {MatIconModule} from '@angular/material/icon';
-import {MatLegacySnackBarModule} from '@angular/material/legacy-snack-bar';
+import {MatSnackBarModule} from '@angular/material/snack-bar';
 
 describe('AppComponent', () => {
   beforeEach(async(() => {
@@ -16,7 +16,7 @@ describe('AppComponent', () => {
         HttpClientTestingModule,
         MatToolbarModule,
         MatIconModule,
-        MatLegacySnackBarModule
+        MatSnackBarModule
       ],
       declarations: [
         AppComponent

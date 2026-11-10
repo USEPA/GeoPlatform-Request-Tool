@@ -5,10 +5,8 @@ import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {HTTP_INTERCEPTORS, HttpClientModule, HttpClientXsrfModule} from '@angular/common/http';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {CdkTableModule} from '@angular/cdk/table';
-import {RecaptchaV3Module, RECAPTCHA_V3_SITE_KEY} from 'ng-recaptcha';
 import {CustomMaterialModule} from './core/material.module';
 
-import {environment} from '@environments/environment';
 import {AppRoutingModule} from './app-routing.module';
 import {AppComponent} from './app.component';
 import {AuthModule} from './auth/auth.module';
@@ -60,14 +58,10 @@ import {CommonModule} from '@angular/common';
     BrowserAnimationsModule,
     FormsModule,
     ReactiveFormsModule,
-    RecaptchaV3Module,
     CustomMaterialModule,
     HttpClientXsrfModule.withOptions({cookieName: 'requestcsrftoken', headerName: 'X-CSRFToken'}),
   ],
-  providers: [{
-    provide: RECAPTCHA_V3_SITE_KEY,
-    useValue: environment.recaptcha_siteKey
-  },
+  providers: [
     LoadingService,
   ],
   bootstrap: [AppComponent]

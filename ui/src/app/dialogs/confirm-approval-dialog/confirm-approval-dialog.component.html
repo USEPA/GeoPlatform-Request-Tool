@@ -1,7 +1,7 @@
 <h1 mat-dialog-title>Please confirm
   <span *ngIf="data.password_needed">and provide initial password for these accounts.</span></h1>
 <div mat-dialog-content>
-  <p class="mat-body-1" *ngIf="data.password_needed">
+  <p class="mat-body-2" *ngIf="data.password_needed">
     Password Requirements<br/>
     1 Letter<br/>
     1 Number<br/>
@@ -19,7 +19,7 @@
     <mat-form-field style="width: 100%; padding-top: 10px;">
       <input matInput required placeholder="Confirm Password" formControlName="passwordConfirm" type="password">
     </mat-form-field>
-      <mat-error *ngIf="!passwordForm.valid" class="mat-body-2">
+      <mat-error *ngIf="!passwordForm.valid" class="mat-subtitle-2">
         {{ passwordForm.hasError('passwordMatch') ? 'Passwords do not match' : '' }}
       </mat-error>
   </form>

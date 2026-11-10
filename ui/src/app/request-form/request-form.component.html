@@ -1,27 +1,32 @@
-<mat-card style="flex-basis: 500px; height: 100%">
+<mat-card appearance="outlined" style="flex-basis: 500px; height: 100%">
   <mat-card-title>User Account Request Form</mat-card-title>
   <mat-card-subtitle>Use the form below to request an EPA account and/or to request access to groups for a specific
     emergency response or project.</mat-card-subtitle>
   <form novalidate [formGroup]="requestForm"
         style="display: flex; flex-direction: column; justify-content: center;">
     <mat-form-field>
-      <input matInput type="text" required formControlName="first_name" placeholder="First Name">
+      <mat-label>First Name</mat-label>
+      <input matInput type="text" required formControlName="first_name">
     </mat-form-field>
     <mat-form-field>
-      <input matInput type="text" required formControlName="last_name" placeholder="Last Name">
+      <mat-label>Last Name</mat-label>
+      <input matInput type="text" required formControlName="last_name">
     </mat-form-field>
     <mat-form-field>
-      <input matInput type="email" required formControlName="email" placeholder="Email">
+      <mat-label>Email</mat-label>
+      <input matInput type="email" required formControlName="email">
       <mat-error *ngIf="requestForm.controls.email.invalid">
         {{ requestForm.controls.email.hasError('email') ? 'Not a valid email' : '' }}
       </mat-error>
        <mat-hint>This email will be associated with your account.</mat-hint>
     </mat-form-field>
     <mat-form-field>
-      <input matInput type="text" required formControlName="organization" placeholder="Organization">
+      <mat-label>Organization</mat-label>
+      <input matInput type="text" required formControlName="organization">
     </mat-form-field>
     <mat-form-field>
-      <mat-select formControlName="response" placeholder="Response / Project" required>
+      <mat-label>Response / Project</mat-label>
+      <mat-select formControlName="response" required>
         <mat-option *ngFor="let response of responses | async" [value]="response.id">
           {{ response.name }}
         </mat-option>
@@ -31,7 +36,7 @@
     <br>
   </form>
   <button mat-raised-button color="primary" [disabled]="!requestForm.valid || (submitting | async)" (click)="submit()"
-          style="float: right; margin-top: -36px">
+          style="align-self: flex-end; margin-top: -36px">
     Submit
   </button>
 </mat-card>

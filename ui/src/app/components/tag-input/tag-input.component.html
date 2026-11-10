@@ -1,15 +1,15 @@
 <mat-form-field>
-  <mat-chip-list #tagList>
-    <mat-chip
+  <mat-label>{{ label }}</mat-label>
+  <mat-chip-grid #tagList>
+    <mat-chip-row
       *ngFor="let tag of tags"
       [selectable]="selectable"
       [removable]="removable"
       (removed)="remove(tag)">
-      {{tag.title}}
+      {{ tag.title }}
       <mat-icon matChipRemove *ngIf="removable">cancel</mat-icon>
-    </mat-chip>
+    </mat-chip-row>
     <input
-      [placeholder]="label"
       #tagInput
       [formControl]="tagsCtrl"
       [matAutocomplete]="auto"
@@ -17,11 +17,11 @@
       [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
       [matChipInputAddOnBlur]="addOnBlur"
       (matChipInputTokenEnd)="add($event)">
-  </mat-chip-list>
+  </mat-chip-grid>
   <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selected($event)">
     <mat-option *ngFor="let tag of filteredTags | async" [value]="tag">
-      {{tag.title}}
+      {{ tag.title }}
     </mat-option>
   </mat-autocomplete>
-  <mat-hint>{{hint}}</mat-hint>
+  <mat-hint>{{ hint }}</mat-hint>
 </mat-form-field>

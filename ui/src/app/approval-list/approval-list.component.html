@@ -39,8 +39,9 @@
 
     <div class="list-header" style="display: flex; flex-direction: row; justify-content: space-between">
       <mat-form-field style="width:250px; padding-left: 25px; padding-top: 15px;">
-        <input [formControl]="searchInput" matInput type="text" placeholder="Search" id="searchInput"/>
-        <button style="position:absolute; top:-5px; right:0px;" type="button" mat-icon-button
+        <mat-label>Search</mat-label>
+        <input [formControl]="searchInput" matInput type="text" id="searchInput"/>
+        <button matSuffix type="button" mat-icon-button
                 (click)="clearSearch()"
                 *ngIf="accounts.filter.search">
           <mat-icon>close</mat-icon>
@@ -81,34 +82,34 @@
                  (matSortChange)="accounts.sortTable($event)">
         <!--Account Select Checkbox-->
         <ng-container cdkColumnDef="selected">
-          <mat-header-cell *cdkHeaderCellDef class="header-cell" matTooltip="Select all records for approval">
+          <mat-header-cell *cdkHeaderCellDef matTooltip="Select all records for approval">
             <mat-checkbox (change)="updateSelectedAccount($event, true)"
                           [checked]="allChecked"></mat-checkbox>
           </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell" matTooltip="Select record(s) to approve">
+          <mat-cell *cdkCellDef="let row"matTooltip="Select record(s) to approve">
             <mat-checkbox (change)="updateSelectedAccount($event)" [value]="row.id" *ngIf="accountsListProps[row.id]"
                           [checked]="accountsListProps[row.id].isChecked"></mat-checkbox>
           </mat-cell>
         </ng-container>
         <!--Name-->
         <ng-container cdkColumnDef="first_name">
-          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
+          <mat-header-cell *cdkHeaderCellDef mat-sort-header>
             First Name
           </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">{{ row.first_name }}</mat-cell>
+          <mat-cell *cdkCellDef="let row" >{{ row.first_name }}</mat-cell>
         </ng-container>
         <ng-container cdkColumnDef="last_name">
-          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
+          <mat-header-cell *cdkHeaderCellDef mat-sort-header>
             Last Name
           </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">{{ row.last_name }}</mat-cell>
+          <mat-cell *cdkCellDef="let row" >{{ row.last_name }}</mat-cell>
         </ng-container>
         <!-- Username -->
         <ng-container cdkColumnDef="username">
-          <mat-header-cell *cdkHeaderCellDef class="header-cell">
+          <mat-header-cell *cdkHeaderCellDef>
             Username
           </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">
+          <mat-cell *cdkCellDef="let row" >
             <mat-icon style="color: red;"
                       *ngIf="row.is_existing_account && !emailMatchesAccount(row) && !row.username_valid"
                       [matTooltip]="getEmailMismatchTooltip(userConfig)">
@@ -133,10 +134,10 @@
         </ng-container>
         <!-- Email -->
         <ng-container cdkColumnDef="email">
-          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
+          <mat-header-cell *cdkHeaderCellDef mat-sort-header>
             Email
           </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">
+          <mat-cell *cdkCellDef="let row" >
             <mat-icon color="warn" *ngIf="row.possible_existing_account.length > 0" tooltipClass="'mat-tooltip'"
                       matTooltip="Found accounts with same email. To add existing account to groups, edit Username to an existing username.
                       Existing username(s): {{ row.possible_existing_account }}">
@@ -147,17 +148,17 @@
         </ng-container>
         <!-- Organization -->
         <ng-container cdkColumnDef="organization">
-          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
+          <mat-header-cell *cdkHeaderCellDef mat-sort-header>
             Organization
           </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">{{ row.organization }}</mat-cell>
+          <mat-cell *cdkCellDef="let row">{{ row.organization }}</mat-cell>
         </ng-container>
         <!-- Role -->
         <!--        <ng-container cdkColumnDef="role">-->
-        <!--          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">-->
+        <!--          <mat-header-cell *cdkHeaderCellDef mat-sort-header>-->
         <!--            Role-->
         <!--          </mat-header-cell>-->
-        <!--          <mat-cell *cdkCellDef="let row" class="cell">-->
+        <!--          <mat-cell *cdkCellDef="let row">-->
         <!--            <mat-select [(ngModel)]="row.role" (selectionChange)="row.changed = true">-->
         <!--              <mat-option *ngFor="let role of roles | async" [value]="role.value">-->
         <!--                {{ role.display }}-->
@@ -167,10 +168,10 @@
         <!--        </ng-container>-->
         <!-- Groups -->
         <ng-container cdkColumnDef="groups">
-          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
+          <mat-header-cell *cdkHeaderCellDef mat-sort-header>
             Groups
           </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">
+          <mat-cell *cdkCellDef="let row" >
             <mat-icon *ngIf="row.groups.length > 0" style="color: green;">check</mat-icon>
             <mat-icon *ngIf="row.groups.length == 0" style="color: red;"
                       matTooltip="No group has been selected.">warning
@@ -179,10 +180,10 @@
         </ng-container>
         <!-- sponsor -->
         <ng-container cdkColumnDef="sponsor">
-          <mat-header-cell *cdkHeaderCellDef class="header-cell">
+          <mat-header-cell *cdkHeaderCellDef>
             Sponsor
           </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">
+          <mat-cell *cdkCellDef="let row" >
             <mat-icon *ngIf="row.sponsor" style="color: green;">check</mat-icon>
             <mat-icon *ngIf="!row.sponsor" style="color: red;"
                       matTooltip="No sponsor has been selected.">warning
@@ -191,44 +192,42 @@
         </ng-container>
         <!-- response -->
         <ng-container cdkColumnDef="response">
-          <mat-header-cell *cdkHeaderCellDef class="header-cell">
+          <mat-header-cell *cdkHeaderCellDef>
             Response
           </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">
+          <mat-cell *cdkCellDef="let row">
             <mat-icon *ngIf="row.response" style="color: green;">check</mat-icon>
             <mat-icon *ngIf="!row.response" color="warn"
-                      tooltipClass="'mat-tooltip'"
                       matTooltip="No response has been selected.">warning
             </mat-icon>
           </mat-cell>
         </ng-container>
         <!-- Reason -->
         <ng-container cdkColumnDef="reason">
-          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
+          <mat-header-cell *cdkHeaderCellDef mat-sort-header>
             Reason
           </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">
+          <mat-cell *cdkCellDef="let row">
             <mat-icon *ngIf="row.reason" style="color: green;">check</mat-icon>
             <mat-icon *ngIf="!row.reason" color="warn"
-                      tooltipClass="'mat-tooltip'"
                       matTooltip="No reason has been provided.">warning
             </mat-icon>
           </mat-cell>
         </ng-container>
         <ng-container cdkColumnDef="submitted">
-          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
+          <mat-header-cell *cdkHeaderCellDef mat-sort-header>
             Submitted
           </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">
+          <mat-cell *cdkCellDef="let row">
             {{ row.submitted | date:'short' }}
           </mat-cell>
         </ng-container>
         <!-- User Types NOT IN USE -->
         <!--        <ng-container cdkColumnDef="user_type">-->
-        <!--          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">-->
+        <!--          <mat-header-cell *cdkHeaderCellDef mat-sort-header>-->
         <!--            User Type-->
         <!--          </mat-header-cell>-->
-        <!--          <mat-cell *cdkCellDef="let row" class="cell">-->
+        <!--          <mat-cell *cdkCellDef="let row">-->
         <!--            <mat-select [(ngModel)]="row.user_type" (selectionChange)="row.changed = true">-->
         <!--              <mat-option *ngFor="let user_type of user_types | async" [value]="user_type.value">-->
         <!--                {{ user_type.display }}-->
@@ -238,10 +237,10 @@
         <!--        </ng-container>-->
         <!-- Approved -->
         <ng-container cdkColumnDef="approved">
-          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
+          <mat-header-cell *cdkHeaderCellDef mat-sort-header>
             Approved
           </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">
+          <mat-cell *cdkCellDef="let row">
             <mat-icon *ngIf="row.approved" style="color: green;" [matTooltip]="row.approved | date:'short'">check
             </mat-icon>
             <mat-icon *ngIf="!row.approved" style="color: red;">close</mat-icon>
@@ -249,10 +248,10 @@
         </ng-container>
         <!--Created-->
         <ng-container cdkColumnDef="created">
-          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
+          <mat-header-cell *cdkHeaderCellDef mat-sort-header>
             Created
           </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">
+          <mat-cell *cdkCellDef="let row">
             <mat-icon *ngIf="row.created" style="color: green;" [matTooltip]="row.created | date:'short'">check
             </mat-icon>
             <mat-icon *ngIf="!row.created" style="color: red;">close</mat-icon>
@@ -260,19 +259,19 @@
         </ng-container>
         <!--Delete-->
         <ng-container cdkColumnDef="denied">
-          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
+          <mat-header-cell *cdkHeaderCellDef mat-sort-header>
             Denied
           </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">
+          <mat-cell *cdkCellDef="let row">
             <mat-icon *ngIf="row.denied" style="color: green;" [matTooltip]="row.denied | date:'short'">check</mat-icon>
             <mat-icon *ngIf="!row.denied" style="color: red;">close</mat-icon>
           </mat-cell>
         </ng-container>
         <ng-container cdkColumnDef="delete">
-          <mat-header-cell *cdkHeaderCellDef class="header-cell">
+          <mat-header-cell *cdkHeaderCellDef>
             Delete
           </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">
+          <mat-cell *cdkCellDef="let row">
             <button *ngIf="!row.approved" mat-icon-button (click)="confirmDeleteAccountRequest($event, row)"
                     [matTooltip]="!row.approved ? 'Delete unapproved request' : ''">
               <mat-icon style="color: red;">delete_forever</mat-icon>

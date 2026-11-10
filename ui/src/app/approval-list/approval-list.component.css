@@ -1,41 +1,41 @@
-.header-cell.cdk-column-selected, .cell.cdk-column-selected,
-.header-cell.cdk-column-save, .cell.cdk-column-save {
-  max-width: 40px;
+.cdk-column-selected, .cdk-column-selected,
+.cdk-column-save, .cdk-column-save {
+  max-width: 68px;
   /*text-align: center;*/
   /*justify-content: center;*/
 }
 
 
-/*.header-cell.cdk-column-created,*/
-/*.header-cell.cdk-column-approved,*/
-/*.header-cell.cdk-column-groups,*/
-/*.header-cell.cdk-column-response,*/
-/*.header-cell.cdk-column-sponsor,*/
-/*.header-cell.cdk-column-reason,*/
-/*.header-cell.cdk-column-description {*/
+/*.cdk-column-created,*/
+/*.cdk-column-approved,*/
+/*.cdk-column-groups,*/
+/*.cdk-column-response,*/
+/*.cdk-column-sponsor,*/
+/*.cdk-column-reason,*/
+/*.cdk-column-description {*/
 /*  max-width: 75px;*/
 /*  !*text-align: center;*!*/
 /*  !*justify-content: center;*!*/
 /*}*/
-.header-cell.cdk-column-created,
-.header-cell.cdk-column-approved,
-.header-cell.cdk-column-groups,
-.header-cell.cdk-column-response,
-.header-cell.cdk-column-sponsor,
-.header-cell.cdk-column-reason,
-.header-cell.cdk-column-description,
-.header-cell.cdk-column-delete,
-.header-cell.cdk-column-denied,
-.cell.cdk-column-created,
-.cell.cdk-column-approved,
-.cell.cdk-column-groups,
-.cell.cdk-column-response,
-.cell.cdk-column-sponsor,
-.cell.cdk-column-reason,
-.cell.cdk-column-description,
-.cell.cdk-column-delete,
-.cell.cdk-column-denied {
-  max-width: 70px;
+.cdk-column-created,
+.cdk-column-approved,
+.cdk-column-groups,
+.cdk-column-response,
+.cdk-column-sponsor,
+.cdk-column-reason,
+.cdk-column-description,
+.cdk-column-delete,
+.cdk-column-denied,
+.cdk-column-created,
+.cdk-column-approved,
+.cdk-column-groups,
+.cdk-column-response,
+.cdk-column-sponsor,
+.cdk-column-reason,
+.cdk-column-description,
+.cdk-column-delete,
+.cdk-column-denied {
+  max-width: 80px;
   /*text-align: center;*/
   justify-content: center;
 }
@@ -51,4 +51,9 @@
 
 .table .mat-icon {
   font-size: 22px;
+}
+
+.mat-mdc-list-item {
+  height: unset !important;
+  justify-content: space-around;
 }

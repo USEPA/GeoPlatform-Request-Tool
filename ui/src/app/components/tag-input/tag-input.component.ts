@@ -9,9 +9,9 @@ import {debounceTime, map, startWith, switchMap} from 'rxjs/operators';
 import {BaseService, Response} from '@services/base.service';
 import {LoadingService} from '@services/loading.service';
 import {
-  MatLegacyAutocompleteSelectedEvent as MatAutocompleteSelectedEvent
-} from '@angular/material/legacy-autocomplete';
-import {MatLegacyChipInputEvent as MatChipInputEvent} from '@angular/material/legacy-chips';
+  MatAutocompleteSelectedEvent
+} from '@angular/material/autocomplete';
+import {MatChipInputEvent} from '@angular/material/chips';
 
 export interface TagItem {
   id: number;

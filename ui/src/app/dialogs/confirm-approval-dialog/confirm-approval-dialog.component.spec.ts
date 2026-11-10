@@ -1,7 +1,7 @@
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {ConfirmApprovalDialogComponent} from './confirm-approval-dialog.component';
-import {MAT_LEGACY_DIALOG_DATA, MatLegacyDialogModule, MatLegacyDialogRef} from '@angular/material/legacy-dialog';
+import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
 
 describe('ConfirmApprovalDialogComponent', () => {
@@ -12,11 +12,11 @@ describe('ConfirmApprovalDialogComponent', () => {
     TestBed.configureTestingModule({
       declarations: [ConfirmApprovalDialogComponent],
       imports: [
-        MatLegacyDialogModule,
+        MatDialogModule,
       ],
       providers: [
-        {provide: MatLegacyDialogRef, useValue: {}},
-        {provide: MAT_LEGACY_DIALOG_DATA, useValue: {}}
+        {provide: MatDialogRef, useValue: {}},
+        {provide: MAT_DIALOG_DATA, useValue: {}}
       ]
     })
       .compileComponents();

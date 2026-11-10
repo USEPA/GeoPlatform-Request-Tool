@@ -2,7 +2,7 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { EditAccountPropsDialogComponent } from './edit-account-props-dialog.component';
 import {HttpClientTestingModule} from '@angular/common/http/testing';
-import {MAT_LEGACY_DIALOG_DATA, MatLegacyDialogModule, MatLegacyDialogRef} from '@angular/material/legacy-dialog';
+import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
 
 describe('EditAccountPropsDialogComponent', () => {
   let component: EditAccountPropsDialogComponent;
@@ -13,11 +13,11 @@ describe('EditAccountPropsDialogComponent', () => {
       declarations: [ EditAccountPropsDialogComponent ],
       imports: [
         HttpClientTestingModule,
-        MatLegacyDialogModule,
+        MatDialogModule,
       ],
       providers: [
-        {provide: MatLegacyDialogRef, useValue: {}},
-        {provide: MAT_LEGACY_DIALOG_DATA, useValue: {}}
+        {provide: MatDialogRef, useValue: {}},
+        {provide: MAT_DIALOG_DATA, useValue: {}}
       ]
     })
     .compileComponents();

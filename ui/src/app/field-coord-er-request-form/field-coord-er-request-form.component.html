@@ -20,13 +20,13 @@
 <form novalidate [formGroup]="fieldTeamCoordErForm">
   <!--Emergency Response Name-->
   <mat-form-field>
-    <input matInput required type="text" formControlName="name"
-           placeholder="Response or Project Name">
+    <mat-label>Response or Project Name</mat-label>
+    <input matInput required type="text" formControlName="name">
   </mat-form-field>
   <!-- reason -->
   <mat-form-field>
     <mat-label>Reason / Affiliation</mat-label>
-    <mat-select required formControlName="default_reason" placeholder="Reason / Affiliation">
+    <mat-select required formControlName="default_reason">
       <mat-option *ngFor="let r of reasons | async" [value]="r.value">
         {{ r.display_name }}
       </mat-option>
@@ -56,7 +56,8 @@
   </app-tag-input>
   <!-- role -->
   <mat-form-field>
-    <mat-select required formControlName="role" placeholder="Role" (selectionChange)="getAuthGroups($event.value)">
+    <mat-label>Role</mat-label>
+    <mat-select required formControlName="role" (selectionChange)="getAuthGroups($event.value)">
       <mat-option *ngFor="let r of roles | async" [value]="r.id">
         {{ r.name }}
       </mat-option>
@@ -64,7 +65,8 @@
   </mat-form-field>
   <!--authoritative group-->
   <mat-form-field *ngIf="(userConfig.config | async)?.portal_requires_auth_group">
-    <mat-select formControlName="authoritative_group" placeholder="Primary Auth Group" aria-label="Primary Auth Group">
+    <mat-label>Primary Auth Group</mat-label>
+    <mat-select formControlName="authoritative_group" aria-label="Primary Auth Group">
       <mat-option *ngFor="let authGroupChoice of auth_groups | async" [value]="authGroupChoice.id">
         {{ authGroupChoice.title }}
       </mat-option>

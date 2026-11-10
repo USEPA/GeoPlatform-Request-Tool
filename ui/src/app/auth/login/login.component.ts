@@ -1,4 +1,5 @@
 import {Component, OnInit} from '@angular/core';
+import {HttpXsrfTokenExtractor} from '@angular/common/http';
 import {LoginService} from '../login.service';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {map, catchError, tap} from 'rxjs/operators';
@@ -16,21 +17,31 @@ export class LoginComponent implements OnInit {
   geosecure: boolean;
   geoportal: boolean;
 
-  constructor(public loginService: LoginService, public route: ActivatedRoute, public router: Router) {
+  constructor(public loginService: LoginService, public route: ActivatedRoute, public router: Router,
+              private xsrfTokenExtractor: HttpXsrfTokenExtractor) {
   }
 
   ngOnInit() {
     this.checkQueryParams();
   }
 
-  login(loginType: string) {
-    this.loginService.sendToLogin(loginType, window.location.origin + this.route.snapshot.queryParams.next);
+  getLoginUrl(loginType: string): string {
+    return this.loginService.getLoginUrl(loginType);
+  }
+
+  get nextUrl(): string {
+    return window.location.origin + (this.route.snapshot.queryParams.next || '');
+  }
+
+  get csrfToken(): string {
+    return this.xsrfTokenExtractor.getToken() || '';
   }
 
   checkQueryParams() {
-    this.showNewUserMessage = this.route.snapshot.queryParams.next.includes('new_response=true');
-    this.geosecure = this.route.snapshot.queryParams.next.toLowerCase().includes('#geosecure');
-    this.geoportal = this.route.snapshot.queryParams.next.toLowerCase().includes('#geoplatform');
+    const next = this.route.snapshot.queryParams.next || '';
+    this.showNewUserMessage = next.includes('new_response=true');
+    this.geosecure = next.toLowerCase().includes('#geosecure');
+    this.geoportal = next.toLowerCase().includes('#geoplatform');
   }
 
   // can not use b/c it would break mapping

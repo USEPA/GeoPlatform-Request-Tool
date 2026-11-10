@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ResponseProjectRequestDialogComponent } from './response-project-request-dialog.component';
-import {MatLegacyDialogRef} from '@angular/material/legacy-dialog';
+import {MatDialogRef} from '@angular/material/dialog';
 
 describe('ResponseProjectRequestDialogComponent', () => {
   let component: ResponseProjectRequestDialogComponent;
@@ -11,7 +11,7 @@ describe('ResponseProjectRequestDialogComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [ ResponseProjectRequestDialogComponent ],
       providers: [
-        {provide: MatLegacyDialogRef, useValue: {}}
+        {provide: MatDialogRef, useValue: {}}
       ]
     })
     .compileComponents();

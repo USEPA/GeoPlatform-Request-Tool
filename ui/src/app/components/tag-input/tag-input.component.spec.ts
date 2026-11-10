@@ -3,10 +3,10 @@ import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {TagInputComponent} from './tag-input.component';
 import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {LoadingService} from '@services/loading.service';
-import {MatLegacyAutocompleteModule as MatAutocompleteModule} from '@angular/material/legacy-autocomplete';
-import {MatLegacyInputModule} from '@angular/material/legacy-input';
-import {MatLegacyChipsModule} from '@angular/material/legacy-chips';
-import {MatLegacyFormFieldModule} from '@angular/material/legacy-form-field';
+import {MatAutocompleteModule} from '@angular/material/autocomplete';
+import {MatInputModule} from '@angular/material/input';
+import {MatChipsModule} from '@angular/material/chips';
+import {MatFormFieldModule} from '@angular/material/form-field';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {BaseService} from '@services/base.service';
 import {Observable} from 'rxjs';
@@ -21,9 +21,9 @@ describe('TagInputComponent', () => {
       imports: [
         MatAutocompleteModule,
         HttpClientTestingModule,
-        MatLegacyFormFieldModule,
-        MatLegacyChipsModule,
-        MatLegacyInputModule,
+        MatFormFieldModule,
+        MatChipsModule,
+        MatInputModule,
         NoopAnimationsModule
       ],
       providers: [

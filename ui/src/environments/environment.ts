@@ -5,7 +5,7 @@
 
 export const environment = {
   production: true,
-  oauth_url: 'http://localhost:4200/api/oauth2',
+  oauth_url: '/api/oauth2',
   local_service_endpoint: '/api',
   local_test_service_endpoint: 'http://localhost:9876/api',
   recaptcha_siteKey: '6LfEFvIoAAAAAIjfP5q6FfP4A7BcjkhjVXM0iYbJ',
