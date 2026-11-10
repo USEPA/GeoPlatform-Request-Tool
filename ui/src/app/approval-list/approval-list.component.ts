@@ -127,8 +127,8 @@ export class ApprovalListComponent implements OnInit {
 
   clearAllFilters() {
     this.clearAllSelected();
-    this.handleDeniedVisibility();
     this.accounts.clearAllFilters();
+    this.handleDeniedVisibility();
   }
 
   clearSearch() {

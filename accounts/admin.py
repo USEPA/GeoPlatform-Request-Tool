@@ -276,13 +276,13 @@ class RequestAdmin(admin.ModelAdmin):
     ordering = ['-submitted']
     list_filter = [('response', RelatedDropdownFilter),('approved_by', RelatedDropdownFilter),
                    ('submitted', DateRangeFilterBuilder()), ('approved', DateRangeFilterBuilder()),
-                   ('created', DateRangeFilterBuilder())]
+                   ('created', DateRangeFilterBuilder()), ('denied', DateRangeFilterBuilder())]
     fields = ['first_name', 'last_name', 'email', 'possible_existing_account', 'existing_account_enabled', 'organization', 'username',
               'username_valid', 'existing_user_type', 'user_type', 'new_user_type', 'existing_role', 'role', 'new_role', 'auth_group', 'sponsor', 'sponsor_notified', 'reason',
-              'approved', 'approved_by', 'created', 'response', 'is_existing_account']
+              'approved', 'approved_by', 'created', 'denied', 'response', 'is_existing_account']
     readonly_fields = ['possible_existing_account', 'username', 'username_valid', 'sponsor_notified', 'approved', 'created',
                        'is_existing_account', 'existing_account_enabled', 'approved_by', 'existing_user_type', 'user_type',
-                       'new_user_type', 'new_role', 'existing_role']
+                       'new_user_type', 'new_role', 'existing_role', 'denied']
     inlines = [GroupAdminInline, PendingNotificationInline]
     actions = ['disable_account_action']
 
