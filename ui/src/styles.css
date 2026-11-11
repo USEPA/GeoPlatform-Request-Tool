@@ -103,7 +103,9 @@ mat-form-field {
   margin-top: 15px;
 }
 
-mat-list-item.filter-btn div {
+.filter-btn {
+  display: flex;
+  width: 100%;
   justify-content: space-between;
 }
 

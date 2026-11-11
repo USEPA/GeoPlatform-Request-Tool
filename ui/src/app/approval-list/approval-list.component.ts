@@ -41,11 +41,13 @@ export interface AccountProps {
   reason: string;
   response: number;
   sponsor: number;
-  approved: boolean;
-  created: boolean;
+  approved: string;
+  created: string;
   isChecked: boolean;
-  needsEditing: boolean;
-  is_existing_account: boolean;
+  needsEditing: boolean | null;
+  is_existing_account: boolean | null;
+  denied: string | null;
+  id?: number;
 }
 
 export interface Accounts {
@@ -60,7 +62,7 @@ export interface Accounts {
 export class ApprovalListComponent implements OnInit {
   userConfig: UserConfig;
   accounts: BaseService;
-  displayedColumns = ['selected', 'username', 'first_name', 'last_name', 'email', 'organization', 'groups', 'response',
+  displayedColumns = ['selected', 'username', 'first_name', 'last_name', 'email', 'organization', 'submitted', 'groups', 'response',
     'sponsor', 'reason', 'approved', 'created', 'delete'];
   // took out "roll" and "user_type"
   selectedAccountIds = [];
@@ -90,7 +92,7 @@ export class ApprovalListComponent implements OnInit {
 
     this.UserConfigService.config.subscribe(c => this.userConfig = c);
 
-    this.accounts.filter = {created: false};
+    this.accounts.filter = {created: false, is_denied: false};
     this.accounts.dataChange.pipe(
       map(response => this.formatExistingAccountUsernames(response)),
       tap(response => this.setAccountsListProps(response))
@@ -108,8 +110,19 @@ export class ApprovalListComponent implements OnInit {
     ).subscribe();
   }
 
+  handleDeniedVisibility() {
+    if (this.accounts.filter.is_denied === false) {
+      this.displayedColumns = this.displayedColumns.filter(c => c !== 'denied');
+    } else {
+      if (!this.displayedColumns.includes('denied')) {
+        this.displayedColumns.splice(-1, -2, 'denied');
+      }
+    }
+  }
+
   search(search?: any) {
     this.clearAllSelected();
+    this.handleDeniedVisibility();
     this.accounts.filter.search = search ? search : this.accounts.filter.search ? this.accounts.filter.search : '';
     return this.accounts.runSearch();
   }
@@ -117,6 +130,7 @@ export class ApprovalListComponent implements OnInit {
   clearAllFilters() {
     this.clearAllSelected();
     this.accounts.clearAllFilters();
+    this.handleDeniedVisibility();
   }
 
   clearSearch() {
@@ -143,6 +157,7 @@ export class ApprovalListComponent implements OnInit {
         sponsor: account.sponsor,
         approved: account.approved,
         created: account.created,
+        denied: account.denied,
         isChecked: false,
         needsEditing: null,
         is_existing_account: account.is_existing_account
@@ -166,11 +181,18 @@ export class ApprovalListComponent implements OnInit {
     return selectedAccountIds;
   }
 
+  get canDenySelectedRequests(): boolean {
+    return this.selectedAccountIds.length > 0 &&
+      this.selectedAccountIds.every(id => !this.accountsListProps[id].created);
+  }
+
   getApprovalStatus() {
     let isApprovalReady = true;
     for (const id of this.selectedAccountIds) {
       if (this.accountsListProps[id].needsEditing ||
-        (this.accountsListProps[id].approved && this.accountsListProps[id].created)) {
+        (this.accountsListProps[id].approved &&
+          this.accountsListProps[id].created &&
+          this.accountsListProps[id].denied !== null)) {
         isApprovalReady = false;
       }
     }
@@ -372,6 +394,9 @@ export class ApprovalListComponent implements OnInit {
     if (account.is_existing_account && !account.username_valid && !this.emailMatchesAccount(account)) {
       needsEditing = true;
     }
+    if (account.denied !== null) {
+      needsEditing = true;
+    }
     this.accountsListProps[account.id].needsEditing = needsEditing;
   }
 
@@ -476,5 +501,64 @@ export class ApprovalListComponent implements OnInit {
             2. Instruct the requestor to update their ${config.portal} profile with the correct email.
             3. Instruct the requestor to submit a new request with the correct email.`;
 
+  }
+
+  denyRequests() {
+    this.dialog.open(GenericConfirmDialogComponent, {
+      width: '500px',
+      data: {
+        message: `
+                Confirm you want to deny the selected request${this.selectedAccountIds.length > 1 ? 's' : ''} for:<br/>
+                 <b>${this.selectedAccountIds.map(id => this.accountsListProps[id].first_name + ' ' + this.accountsListProps[id].last_name).join('<br/>')}</b>
+         `
+      }
+    }).afterClosed().pipe(
+      filter(confirmed => confirmed),
+      switchMap(() => this.http.post(
+        `${environment.local_service_endpoint}/v1/account/approvals/deny/`, {
+          ids: this.selectedAccountIds
+        })
+      ),
+      switchMap(() => {
+        // reset to page 1 if the current page has no more items after the deletion
+        if (this.accounts.data.length === this.selectedAccountIds.length) {
+          this.accounts.filter.page = 1;
+        }
+        return this.accounts.getItems();
+      }),
+      tap((accountRequests) => {
+        this.setAccountsListProps(accountRequests);
+        this.clearAllSelected();
+        this.matSnackBar.open('Success');
+      }),
+      catchError((err) => {
+        of(this.handleErrorResponse(err));
+        return throwError(err);
+      })
+    ).subscribe();
+  }
+
+  undoDenial(request: AccountProps) {
+    this.dialog.open(GenericConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        message: `Confirm you want to undo the denial of this request.`
+      }
+    }).afterClosed().pipe(
+      filter(confirmed => confirmed),
+      switchMap(() => this.http.put(
+        `${environment.local_service_endpoint}/v1/account/approvals/${request.id}/undo_deny/`, {})
+      ),
+      switchMap(() => this.accounts.getItems()),
+      tap((accountRequests) => {
+        this.setAccountsListProps(accountRequests);
+        this.clearAllSelected();
+        this.matSnackBar.open('Success');
+      }),
+      catchError((err) => {
+        of(this.handleErrorResponse(err));
+        return throwError(err);
+      })
+    ).subscribe();
   }
 }

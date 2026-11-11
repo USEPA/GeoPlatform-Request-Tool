@@ -14,7 +14,7 @@ from django.template.response import TemplateResponse
 from django.core.exceptions import ObjectDoesNotExist
 from django.urls import resolve
 
-from .filters import AGOLGroupFilterSet, ResponseProjectFilterSet
+from .filters import AGOLGroupFilterSet, ResponseProjectFilterSet, AccountFilterSet
 from .models import *
 from .serializers import *
 from .permissions import IsSponsor
@@ -94,20 +94,6 @@ class AccountRequestViewSet(CreateModelMixin, GenericViewSet):
         update_requests_groups(account_request, groups)
 
 
-class AccountFilterSet(FilterSet):
-    approved_and_created = BooleanFilter(method='approved_and_created_func')
-    approved = BooleanFilter(field_name='approved', lookup_expr='isnull', exclude=True)
-    approved_gte = DateFilter(field_name='approved', lookup_expr='gte')
-    created = BooleanFilter(field_name='created', lookup_expr='isnull', exclude=True)
-
-    def approved_and_created_func(self, queryset, name, value):
-        return queryset.exclude(created__isnull=value).exclude(approved__isnull=value)
-
-    class Meta:
-        model = AccountRequests
-        fields = ['approved_and_created', 'approved', 'response']
-
-
 class SponsorFilterBackend(BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         if request.user.is_superuser or request.user.has_perm('accounts.view_all_accountrequests'):
@@ -165,10 +151,26 @@ class AccountViewSet(ModelViewSet):
         password = request.data.get('password', None)
         return approve_account(account, password, request.user)
 
-    # possible to setup email to request with reason
-    @action(['POST'], detail=True)
-    def reject(self, request):
-        pass
+    @action(['POST'], detail=False)
+    def deny(self, request):
+        # only deny requests that are not already approved
+        accounts = AccountRequests.objects\
+            .exclude(approved__isnull=False)\
+            .filter(pk__in=request.data.get('ids', []))
+        for account in accounts:
+            self.check_object_permissions(request, account)
+
+        accounts.update(denied=now())
+        return Response()
+
+    @action(['PUT'], detail=True)
+    def undo_deny(self, request, pk=None):
+        account = get_object_or_404(AccountRequests, pk=pk)
+        self.check_object_permissions(request, account)
+
+        account.denied = None
+        account.save()
+        return Response()
 
     # @action(['GET'], detail=False)
     # def roles(self, request):
