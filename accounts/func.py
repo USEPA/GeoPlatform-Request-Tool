@@ -136,6 +136,10 @@ def verify_account_can_be_approved(account):
         raise PermissionDenied(
             {'details': 'Provided email address is not associated with this existing username.'},
         )
+    if account.denied is not None:
+        raise PermissionDenied(
+            {'details': 'This request has been denied and cannot be approved.'},
+        )
 
 
 def update_user_type_and_role(account: AccountRequests):

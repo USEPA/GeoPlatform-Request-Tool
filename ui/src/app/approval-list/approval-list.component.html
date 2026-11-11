@@ -55,18 +55,24 @@
           Resolve error in order to approve this record.
         </ng-container>
         <div>
-          <button *ngIf="selectedAccountIds.length > 0" type="button" mat-raised-button color="warn"
-                  (click)="editAccountDialog()" style="margin-right: 20px; margin-left: 20px;" id="editBtn">
-            Edit
-          </button>
-          <button *ngIf="selectedAccountIds.length > 0" type="button" mat-raised-button color="warn"
-                  (click)="denyRequests()" style="margin-right: 20px;" id="denyBtn">
-            Deny
-          </button>
-          <button *ngIf="isApprovalReady" type="button" mat-raised-button color="warn"
-                  (click)="openApproveOptions()" style="margin-right: 20px;" id="approveBtn">
-            Approve
-          </button>
+          @if (selectedAccountIds.length > 0) {
+            <button type="button" mat-raised-button color="warn"
+              (click)="editAccountDialog()" style="margin-right: 20px; margin-left: 20px;" id="editBtn">
+              Edit
+            </button>
+          }
+          @if (canDenySelectedRequests) {
+            <button type="button" mat-raised-button color="warn"
+              (click)="denyRequests()" style="margin-right: 20px;" id="denyBtn">
+              Deny
+            </button>
+          }
+          @if (isApprovalReady) {
+            <button type="button" mat-raised-button color="warn"
+              (click)="openApproveOptions()" style="margin-right: 20px;" id="approveBtn">
+              Approve
+            </button>
+          }
           <button type="button" mat-raised-button (click)="filterNav.toggle()" color="primary"
                   id="filterBtn">
             {{ filterNav.opened ? 'Hide Filter' : 'Show Filter' }}
@@ -156,129 +162,157 @@
         <!--        <ng-container cdkColumnDef="role">-->
         <!--          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">-->
         <!--            Role-->
-        <!--          </mat-header-cell>-->
-        <!--          <mat-cell *cdkCellDef="let row" class="cell">-->
-        <!--            <mat-select [(ngModel)]="row.role" (selectionChange)="row.changed = true">-->
-        <!--              <mat-option *ngFor="let role of roles | async" [value]="role.value">-->
-        <!--                {{ role.display }}-->
-        <!--              </mat-option>-->
-        <!--            </mat-select>-->
-        <!--          </mat-cell>-->
-        <!--        </ng-container>-->
-        <!-- Groups -->
-        <ng-container cdkColumnDef="groups">
-          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
-            Groups
-          </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">
-            <mat-icon *ngIf="row.groups.length > 0" style="color: green;">check</mat-icon>
-            <mat-icon *ngIf="row.groups.length == 0" style="color: red;"
-                      matTooltip="No group has been selected.">warning
-            </mat-icon>
-          </mat-cell>
-        </ng-container>
-        <!-- sponsor -->
-        <ng-container cdkColumnDef="sponsor">
-          <mat-header-cell *cdkHeaderCellDef class="header-cell">
-            Sponsor
-          </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">
-            <mat-icon *ngIf="row.sponsor" style="color: green;">check</mat-icon>
-            <mat-icon *ngIf="!row.sponsor" style="color: red;"
-                      matTooltip="No sponsor has been selected.">warning
-            </mat-icon>
-          </mat-cell>
-        </ng-container>
-        <!-- response -->
-        <ng-container cdkColumnDef="response">
-          <mat-header-cell *cdkHeaderCellDef class="header-cell">
-            Response
-          </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">
-            <mat-icon *ngIf="row.response" style="color: green;">check</mat-icon>
-            <mat-icon *ngIf="!row.response" color="warn"
-                      tooltipClass="'mat-tooltip'"
-                      matTooltip="No response has been selected.">warning
-            </mat-icon>
-          </mat-cell>
-        </ng-container>
-        <!-- Reason -->
-        <ng-container cdkColumnDef="reason">
-          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
-            Reason
-          </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">
-            <mat-icon *ngIf="row.reason" style="color: green;">check</mat-icon>
-            <mat-icon *ngIf="!row.reason" color="warn"
-                      tooltipClass="'mat-tooltip'"
-                      matTooltip="No reason has been provided.">warning
-            </mat-icon>
-          </mat-cell>
-        </ng-container>
-        <ng-container cdkColumnDef="submitted">
-          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
-            Submitted
-          </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">
-            {{ row.submitted | date:'short' }}
-          </mat-cell>
-        </ng-container>
-        <!-- User Types NOT IN USE -->
-        <!--        <ng-container cdkColumnDef="user_type">-->
-        <!--          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">-->
-        <!--            User Type-->
-        <!--          </mat-header-cell>-->
-        <!--          <mat-cell *cdkCellDef="let row" class="cell">-->
-        <!--            <mat-select [(ngModel)]="row.user_type" (selectionChange)="row.changed = true">-->
-        <!--              <mat-option *ngFor="let user_type of user_types | async" [value]="user_type.value">-->
-        <!--                {{ user_type.display }}-->
-        <!--              </mat-option>-->
-        <!--            </mat-select>-->
-        <!--          </mat-cell>-->
-        <!--        </ng-container>-->
-        <!-- Approved -->
-        <ng-container cdkColumnDef="approved">
-          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
-            Approved
-          </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">
-            <mat-icon *ngIf="row.approved" style="color: green;" [matTooltip]="row.approved | date:'short'">check
-            </mat-icon>
-            <mat-icon *ngIf="!row.approved" style="color: red;">close</mat-icon>
-          </mat-cell>
-        </ng-container>
-        <!--Created-->
-        <ng-container cdkColumnDef="created">
-          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
-            Created
-          </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">
-            <mat-icon *ngIf="row.created" style="color: green;" [matTooltip]="row.created | date:'short'">check
-            </mat-icon>
-            <mat-icon *ngIf="!row.created" style="color: red;">close</mat-icon>
-          </mat-cell>
-        </ng-container>
-        <!--Delete-->
-        <ng-container cdkColumnDef="denied">
-          <mat-header-cell *cdkHeaderCellDef mat-sort-header class="header-cell">
-            Denied
-          </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">
-            <mat-icon *ngIf="row.denied" style="color: green;" [matTooltip]="row.denied | date:'short'">check</mat-icon>
-            <mat-icon *ngIf="!row.denied" style="color: red;">close</mat-icon>
-          </mat-cell>
-        </ng-container>
-        <ng-container cdkColumnDef="delete">
-          <mat-header-cell *cdkHeaderCellDef class="header-cell">
-            Delete
-          </mat-header-cell>
-          <mat-cell *cdkCellDef="let row" class="cell">
-            <button *ngIf="!row.approved" mat-icon-button (click)="confirmDeleteAccountRequest($event, row)"
-                    [matTooltip]="!row.approved ? 'Delete unapproved request' : ''">
-              <mat-icon style="color: red;">delete_forever</mat-icon>
-            </button>
-          </mat-cell>
-        </ng-container>
+      <!--          </mat-header-cell>-->
+      <!--          <mat-cell *cdkCellDef="let row">-->
+      <!--            <mat-select [(ngModel)]="row.role" (selectionChange)="row.changed = true">-->
+      <!--              <mat-option *ngFor="let role of roles | async" [value]="role.value">-->
+      <!--                {{ role.display }}-->
+    <!--              </mat-option>-->
+  <!--            </mat-select>-->
+<!--          </mat-cell>-->
+<!--        </ng-container>-->
+<!-- Groups -->
+<ng-container cdkColumnDef="groups">
+  <mat-header-cell *cdkHeaderCellDef mat-sort-header>
+    Groups
+  </mat-header-cell>
+  <mat-cell *cdkCellDef="let row" >
+    @if (row.groups.length > 0) {
+      <mat-icon style="color: green;">check</mat-icon>
+    }
+    @if (row.groups.length == 0) {
+      <mat-icon style="color: red;"
+        matTooltip="No group has been selected.">warning
+      </mat-icon>
+    }
+  </mat-cell>
+</ng-container>
+<!-- sponsor -->
+<ng-container cdkColumnDef="sponsor">
+  <mat-header-cell *cdkHeaderCellDef>
+    Sponsor
+  </mat-header-cell>
+  <mat-cell *cdkCellDef="let row" >
+    @if (row.sponsor) {
+      <mat-icon style="color: green;">check</mat-icon>
+    }
+    @if (!row.sponsor) {
+      <mat-icon style="color: red;"
+        matTooltip="No sponsor has been selected.">warning
+      </mat-icon>
+    }
+  </mat-cell>
+</ng-container>
+<!-- response -->
+<ng-container cdkColumnDef="response">
+  <mat-header-cell *cdkHeaderCellDef>
+    Response
+  </mat-header-cell>
+  <mat-cell *cdkCellDef="let row">
+    @if (row.response) {
+      <mat-icon style="color: green;">check</mat-icon>
+    }
+    @if (!row.response) {
+      <mat-icon color="warn"
+        matTooltip="No response has been selected.">warning
+      </mat-icon>
+    }
+  </mat-cell>
+</ng-container>
+<!-- Reason -->
+<ng-container cdkColumnDef="reason">
+  <mat-header-cell *cdkHeaderCellDef mat-sort-header>
+    Reason
+  </mat-header-cell>
+  <mat-cell *cdkCellDef="let row">
+    @if (row.reason) {
+      <mat-icon style="color: green;">check</mat-icon>
+    }
+    @if (!row.reason) {
+      <mat-icon color="warn"
+        matTooltip="No reason has been provided.">warning
+      </mat-icon>
+    }
+  </mat-cell>
+</ng-container>
+<ng-container cdkColumnDef="submitted">
+  <mat-header-cell *cdkHeaderCellDef mat-sort-header>
+    Submitted
+  </mat-header-cell>
+  <mat-cell *cdkCellDef="let row">
+    {{ row.submitted | date:'short' }}
+  </mat-cell>
+</ng-container>
+<!-- User Types NOT IN USE -->
+<!--        <ng-container cdkColumnDef="user_type">-->
+<!--          <mat-header-cell *cdkHeaderCellDef mat-sort-header>-->
+<!--            User Type-->
+<!--          </mat-header-cell>-->
+<!--          <mat-cell *cdkCellDef="let row">-->
+<!--            <mat-select [(ngModel)]="row.user_type" (selectionChange)="row.changed = true">-->
+<!--              <mat-option *ngFor="let user_type of user_types | async" [value]="user_type.value">-->
+<!--                {{ user_type.display }}-->
+<!--              </mat-option>-->
+<!--            </mat-select>-->
+<!--          </mat-cell>-->
+<!--        </ng-container>-->
+<!-- Approved -->
+<ng-container cdkColumnDef="approved">
+  <mat-header-cell *cdkHeaderCellDef mat-sort-header>
+    Approved
+  </mat-header-cell>
+  <mat-cell *cdkCellDef="let row">
+    @if (row.approved) {
+      <mat-icon style="color: green;" [matTooltip]="row.approved | date:'short'">check
+      </mat-icon>
+    }
+    @if (!row.approved) {
+      <mat-icon style="color: red;">close</mat-icon>
+    }
+  </mat-cell>
+</ng-container>
+<!--Created-->
+<ng-container cdkColumnDef="created">
+  <mat-header-cell *cdkHeaderCellDef mat-sort-header>
+    Created
+  </mat-header-cell>
+  <mat-cell *cdkCellDef="let row">
+    @if (row.created) {
+      <mat-icon style="color: green;" [matTooltip]="row.created | date:'short'">check
+      </mat-icon>
+    }
+    @if (!row.created) {
+      <mat-icon style="color: red;">close</mat-icon>
+    }
+  </mat-cell>
+</ng-container>
+<!--Delete-->
+<ng-container cdkColumnDef="denied">
+  <mat-header-cell *cdkHeaderCellDef mat-sort-header>
+    Denied
+  </mat-header-cell>
+  <mat-cell *cdkCellDef="let row">
+    @if (row.denied) {
+      <button mat-icon-button (click)="undoDenial(row)">
+      <mat-icon style="color: red; margin-right: 5px"
+                matTooltip="Denied on {{row.denied | date:'short'}}. Click to undo denial.">warning</mat-icon>
+      </button>
+    }
+  </mat-cell>
+</ng-container>
+<ng-container cdkColumnDef="delete">
+  <mat-header-cell *cdkHeaderCellDef>
+    Delete
+  </mat-header-cell>
+  <mat-cell *cdkCellDef="let row">
+    @if (!row.approved) {
+      <button mat-icon-button (click)="confirmDeleteAccountRequest($event, row)"
+        [matTooltip]="!row.approved ? 'Delete unapproved request' : ''">
+        <mat-icon style="color: red;">delete_forever</mat-icon>
+      </button>
+    }
+  </mat-cell>
+</ng-container>
 
         <mat-header-row *cdkHeaderRowDef="displayedColumns" class="header-row"></mat-header-row>
         <mat-row *cdkRowDef="let row; columns: displayedColumns;" class="row"></mat-row>

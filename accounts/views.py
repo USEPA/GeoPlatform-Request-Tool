@@ -151,14 +151,25 @@ class AccountViewSet(ModelViewSet):
         password = request.data.get('password', None)
         return approve_account(account, password, request.user)
 
-    # possible to setup email to request with reason
     @action(['POST'], detail=False)
     def deny(self, request):
-        accounts = AccountRequests.objects.filter(pk__in=request.data.get('ids', []))
+        # only deny requests that are not already approved
+        accounts = AccountRequests.objects\
+            .exclude(approved__isnull=False)\
+            .filter(pk__in=request.data.get('ids', []))
         for account in accounts:
             self.check_object_permissions(request, account)
 
         accounts.update(denied=now())
+        return Response()
+
+    @action(['PUT'], detail=True)
+    def undo_deny(self, request, pk=None):
+        account = get_object_or_404(AccountRequests, pk=pk)
+        self.check_object_permissions(request, account)
+
+        account.denied = None
+        account.save()
         return Response()
 
     # @action(['GET'], detail=False)
