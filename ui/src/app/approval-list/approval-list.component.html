@@ -64,7 +64,7 @@
               Edit
             </button>
           }
-          @if (selectedAccountIds.length > 0) {
+          @if (canDenySelectedRequests) {
             <button type="button" mat-raised-button color="warn"
               (click)="denyRequests()" style="margin-right: 20px;" id="denyBtn">
               Deny
@@ -305,10 +305,10 @@
   </mat-header-cell>
   <mat-cell *cdkCellDef="let row">
     @if (row.denied) {
-      <mat-icon style="color: green;" [matTooltip]="row.denied | date:'short'">check</mat-icon>
-    }
-    @if (!row.denied) {
-      <mat-icon style="color: red;">close</mat-icon>
+      <button mat-icon-button (click)="undoDenial(row)">
+      <mat-icon style="color: red; margin-right: 5px"
+                matTooltip="Denied on {{row.denied | date:'short'}}. Click to undo denial.">warning</mat-icon>
+      </button>
     }
   </mat-cell>
 </ng-container>

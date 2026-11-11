@@ -15,6 +15,7 @@ import { FilterInputComponent } from '../filter-input/filter-input.component';
 import { CustomMaterialModule } from '../core/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CdkTableModule } from '@angular/cdk/table';
+import { GenericConfirmDialogComponent } from '../dialogs/generic-confirm-dialog/generic-confirm-dialog.component';
 
 const updateApprovalTest = new UpdateApprovalTest();
 
@@ -29,8 +30,9 @@ function createAccountProps(): AccountProps {
         reason: '',
         response: null,
         sponsor: 0,
-        approved: false,
-        created: false,
+        approved: '',
+        created: '',
+        denied: null,
         isChecked: false,
         needsEditing: null,
         is_existing_account: null
@@ -87,7 +89,60 @@ describe('ApprovalListComponent', () => {
         expect(component).toBeTruthy();
     });
 
-    it('should notify users of successful approval', () => {
+    describe('Deny button visibility', () => {
+        beforeEach(() => {
+            component.accountsListProps = {
+                1: createAccountProps(),
+                2: { ...createAccountProps(), created: '2026-11-10T12:00:00Z' }
+            };
+        });
+
+        it('should hide Deny when no request is selected', () => {
+            fixture.detectChanges();
+
+            expect(fixture.nativeElement.querySelector('#denyBtn')).toBeNull();
+        });
+
+        it('should show Deny when only uncreated requests are selected', () => {
+            component.accountsListProps[3] = createAccountProps();
+            component.updateSelectedAccount({ checked: true, source: { value: 1 } });
+            component.updateSelectedAccount({ checked: true, source: { value: 3 } });
+            fixture.detectChanges();
+
+            expect(fixture.nativeElement.querySelector('#denyBtn')).not.toBeNull();
+        });
+
+        it('should hide Deny when a created request is selected', () => {
+            component.updateSelectedAccount({ checked: true, source: { value: 2 } });
+            fixture.detectChanges();
+
+            expect(fixture.nativeElement.querySelector('#denyBtn')).toBeNull();
+        });
+
+        it('should hide Deny when select all includes a created request', () => {
+            component.updateSelectedAccount({ checked: true }, true);
+            fixture.detectChanges();
+
+            expect(component.selectedAccountIds).toEqual([1, 2]);
+            expect(fixture.nativeElement.querySelector('#denyBtn')).toBeNull();
+        });
+
+        it('should show Deny again when the created request is deselected', () => {
+            component.updateSelectedAccount({ checked: true }, true);
+            component.updateSelectedAccount({ checked: false, source: { value: 2 } });
+            fixture.detectChanges();
+
+            expect(fixture.nativeElement.querySelector('#denyBtn')).not.toBeNull();
+        });
+
+        it('should hide Deny after clearing the selection', () => {
+            component.updateSelectedAccount({ checked: true, source: { value: 1 } });
+            component.clearAllSelected();
+            fixture.detectChanges();
+
+            expect(fixture.nativeElement.querySelector('#denyBtn')).toBeNull();
+        });
+    });it('should notify users of successful approval', () => {
         vi.spyOn(matSnackBar, 'open').mockReturnValue({} as any);
         vi.spyOn(component.accounts, 'getItems').mockReturnValue(of([{}]));
         component.selectedAccountIds = [1];
@@ -136,7 +191,7 @@ describe('ApprovalListComponent', () => {
         const spyOnEmailMatches = vi.spyOn(component, 'emailMatchesAccount').mockReturnValue(false);
         component.setNeedsEditing({
             id: 1, organization: 1, response: 1, sponsor: 1, reason: 1,
-            is_existing_account: true, username_valid: false
+            is_existing_account: true, username_valid: false, denied: null
         });
         expect(component.accountsListProps[1].needsEditing).toBeTruthy();
     });
@@ -145,7 +200,7 @@ describe('ApprovalListComponent', () => {
         const spyOnEmailMatches = vi.spyOn(component, 'emailMatchesAccount').mockReturnValue(true);
         component.setNeedsEditing({
             id: 1, organization: 1, response: 1, sponsor: 1, reason: 1,
-            is_existing_account: true, username_valid: false
+            is_existing_account: true, username_valid: false, denied: null
         });
         expect(component.accountsListProps[1].needsEditing).toBe(false);
     });
@@ -185,13 +240,21 @@ describe('ApprovalListComponent', () => {
         const setAccountsListProps = vi.spyOn(component, 'setAccountsListProps').mockReturnValue(undefined);
         const clearAllSelected = vi.spyOn(component, 'clearAllSelected').mockReturnValue(undefined);
         vi.spyOn(matSnackBar, 'open').mockReturnValue({} as any);
+        component.accountsListProps = {
+            1: { ...createAccountProps(), first_name: 'First', last_name: 'Requestor' },
+            2: { ...createAccountProps(), first_name: 'Second', last_name: 'Requestor' }
+        };
         component.selectedAccountIds = [1, 2];
 
         component.denyRequests();
 
-        expect(dialogOpen).toHaveBeenCalledWith(expect.anything(), {
-            width: '400px',
-            data: { message: 'Confirm you want to deny the selected requests.' }
+        expect(dialogOpen).toHaveBeenCalledWith(GenericConfirmDialogComponent, {
+            width: '500px',
+            data: {
+                message: expect.stringMatching(
+                    /^\s*Confirm you want to deny the selected requests for:<br\/>\s*<b>First Requestor<br\/>Second Requestor<\/b>\s*$/
+                )
+            }
         });
         const req = httpTestingController.expectOne('/api/v1/account/approvals/deny/');
         expect(req.request.method).toBe('POST');
@@ -207,6 +270,7 @@ describe('ApprovalListComponent', () => {
         vi.spyOn(component.dialog, 'open').mockReturnValue({
             afterClosed: () => of(false)
         } as any);
+        component.accountsListProps = { 1: createAccountProps() };
         component.selectedAccountIds = [1];
 
         component.denyRequests();

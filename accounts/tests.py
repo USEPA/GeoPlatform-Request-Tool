@@ -525,6 +525,13 @@ class TestAccounts(TestCase):
         except:
             self.assertTrue(False)
 
+    def test_verify_account_can_be_approved_denied(self):
+        a = AccountRequests(is_existing_account=False, denied=now())
+        try:
+            verify_account_can_be_approved(a)
+            self.fail('Should not get here')
+        except PermissionDenied as e:
+            self.assertTrue('denied' in e.args[0]['details'])
 
     @patch('accounts.models.AGOL.create_user_account')
     def test_create_account_from_request(self, mock_create_user_account):

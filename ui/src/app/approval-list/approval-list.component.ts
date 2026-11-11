@@ -40,11 +40,12 @@ export interface AccountProps {
   reason: string;
   response: number | null;
   sponsor: number;
-  approved: boolean;
-  created: boolean;
+  approved: string;
+  created: string;
   isChecked: boolean;
   needsEditing: boolean | null;
   is_existing_account: boolean | null;
+  denied: string | null;
   id?: number;
 }
 
@@ -129,8 +130,8 @@ export class ApprovalListComponent implements OnInit {
 
   clearAllFilters() {
     this.clearAllSelected();
-    this.handleDeniedVisibility();
     this.accounts.clearAllFilters();
+    this.handleDeniedVisibility();
   }
 
   clearSearch() {
@@ -157,6 +158,7 @@ export class ApprovalListComponent implements OnInit {
         sponsor: account.sponsor,
         approved: account.approved,
         created: account.created,
+        denied: account.denied,
         isChecked: false,
         needsEditing: null,
         is_existing_account: account.is_existing_account
@@ -180,11 +182,18 @@ export class ApprovalListComponent implements OnInit {
     return selectedAccountIds;
   }
 
+  get canDenySelectedRequests(): boolean {
+    return this.selectedAccountIds.length > 0 &&
+      this.selectedAccountIds.every(id => !this.accountsListProps[id].created);
+  }
+
   getApprovalStatus() {
     let isApprovalReady = true;
     for (const id of this.selectedAccountIds) {
       if (this.accountsListProps[id].needsEditing ||
-        (this.accountsListProps[id].approved && this.accountsListProps[id].created)) {
+        (this.accountsListProps[id].approved &&
+          this.accountsListProps[id].created &&
+          this.accountsListProps[id].denied !== null)) {
         isApprovalReady = false;
       }
     }
@@ -396,6 +405,9 @@ export class ApprovalListComponent implements OnInit {
     if (account.is_existing_account && !account.username_valid && !this.emailMatchesAccount(account)) {
       needsEditing = true;
     }
+    if (account.denied !== null) {
+      needsEditing = true;
+    }
     this.accountsListProps[account.id].needsEditing = needsEditing;
   }
 
@@ -504,9 +516,12 @@ export class ApprovalListComponent implements OnInit {
 
   denyRequests() {
     this.dialog.open(GenericConfirmDialogComponent, {
-      width: '400px',
+      width: '500px',
       data: {
-        message: `Confirm you want to deny the selected request${this.selectedAccountIds.length > 1 ? 's' : ''}.`
+        message: `
+                Confirm you want to deny the selected request${this.selectedAccountIds.length > 1 ? 's' : ''} for:<br/>
+                 <b>${this.selectedAccountIds.map(id => this.accountsListProps[id].first_name + ' ' + this.accountsListProps[id].last_name).join('<br/>')}</b>
+         `
       }
     }).afterClosed().pipe(
       filter(confirmed => confirmed),
@@ -514,6 +529,36 @@ export class ApprovalListComponent implements OnInit {
         `${environment.local_service_endpoint}/v1/account/approvals/deny/`, {
           ids: this.selectedAccountIds
         })
+      ),
+      switchMap(() => {
+        // reset to page 1 if the current page has no more items after the deletion
+        if (this.accounts.data.length === this.selectedAccountIds.length) {
+          this.accounts.filter.page = 1;
+        }
+        return this.accounts.getItems();
+      }),
+      tap((accountRequests) => {
+        this.setAccountsListProps(accountRequests);
+        this.clearAllSelected();
+        this.matSnackBar.open('Success');
+      }),
+      catchError((err) => {
+        of(this.handleErrorResponse(err));
+        return throwError(err);
+      })
+    ).subscribe();
+  }
+
+  undoDenial(request: AccountProps) {
+    this.dialog.open(GenericConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        message: `Confirm you want to undo the denial of this request.`
+      }
+    }).afterClosed().pipe(
+      filter(confirmed => confirmed),
+      switchMap(() => this.http.put(
+        `${environment.local_service_endpoint}/v1/account/approvals/${request.id}/undo_deny/`, {})
       ),
       switchMap(() => this.accounts.getItems()),
       tap((accountRequests) => {
