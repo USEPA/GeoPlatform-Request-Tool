@@ -153,14 +153,14 @@ class AccountViewSet(ModelViewSet):
 
     @action(['POST'], detail=False)
     def deny(self, request):
-        # only deny requests that are not already approved
+        # only deny requests that are not already created
         accounts = AccountRequests.objects\
-            .exclude(approved__isnull=False)\
+            .exclude(created__isnull=False)\
             .filter(pk__in=request.data.get('ids', []))
         for account in accounts:
             self.check_object_permissions(request, account)
 
-        accounts.update(denied=now())
+        accounts.update(denied=now(), approved=None)
         return Response()
 
     @action(['PUT'], detail=True)

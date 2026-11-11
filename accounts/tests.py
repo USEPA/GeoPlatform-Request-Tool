@@ -566,6 +566,24 @@ class TestAccounts(TestCase):
         enable_account(b, None)
         self.assertTrue(b.notifications.filter(content__icontains=b.response.portal.email_signature_content).exists())
 
+    def test_notifications_include_project_name(self):
+        # create new account request with a response that has a name
+        portal = AGOL.objects.first()
+        response = ResponseProject.objects.create(
+            name='Test Project',
+            portal=portal,
+            role=AGOLRole.objects.first(),
+            requester=User.objects.first(),
+        )
+        account_request = AccountRequests.objects.create(
+            first_name='Test',
+            last_name='User',
+            response=response,
+        )
+        self.assertTrue(account_request.notifications.filter(
+            content__icontains=f"You have a new {portal.portal_name} Account Request for Test Project pending your approval").exists()
+                        )
+
     @patch('accounts.models.AGOL.create_user_account')
     def test_create_account_from_request(self, mock_create_user_account):
         mock_create_user_account.return_value = False
@@ -585,7 +603,6 @@ class TestAccounts(TestCase):
         mock_add_to_groups.return_value = False
         r = approve_account(a, None, User(id=1))
         self.assertTrue('groups not added at' in r.data['warning'])
-
 
         a = AccountRequests.objects.get(id=102)
         self.assertTrue(a.approved is None and a.approved_by is None and a.existing_account_enabled)
@@ -663,7 +680,8 @@ class TestAccounts(TestCase):
         original_user_type_id = a.user_type_id
 
         # Make response defaults different so an unintended reset is detectable.
-        elevated_type = a.response.portal.user_types.create(code='advancedUT_unchanged', name='advancedUT_unchanged', hierarchy=999)
+        elevated_type = a.response.portal.user_types.create(code='advancedUT_unchanged', name='advancedUT_unchanged',
+                                                            hierarchy=999)
         a.response.role.minimum_compatible_user_type = elevated_type
         a.response.role.save(update_fields=['minimum_compatible_user_type'])
 
@@ -707,7 +725,6 @@ class TestAccounts(TestCase):
         self.assertEqual(a.role_id, required_role.id)
         self.assertEqual(a.user_type_id, required_type.id)
         self.assertEqual(a.auth_group_id, target_response.authoritative_group_id)
-
 
 
 class TestGetUserDetails(TestCase):
@@ -810,7 +827,6 @@ class TestGetUserDetails(TestCase):
         self.assertEqual(get_user_details(response), expected)
 
 
-
 class AGOLTokenTests(TestCase):
     def test_returns_cached_token_when_not_expired(self):
         from accounts.models import AGOL
@@ -842,9 +858,10 @@ class AGOLTokenTests(TestCase):
         fake_response = MagicMock()
         fake_response.json.return_value = {'token': 'new_token', 'expires': 1717430400000}
         with patch('accounts.models.getenv', return_value=fake_creds), \
-             patch('accounts.models.requests.post', return_value=fake_response), \
-             patch('accounts.models.datetime') as mock_datetime, \
-             patch('accounts.models.get_credential_cypher', return_value=MagicMock(decrypt=lambda x: fake_creds.encode())):
+                patch('accounts.models.requests.post', return_value=fake_response), \
+                patch('accounts.models.datetime') as mock_datetime, \
+                patch('accounts.models.get_credential_cypher',
+                      return_value=MagicMock(decrypt=lambda x: fake_creds.encode())):
             mock_datetime.fromtimestamp.return_value = datetime(2024, 6, 4, tzinfo=UTC)
             agol.save = MagicMock()
             token = agol.get_token()
@@ -864,9 +881,10 @@ class AGOLTokenTests(TestCase):
         fake_response = MagicMock()
         fake_response.json.return_value = {'token': 'refreshed_token', 'expires': 1717430400000}
         with patch('accounts.models.getenv', return_value=fake_creds), \
-             patch('accounts.models.requests.post', return_value=fake_response), \
-             patch('accounts.models.datetime') as mock_datetime, \
-             patch('accounts.models.get_credential_cypher', return_value=MagicMock(decrypt=lambda x: fake_creds.encode())):
+                patch('accounts.models.requests.post', return_value=fake_response), \
+                patch('accounts.models.datetime') as mock_datetime, \
+                patch('accounts.models.get_credential_cypher',
+                      return_value=MagicMock(decrypt=lambda x: fake_creds.encode())):
             mock_datetime.fromtimestamp.return_value = datetime(2024, 6, 4, tzinfo=UTC)
             agol.save = MagicMock()
             token = agol.get_token()
