@@ -3,6 +3,7 @@ import { HttpXsrfTokenExtractor } from '@angular/common/http';
 import {LoginService} from '../login.service';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {map, catchError, tap} from 'rxjs/operators';
+import {Observable} from "rxjs";
 
 
 @Component({
@@ -18,13 +19,20 @@ export class LoginComponent implements OnInit {
   showNewUserMessage = false;
   geosecure!: boolean;
   geoportal!: boolean;
-
+  ready = false;
   constructor(public loginService: LoginService, public route: ActivatedRoute, public router: Router,
               private xsrfTokenExtractor: HttpXsrfTokenExtractor) {
   }
 
   ngOnInit() {
     this.checkQueryParams();
+    this.startLogin().subscribe(() => {
+      this.ready = true;
+    });
+  }
+
+  startLogin(): Observable<any> {
+    return this.loginService.startLogin();
   }
 
   getLoginUrl(loginType: string): string {

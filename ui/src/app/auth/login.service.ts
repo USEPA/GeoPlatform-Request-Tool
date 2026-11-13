@@ -208,5 +208,9 @@ export class LoginService  {
     return this.http.post(`${environment.local_service_endpoint}/auth/logout/`, '', {responseType: 'text'});
   }
 
+  startLogin(): Observable<any> {
+    return this.http.get(`${environment.local_service_endpoint}/start/`);
+  }
+
 
 }

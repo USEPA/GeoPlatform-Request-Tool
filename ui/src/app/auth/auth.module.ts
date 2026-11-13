@@ -7,13 +7,15 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 import {RouterModule} from '@angular/router';
 import {MatButtonModule} from '@angular/material/button';
 import {AuthRoutingModule} from './auth-routing.module';
+import {MatProgressSpinner} from "@angular/material/progress-spinner";
 
 
 
 @NgModule({ declarations: [LoginComponent],
-    exports: [LoginComponent], imports: [CommonModule,
+    exports: [LoginComponent],
+    imports: [CommonModule,
         MatCardModule,
         RouterModule,
         MatButtonModule,
-        AuthRoutingModule], providers: [LoginService, provideHttpClient(withXhr(), withInterceptorsFromDi())] })
+        AuthRoutingModule, MatProgressSpinner], providers: [LoginService, provideHttpClient(withXhr(), withInterceptorsFromDi())] })
 export class AuthModule { }
