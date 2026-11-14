@@ -111,7 +111,7 @@ export class RequestFormComponent implements OnInit {
           this.requestForm.patchValue({recaptcha: token});
           obs.next();
           obs.complete();
-        });
+        }, () => obs.error({error: {details: ['Unable to verify reCAPTCHA. Please try again.']}}));
       });
     });
   }
