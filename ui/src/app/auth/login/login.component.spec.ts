@@ -1,26 +1,29 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { LoginComponent } from './login.component';
 import { AuthModule } from '../auth.module';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute } from '@angular/router';
 import { HttpXsrfTokenExtractor, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { environment } from '../../../environments/environment';
 
 describe('LoginComponent', () => {
     let component: LoginComponent;
     let fixture: ComponentFixture<LoginComponent>;
+    let httpTestingController: HttpTestingController;
+    let csrfToken: string | null;
 
     beforeEach(async () => {
+        csrfToken = null;
         await TestBed.configureTestingModule({
             imports: [AuthModule,
                 RouterTestingModule],
             providers: [
                 {
                     provide: HttpXsrfTokenExtractor,
-                    useValue: { getToken: () => 'test-csrf-token' }
+                    useValue: { getToken: () => csrfToken }
                 },
                 {
                     provide: ActivatedRoute,
@@ -37,19 +40,40 @@ describe('LoginComponent', () => {
             ]
         })
             .compileComponents();
+        httpTestingController = TestBed.inject(HttpTestingController);
     });
 
     beforeEach(() => {
         fixture = TestBed.createComponent(LoginComponent);
         component = fixture.componentInstance;
         fixture.detectChanges();
+        httpTestingController.expectOne(`${environment.local_service_endpoint}/current_user/`).flush({});
     });
 
+    afterEach(() => {
+        httpTestingController.verify();
+    });
+
+    function completeStartLogin() {
+        const request = httpTestingController.expectOne(`${environment.local_service_endpoint}/start/`);
+        expect(request.request.method).toBe('GET');
+        request.flush({});
+        csrfToken = 'test-csrf-token';
+        fixture.detectChanges();
+    }
+
     it('should create', () => {
+        completeStartLogin();
         expect(component).toBeTruthy();
     });
 
-    it('should render native POST forms for both providers with CSRF tokens', () => {
+    it('should wait for the CSRF token before rendering the login forms', () => {
+        expect(component.ready).toBe(false);
+        expect(component.csrfToken).toBe('');
+        expect(fixture.nativeElement.querySelectorAll('form').length).toBe(0);
+
+        completeStartLogin();
+
         const forms: HTMLFormElement[] = Array.from(fixture.nativeElement.querySelectorAll('form'));
         expect(forms.length).toBe(2);
         forms.forEach((form, index) => {
@@ -66,6 +90,7 @@ describe('LoginComponent', () => {
     });
 
     it('should preserve the entire return URL including query parameters and fragments', () => {
+        completeStartLogin();
         component.route.snapshot.queryParams.next = '/request/?new_response=true&project=1#geosecure';
         component.checkQueryParams();
         fixture.detectChanges();
@@ -79,6 +104,7 @@ describe('LoginComponent', () => {
     });
 
     it('should only show the GeoPlatform form for GeoPlatform return URLs', () => {
+        completeStartLogin();
         component.route.snapshot.queryParams.next = '/request/#geoplatform';
         component.checkQueryParams();
         fixture.detectChanges();
@@ -89,6 +115,7 @@ describe('LoginComponent', () => {
     });
 
     it('should support login without a return URL', () => {
+        completeStartLogin();
         delete component.route.snapshot.queryParams.next;
         component.checkQueryParams();
         fixture.detectChanges();
