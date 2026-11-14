@@ -558,7 +558,12 @@ export class ApprovalListComponent implements OnInit {
       switchMap(() => this.http.put(
         `${environment.local_service_endpoint}/v1/account/approvals/${request.id}/undo_deny/`, {})
       ),
-      switchMap(() => this.accounts.getItems()),
+      switchMap(() => {
+        if (this.accounts.filter.is_denied === true && this.accounts.data.length === 1) {
+          this.accounts.filter.page = 1;
+        }
+        return this.accounts.getItems();
+      }),
       tap((accountRequests) => {
         this.setAccountsListProps(accountRequests);
         this.clearAllSelected();
