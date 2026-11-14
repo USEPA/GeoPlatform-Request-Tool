@@ -39,7 +39,7 @@ export class UserConfigService {
   }
 
   clearConfig() {
-    this.config.next({} as UserConfig);
+    this.config.next(null);
     this.authenticated = false;
   }
 
