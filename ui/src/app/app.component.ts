@@ -17,7 +17,7 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 })
 export class AppComponent implements OnInit {
   admin_url!: string;
-  config!: Observable<UserConfig>;
+  config!: Observable<UserConfig | null>;
 
   constructor(
     public loginService: LoginService,

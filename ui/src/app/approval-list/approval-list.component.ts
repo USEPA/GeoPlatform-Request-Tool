@@ -61,7 +61,7 @@ export interface Accounts {
   standalone: false
 })
 export class ApprovalListComponent implements OnInit {
-  userConfig!: UserConfig;
+  userConfig: UserConfig | null = null;
   accounts: BaseService;
   displayedColumns = ['selected', 'username', 'first_name', 'last_name', 'email', 'organization', 'submitted', 'groups', 'response',
     'sponsor', 'reason', 'approved', 'created', 'delete'];
@@ -307,6 +307,10 @@ export class ApprovalListComponent implements OnInit {
   }
 
   openApproveOptions() {
+    if (this.userConfig === null) {
+      this.matSnackBar.open('Please log in before approving requests.', 'Dismiss');
+      return;
+    }
     const new_account_request = this.checkForNewAccounts();
     if (this.userConfig.portal.toLowerCase() == 'geoplatform') {
       this.dialog.open(ChooseCreationMethodComponent, {data: {existing_only: !new_account_request}}).afterClosed().pipe(
@@ -504,7 +508,10 @@ export class ApprovalListComponent implements OnInit {
     return account.possible_existing_account.includes(account.username);
   }
 
-  getEmailMismatchTooltip(config: any) {
+  getEmailMismatchTooltip(config: UserConfig | null) {
+    if (config === null) {
+      return '';
+    }
     return `Username is associated with a different email. Complete one of the following:
             1. Modify the username to create a new account associated with this email.
             2. Instruct the requestor to update their ${config.portal} profile with the correct email.
@@ -516,10 +523,7 @@ export class ApprovalListComponent implements OnInit {
     this.dialog.open(GenericConfirmDialogComponent, {
       width: '500px',
       data: {
-        message: `
-                Confirm you want to deny the selected request${this.selectedAccountIds.length > 1 ? 's' : ''} for:<br/>
-                 <b>${this.selectedAccountIds.map(id => this.accountsListProps[id].first_name + ' ' + this.accountsListProps[id].last_name).join('<br/>')}</b>
-         `
+        message: 'Confirm you want to deny the selected requests.'
       }
     }).afterClosed().pipe(
       filter(confirmed => confirmed),

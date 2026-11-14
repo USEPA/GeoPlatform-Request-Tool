@@ -23,24 +23,24 @@ export interface UserConfig {
   providedIn: 'root'
 })
 export class UserConfigService {
-  config: ReplaySubject<UserConfig> = new ReplaySubject<UserConfig>();
-  private current_config!: UserConfig;
+  config: ReplaySubject<UserConfig | null> = new ReplaySubject<UserConfig | null>(1);
+  private current_config: UserConfig | null = null;
   public authenticated = false;
   constructor(public http: HttpClient) {
     this.config.pipe(share()).subscribe(config => this.current_config = config);
     this.loadConfig().subscribe();
   }
 
-  loadConfig(): Observable<any> {
-    return this.http.get<any>(`${environment.local_service_endpoint}/current_user/`).pipe(
+  loadConfig(): Observable<UserConfig> {
+    return this.http.get<UserConfig>(`${environment.local_service_endpoint}/current_user/`).pipe(
       tap(() => this.authenticated = true),
       tap(config => this.config.next(config))
     );
   }
 
   clearConfig() {
-    this.config.next(null);
     this.authenticated = false;
+    this.config.next(null);
   }
 
   // checkGroups(groups: string[]) {
@@ -55,7 +55,8 @@ export class UserConfigService {
   //   return false;
   // }
 
-  checkPermissions(permission: string) {
-    return this.current_config.is_superuser ? this.current_config.is_superuser : this.current_config.permissions.includes(permission);
+  checkPermissions(permission: string): boolean {
+    return this.current_config !== null &&
+      (this.current_config.is_superuser || this.current_config.permissions.includes(permission));
   }
 }

@@ -12,7 +12,7 @@ import {
   MatDialogRef, MatDialogTitle
 } from '@angular/material/dialog';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import {iif, Observable, Subject} from 'rxjs';
+import {iif, Observable, of, Subject} from 'rxjs';
 import {finalize, map, switchMap, tap} from 'rxjs/operators';
 import {UserConfig, UserConfigService} from '../../auth/user-config.service';
 import {environment} from "@environments/environment";
@@ -77,7 +77,7 @@ export class EditAccountPropsDialogComponent implements OnInit {
   groups: Subject<AgolGroup[]> = new Subject<AgolGroup[]>();
   responses!: Observable<Response[]>;
   sponsors: Subject<Sponsor[]> = new Subject<Sponsor[]>();
-  current_user!: Observable<UserConfig>;
+  current_user!: Observable<UserConfig | null>;
   groupsLoading = false;
   // Form Group
   editAccountPropsForm = new FormGroup({
@@ -122,6 +122,10 @@ export class EditAccountPropsDialogComponent implements OnInit {
   getSponsors() {
     this.userConfig.config.pipe(
       switchMap(config => {
+        if (config === null) {
+          this.editAccountPropsForm.controls.sponsor.reset();
+          return of<Sponsor[]>([]);
+        }
         return iif(() => config.is_sponsor,
           this.http.get<Sponsor>(`${environment.local_service_endpoint}/v1/sponsors/${config.id}/`).pipe(map(s => [s])),
           this.http.get<ServiceResponse>(`${environment.local_service_endpoint}/v1/sponsors/`,

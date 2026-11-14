@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import {catchError, map, switchMap} from 'rxjs/operators';
+import {catchError, filter, map, switchMap} from 'rxjs/operators';
 import {BehaviorSubject, Observable} from 'rxjs';
 import { Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import {environment} from '../../environments/environment';
@@ -64,6 +64,7 @@ export class LoginService  {
       this.configService.loadConfig().pipe(
         switchMap(() => {
             return this.configService.config.pipe(
+              filter(config => config !== null),
               map(() => {
                 resolve(true);
               }));
@@ -81,6 +82,7 @@ export class LoginService  {
       this.configService.loadConfig().pipe(
         switchMap(() => {
             return this.configService.config.pipe(
+              filter(config => config !== null),
               map(() => {
                 resolve(true);
               }));

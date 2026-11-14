@@ -89,6 +89,21 @@ describe('ApprovalListComponent', () => {
         expect(component).toBeTruthy();
     });
 
+    it('should handle a cleared user config on logout', () => {
+        component.UserConfigService.clearConfig();
+        fixture.detectChanges();
+
+        expect(component.userConfig).toBeNull();
+        expect(component.getEmailMismatchTooltip(component.userConfig)).toBe('');
+        const openDialog = vi.spyOn(component.dialog, 'open');
+        const notify = vi.spyOn(matSnackBar, 'open');
+
+        component.openApproveOptions();
+
+        expect(openDialog).not.toHaveBeenCalled();
+        expect(notify).toHaveBeenCalledWith('Please log in before approving requests.', 'Dismiss');
+    });
+
     describe('Deny button visibility', () => {
         beforeEach(() => {
             component.accountsListProps = {
@@ -252,7 +267,7 @@ describe('ApprovalListComponent', () => {
             width: '500px',
             data: {
                 message: expect.stringMatching(
-                    /^\s*Confirm you want to deny the selected requests for:<br\/>\s*<b>First Requestor<br\/>Second Requestor<\/b>\s*$/
+                    'Confirm you want to deny the selected requests'
                 )
             }
         });

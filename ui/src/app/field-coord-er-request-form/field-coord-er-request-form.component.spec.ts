@@ -5,6 +5,7 @@ import {FieldCoordErRequestFormComponent} from './field-coord-er-request-form.co
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {LoadingService} from '@services/loading.service';
 import {provideHttpClient, withInterceptorsFromDi, withXhr} from '@angular/common/http';
+import {UserConfigService} from '../auth/user-config.service';
 
 describe('FieldCoordErRequestFormComponent', () => {
   let component: FieldCoordErRequestFormComponent;
@@ -30,5 +31,15 @@ describe('FieldCoordErRequestFormComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should clear the requester and portal when the user logs out', () => {
+    component.fieldTeamCoordErForm.patchValue({requester: 1, portal: 1});
+
+    TestBed.inject(UserConfigService).clearConfig();
+    fixture.detectChanges();
+
+    expect(component.fieldTeamCoordErForm.controls.requester.value).toBeNull();
+    expect(component.fieldTeamCoordErForm.controls.portal.value).toBeNull();
   });
 });

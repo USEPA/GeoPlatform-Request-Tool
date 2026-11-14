@@ -74,6 +74,10 @@ export class FieldCoordErRequestFormComponent implements OnInit {
   ngOnInit() {
     this.userConfig.config.pipe(
       tap(c => {
+        if (c === null) {
+          this.fieldTeamCoordErForm.patchValue({requester: null, portal: null});
+          return;
+        }
         this.fieldTeamCoordErForm.patchValue({
           requester: c.id,
           requester_phone_number: c.phone_number,
