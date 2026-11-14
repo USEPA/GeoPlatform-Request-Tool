@@ -83,6 +83,7 @@ class AccountRequests(models.Model):
     response = models.ForeignKey('ResponseProject', on_delete=models.PROTECT, blank=True, null=True,
                                  related_name='requests')
     notifications = GenericRelation('Notification')
+    denied = models.DateTimeField(null=True, blank=True)
 
     @property
     def sponsor_notified(self):
@@ -96,7 +97,8 @@ class AccountRequests(models.Model):
             subject=f'New {self.response.portal} Account Request',
             context={
                 "REQUEST_ADDRESS": settings.HOST_ADDRESS + "/accounts/list#" + self.response.portal.portal_name,
-                "PORTAL": self.response.portal
+                "PORTAL": self.response.portal,
+                "PROJECT": self.response.name
             },
             template="new_account_request_email.html",
             content_object=self,
@@ -749,7 +751,7 @@ class ResponseProject(models.Model):
         return self.portal.requires_auth_group if self.pk else False
 
     def can_be_disabled(self):
-        return not self.requests.filter(approved__isnull=True).exists()
+        return not self.requests.filter(approved__isnull=True, denied__isnull=True).exists()
 
     def clean(self):
         if self.auth_group_required and not self.role.auth_groups.filter(id=self.authoritative_group_id).exists():

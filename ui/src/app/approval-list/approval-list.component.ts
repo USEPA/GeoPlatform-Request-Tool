@@ -1,5 +1,5 @@
-import {Component, OnInit} from '@angular/core';
-import {HttpClient, HttpErrorResponse} from '@angular/common/http';
+import {Component, OnInit, ChangeDetectionStrategy} from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import {
   catchError,
   debounceTime,
@@ -11,8 +11,8 @@ import {
   filter,
   map,
 } from 'rxjs/operators';
-import {MatLegacyDialog as MatDialog} from '@angular/material/legacy-dialog';
-import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-bar';
+import {MatDialog} from '@angular/material/dialog';
+import {MatSnackBar} from '@angular/material/snack-bar';
 import {FormControl} from '@angular/forms';
 import {forkJoin, from, iif, Observable, of, throwError} from 'rxjs';
 
@@ -22,30 +22,31 @@ import {LoadingService} from '../services/loading.service';
 import {UserConfig, UserConfigService} from "../auth/user-config.service";
 
 import {
-  EditAccountPropsDialogComponent
+  EditAccountPropsDialogComponent,
+  EditAccountPropsFormValues
 } from '../dialogs/edit-account-props-dialog/edit-account-props-dialog.component';
 import {ConfirmApprovalDialogComponent} from '../dialogs/confirm-approval-dialog/confirm-approval-dialog.component';
 import {ChooseCreationMethodComponent} from '../dialogs/choose-creation-method/choose-creation-method.component';
 import {GenericConfirmDialogComponent} from '../dialogs/generic-confirm-dialog/generic-confirm-dialog.component';
 import {environment} from '@environments/environment';
 
-import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-
 export interface AccountProps {
   first_name: string;
   last_name: string;
   username: string;
   email: string;
-  groups: [];
+  groups: number[];
   organization: string;
   reason: string;
-  response: number;
+  response: number | null;
   sponsor: number;
-  approved: boolean;
-  created: boolean;
+  approved: string;
+  created: string;
   isChecked: boolean;
-  needsEditing: boolean;
-  is_existing_account: boolean;
+  needsEditing: boolean | null;
+  is_existing_account: boolean | null;
+  denied: string | null;
+  id?: number;
 }
 
 export interface Accounts {
@@ -55,27 +56,29 @@ export interface Accounts {
 @Component({
   selector: 'app-approval-list',
   templateUrl: './approval-list.component.html',
-  styleUrls: ['./approval-list.component.css']
+  styleUrls: ['./approval-list.component.css'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false
 })
 export class ApprovalListComponent implements OnInit {
-  userConfig: UserConfig;
+  userConfig: UserConfig | null = null;
   accounts: BaseService;
-  displayedColumns = ['selected', 'username', 'first_name', 'last_name', 'email', 'organization', 'groups', 'response',
+  displayedColumns = ['selected', 'username', 'first_name', 'last_name', 'email', 'organization', 'submitted', 'groups', 'response',
     'sponsor', 'reason', 'approved', 'created', 'delete'];
   // took out "roll" and "user_type"
-  selectedAccountIds = [];
+  selectedAccountIds: number[] = [];
   accountsListProps: Accounts = {};
-  allChecked: boolean;
-  needsEditing: boolean;
-  isApprovalReady: boolean;
+  allChecked!: boolean;
+  needsEditing!: boolean;
+  isApprovalReady!: boolean;
   // roles: Observable<[]>;
   // user_types: Observable<[]>;
-  responses: Observable<any[]>;
+  responses!: Observable<any[]>;
   searchInput = new FormControl(null);
 
   constructor(public http: HttpClient, loadingService: LoadingService,
-              public dialog: MatDialog = null,
-              public loginService: LoginService = null,
+              public dialog: MatDialog,
+              public loginService: LoginService,
               public UserConfigService: UserConfigService,
               public matSnackBar: MatSnackBar) {
     this.accounts = new BaseService('v1/account/approvals', http, loadingService);
@@ -90,7 +93,7 @@ export class ApprovalListComponent implements OnInit {
 
     this.UserConfigService.config.subscribe(c => this.userConfig = c);
 
-    this.accounts.filter = {created: false};
+    this.accounts.filter = {created: false, is_denied: false, page: 1, search: ''};
     this.accounts.dataChange.pipe(
       map(response => this.formatExistingAccountUsernames(response)),
       tap(response => this.setAccountsListProps(response))
@@ -108,8 +111,19 @@ export class ApprovalListComponent implements OnInit {
     ).subscribe();
   }
 
+  handleDeniedVisibility() {
+    if (this.accounts.filter.is_denied === false) {
+      this.displayedColumns = this.displayedColumns.filter(c => c !== 'denied');
+    } else {
+      if (!this.displayedColumns.includes('denied')) {
+        this.displayedColumns.splice(-1, -2, 'denied');
+      }
+    }
+  }
+
   search(search?: any) {
     this.clearAllSelected();
+    this.handleDeniedVisibility();
     this.accounts.filter.search = search ? search : this.accounts.filter.search ? this.accounts.filter.search : '';
     return this.accounts.runSearch();
   }
@@ -117,15 +131,16 @@ export class ApprovalListComponent implements OnInit {
   clearAllFilters() {
     this.clearAllSelected();
     this.accounts.clearAllFilters();
+    this.handleDeniedVisibility();
   }
 
   clearSearch() {
     this.clearAllSelected();
-    this.searchInput.setValue('');
+    this.searchInput.setValue(null);
     this.accounts.clearSearch();
   }
 
-  setAccountsListProps(init_accounts) {
+  setAccountsListProps(init_accounts: any[]) {
     this.accountsListProps = {};
     this.needsEditing = false;
     this.isApprovalReady = false;
@@ -143,6 +158,7 @@ export class ApprovalListComponent implements OnInit {
         sponsor: account.sponsor,
         approved: account.approved,
         created: account.created,
+        denied: account.denied,
         isChecked: false,
         needsEditing: null,
         is_existing_account: account.is_existing_account
@@ -155,8 +171,8 @@ export class ApprovalListComponent implements OnInit {
 
   }
 
-  getSelectedAccountIds() {
-    const selectedAccountIds = [];
+  getSelectedAccountIds(): number[] {
+    const selectedAccountIds: number[] = [];
     for (const id in this.accountsListProps) {
       if (this.accountsListProps.hasOwnProperty(id) && this.accountsListProps[id].isChecked) {
         const idNum = Number(id);
@@ -164,6 +180,11 @@ export class ApprovalListComponent implements OnInit {
       }
     }
     return selectedAccountIds;
+  }
+
+  get canDenySelectedRequests(): boolean {
+    return this.selectedAccountIds.length > 0 &&
+      this.selectedAccountIds.every(id => !this.accountsListProps[id].created);
   }
 
   getApprovalStatus() {
@@ -177,7 +198,7 @@ export class ApprovalListComponent implements OnInit {
     return isApprovalReady;
   }
 
-  updateSelectedAccount(event, all = false) {
+  updateSelectedAccount(event: any, all = false) {
     let needsEditing = false;
     this.isApprovalReady = false;
     for (const id in this.accountsListProps) {
@@ -208,21 +229,21 @@ export class ApprovalListComponent implements OnInit {
 
   clearAllSelected() {
     this.allChecked = false;
-    Object.keys(this.accountsListProps).forEach(id => {
+    Object.keys(this.accountsListProps).forEach((id : any) => {
       this.accountsListProps[id].isChecked = false;
       this.allChecked = false;
     });
     this.selectedAccountIds = this.getSelectedAccountIds();
   }
 
-  updateRecord(record) {
+  updateRecord(record: any): Observable<any> {
     return this.http.put(`${environment.local_service_endpoint}/v1/account/approvals/${record.id}/`, record).pipe(
       tap(response => {
         this.setNeedsEditing(response);
         this.accounts.dataChange.next(this.accounts.data);
-        this.matSnackBar.open('Success', null, {duration: 2000})
+        this.matSnackBar.open('Success', '', {duration: 2000})
       }),
-      catchError(() => of(this.matSnackBar.open("Error", null, {duration: environment.snackbar_duration})))
+      catchError(() => of(this.matSnackBar.open("Error", '', {duration: environment.snackbar_duration})))
     );
   }
 
@@ -247,7 +268,7 @@ export class ApprovalListComponent implements OnInit {
         reason: defaults.reason,
       };
     }
-    const dialogRef = this.dialog.open(EditAccountPropsDialogComponent, {
+    const dialogRef = this.dialog.open<EditAccountPropsDialogComponent, any, EditAccountPropsFormValues>(EditAccountPropsDialogComponent, {
       width: '500px',
       data: data
     });
@@ -258,12 +279,22 @@ export class ApprovalListComponent implements OnInit {
         if (formInputValues) {
           for (const id in this.accountsListProps) {
             if (this.accountsListProps[id].isChecked) {
-              const updatedRecord = this.accountsListProps[id];
+              const updatedRecord: AccountProps = this.accountsListProps[id];
               updatedRecord['id'] = Number(id);
-              for (const key in formInputValues) {
-                if (key in updatedRecord) {
-                  updatedRecord[key] = formInputValues[key];
-                }
+              if (formInputValues.username != null) {
+                updatedRecord.username = formInputValues.username;
+              }
+              if (formInputValues.groups !== undefined) {
+                updatedRecord.groups = formInputValues.groups;
+              }
+              if (formInputValues.sponsor != null) {
+                updatedRecord.sponsor = formInputValues.sponsor;
+              }
+              if (formInputValues.response !== undefined) {
+                updatedRecord.response = formInputValues.response;
+              }
+              if (formInputValues.reason != null) {
+                updatedRecord.reason = formInputValues.reason;
               }
               accountUpdates.push(this.updateRecord(updatedRecord));
             }
@@ -276,6 +307,10 @@ export class ApprovalListComponent implements OnInit {
   }
 
   openApproveOptions() {
+    if (this.userConfig === null) {
+      this.matSnackBar.open('Please log in before approving requests.', 'Dismiss');
+      return;
+    }
     const new_account_request = this.checkForNewAccounts();
     if (this.userConfig.portal.toLowerCase() == 'geoplatform') {
       this.dialog.open(ChooseCreationMethodComponent, {data: {existing_only: !new_account_request}}).afterClosed().pipe(
@@ -337,7 +372,7 @@ export class ApprovalListComponent implements OnInit {
     );
   }
 
-  confirmDeleteAccountRequest(event, selectedRequest) {
+  confirmDeleteAccountRequest(event: Event, selectedRequest: any) {
     event.stopPropagation();
 
     const dialogRef = this.dialog.open(GenericConfirmDialogComponent, {
@@ -363,7 +398,7 @@ export class ApprovalListComponent implements OnInit {
     ).subscribe();
   }
 
-  setNeedsEditing(account) {
+  setNeedsEditing(account: any) {
     let needsEditing = false;
     // removed group as requirement for editing per issue #31
     if (!account.organization || !account.response || !account.sponsor || !account.reason) {
@@ -372,11 +407,14 @@ export class ApprovalListComponent implements OnInit {
     if (account.is_existing_account && !account.username_valid && !this.emailMatchesAccount(account)) {
       needsEditing = true;
     }
+    if (account.denied !== null) {
+      needsEditing = true;
+    }
     this.accountsListProps[account.id].needsEditing = needsEditing;
   }
 
 
-  createAccounts(password?) {
+  createAccounts(password?: string | null) {
 
     const requests = this.selectedAccountIds.map(id => {
       return this.http.post(`${environment.local_service_endpoint}/v1/account/approvals/approve/`, {
@@ -404,19 +442,19 @@ export class ApprovalListComponent implements OnInit {
           : 'There was an error with one or more account requests';
         this.matSnackBar.open(
           displayMessage,
-          null,
+          '',
           {duration: environment.snackbar_duration, panelClass: ['snackbar-error']}
         );
       } else if (warningResponses.length > 0) {
         this.matSnackBar.open(
           'There was an issue adding to groups for one or more accounts, please review accordingly.',
-          null,
+          '',
           {duration: environment.snackbar_duration, panelClass: ['snackbar-warning']}
         );
       } else {
         this.matSnackBar.open(
           'Success!',
-          null,
+          '',
           {duration: environment.snackbar_duration, panelClass: ['snackbar-success']}
         );
       }
@@ -428,29 +466,29 @@ export class ApprovalListComponent implements OnInit {
 
   handleErrorResponse(err: HttpErrorResponse, customErrorMessages?: string[]) {
     if (err && err.error && err.error.detail) {
-      this.matSnackBar.open(err.error.detail, null, {
+      this.matSnackBar.open(err.error.detail, '', {
         duration: environment.snackbar_duration, panelClass: ['snackbar-error']
       });
     } else if (err && err.error && typeof err.error === 'string') {
-      this.matSnackBar.open(err.error, null, {
+      this.matSnackBar.open(err.error, '', {
         duration: environment.snackbar_duration, panelClass: ['snackbar-error']
       });
     } else if (err && err.error && err.error instanceof Array) {
-      this.matSnackBar.open(`Error: ${JSON.stringify(err.error[0])}`, null, {
+      this.matSnackBar.open(`Error: ${JSON.stringify(err.error[0])}`, '', {
         duration: environment.snackbar_duration, panelClass: ['snackbar-error']
       });
-    } else if (customErrorMessages.length > 0) {
-      this.matSnackBar.open(customErrorMessages.join(', '), null, {
+    } else if (customErrorMessages && customErrorMessages.length > 0) {
+      this.matSnackBar.open(customErrorMessages.join(', '), '', {
         duration: environment.snackbar_duration, panelClass: ['snackbar-error']
       });
     } else {
-      this.matSnackBar.open('Error occurred.', null, {
+      this.matSnackBar.open('Error occurred.', '', {
         duration: environment.snackbar_duration, panelClass: ['snackbar-error']
       });
     }
   }
 
-  getPage(e) {
+  getPage(e: any) {
     this.accounts.getPage(e);
     this.clearAllSelected();
   }
@@ -459,22 +497,86 @@ export class ApprovalListComponent implements OnInit {
     return this.selectedAccountIds.find(id => !this.accountsListProps[id].is_existing_account) !== undefined;
   }
 
-  formatExistingAccountUsernames(accounts) {
+  formatExistingAccountUsernames(accounts: any[]) {
     return accounts.map(a => {
       a.possible_existing_account = a.possible_existing_account ? a.possible_existing_account.split(',') : [];
       return a;
     })
   }
 
-  emailMatchesAccount(account) {
+  emailMatchesAccount(account: any) {
     return account.possible_existing_account.includes(account.username);
   }
 
-  getEmailMismatchTooltip(config) {
+  getEmailMismatchTooltip(config: UserConfig | null) {
+    if (config === null) {
+      return '';
+    }
     return `Username is associated with a different email. Complete one of the following:
             1. Modify the username to create a new account associated with this email.
             2. Instruct the requestor to update their ${config.portal} profile with the correct email.
             3. Instruct the requestor to submit a new request with the correct email.`;
 
+  }
+
+  denyRequests() {
+    this.dialog.open(GenericConfirmDialogComponent, {
+      width: '500px',
+      data: {
+        message: 'Confirm you want to deny the selected requests.'
+      }
+    }).afterClosed().pipe(
+      filter(confirmed => confirmed),
+      switchMap(() => this.http.post(
+        `${environment.local_service_endpoint}/v1/account/approvals/deny/`, {
+          ids: this.selectedAccountIds
+        })
+      ),
+      switchMap(() => {
+        // reset to page 1 if the current page has no more items after the deletion
+        if (this.accounts.data.length === this.selectedAccountIds.length) {
+          this.accounts.filter.page = 1;
+        }
+        return this.accounts.getItems();
+      }),
+      tap((accountRequests) => {
+        this.setAccountsListProps(accountRequests);
+        this.clearAllSelected();
+        this.matSnackBar.open('Success');
+      }),
+      catchError((err) => {
+        of(this.handleErrorResponse(err));
+        return throwError(err);
+      })
+    ).subscribe();
+  }
+
+  undoDenial(request: AccountProps) {
+    this.dialog.open(GenericConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        message: `Confirm you want to undo the denial of this request.`
+      }
+    }).afterClosed().pipe(
+      filter(confirmed => confirmed),
+      switchMap(() => this.http.put(
+        `${environment.local_service_endpoint}/v1/account/approvals/${request.id}/undo_deny/`, {})
+      ),
+      switchMap(() => {
+        if (this.accounts.filter.is_denied === true && this.accounts.data.length === 1) {
+          this.accounts.filter.page = 1;
+        }
+        return this.accounts.getItems();
+      }),
+      tap((accountRequests) => {
+        this.setAccountsListProps(accountRequests);
+        this.clearAllSelected();
+        this.matSnackBar.open('Success');
+      }),
+      catchError((err) => {
+        of(this.handleErrorResponse(err));
+        return throwError(err);
+      })
+    ).subscribe();
   }
 }

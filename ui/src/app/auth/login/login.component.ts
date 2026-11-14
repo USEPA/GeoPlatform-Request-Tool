@@ -1,36 +1,57 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, ChangeDetectionStrategy} from '@angular/core';
+import { HttpXsrfTokenExtractor } from '@angular/common/http';
 import {LoginService} from '../login.service';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {map, catchError, tap} from 'rxjs/operators';
+import {Observable} from "rxjs";
 
 
 @Component({
-  selector: 'app-login',
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+    selector: 'app-login',
+    templateUrl: './login.component.html',
+    styleUrls: ['./login.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class LoginComponent implements OnInit {
-  username: string;
-  password: string;
+  username!: string;
+  password!: string;
   showNewUserMessage = false;
-  geosecure: boolean;
-  geoportal: boolean;
-
-  constructor(public loginService: LoginService, public route: ActivatedRoute, public router: Router) {
+  geosecure!: boolean;
+  geoportal!: boolean;
+  ready = false;
+  constructor(public loginService: LoginService, public route: ActivatedRoute, public router: Router,
+              private xsrfTokenExtractor: HttpXsrfTokenExtractor) {
   }
 
   ngOnInit() {
     this.checkQueryParams();
+    this.startLogin().subscribe(() => {
+      this.ready = true;
+    });
   }
 
-  login(loginType: string) {
-    this.loginService.sendToLogin(loginType, window.location.origin + this.route.snapshot.queryParams.next);
+  startLogin(): Observable<any> {
+    return this.loginService.startLogin();
+  }
+
+  getLoginUrl(loginType: string): string {
+    return this.loginService.getLoginUrl(loginType);
+  }
+
+  get nextUrl(): string {
+    return window.location.origin + (this.route.snapshot.queryParams.next || '');
+  }
+
+  get csrfToken(): string {
+    return this.xsrfTokenExtractor.getToken() || '';
   }
 
   checkQueryParams() {
-    this.showNewUserMessage = this.route.snapshot.queryParams.next.includes('new_response=true');
-    this.geosecure = this.route.snapshot.queryParams.next.toLowerCase().includes('#geosecure');
-    this.geoportal = this.route.snapshot.queryParams.next.toLowerCase().includes('#geoplatform');
+    const next = this.route.snapshot.queryParams.next || '';
+    this.showNewUserMessage = next.includes('new_response=true');
+    this.geosecure = next.toLowerCase().includes('#geosecure');
+    this.geoportal = next.toLowerCase().includes('#geoplatform');
   }
 
   // can not use b/c it would break mapping

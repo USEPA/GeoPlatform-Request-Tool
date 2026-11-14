@@ -1,33 +1,34 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { beforeEach, describe, expect, it } from "vitest";
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ChooseCreationMethodComponent } from './choose-creation-method.component';
-import {MAT_LEGACY_DIALOG_DATA, MatLegacyDialogModule, MatLegacyDialogRef} from '@angular/material/legacy-dialog';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 
 describe('ChooseCreationMethodComponent', () => {
-  let component: ChooseCreationMethodComponent;
-  let fixture: ComponentFixture<ChooseCreationMethodComponent>;
+    let component: ChooseCreationMethodComponent;
+    let fixture: ComponentFixture<ChooseCreationMethodComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ ChooseCreationMethodComponent ],
-      imports: [
-        MatLegacyDialogModule,
-      ],
-      providers: [
-        {provide: MatLegacyDialogRef, useValue: {}},
-        {provide: MAT_LEGACY_DIALOG_DATA, useValue: {}}
-      ]
-    })
-    .compileComponents();
-  }));
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            declarations: [ChooseCreationMethodComponent],
+            imports: [
+                MatDialogModule,
+            ],
+            providers: [
+                { provide: MatDialogRef, useValue: {} },
+                { provide: MAT_DIALOG_DATA, useValue: {} }
+            ]
+        })
+            .compileComponents();
+    });
 
-  beforeEach(() => {
-    fixture = TestBed.createComponent(ChooseCreationMethodComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+    beforeEach(() => {
+        fixture = TestBed.createComponent(ChooseCreationMethodComponent);
+        component = fixture.componentInstance;
+        fixture.detectChanges();
+    });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+    it('should create', () => {
+        expect(component).toBeTruthy();
+    });
 });

@@ -19,7 +19,7 @@ describe('Anonymous submission', () => {
     // cy.solveGoogleReCAPTCHA();
 
     cy.get('button').contains('Submit').click();
-    cy.get('span[class="mat-simple-snack-bar-content"]', {timeout: 30000}).should('contain', 'Request has been successfully submitted')
+    cy.get('simple-snack-bar', {timeout: 30000}).should('contain', 'Request has been successfully submitted')
   })
 
   it('block submitting same request ', () => {
@@ -31,7 +31,7 @@ describe('Anonymous submission', () => {
     cy.get('mat-option').contains('R09 Testing').click();
     // cy.solveGoogleReCAPTCHA();
     cy.get('button').contains('Submit').click();
-    cy.get('span[class="mat-simple-snack-bar-content"]').should('contain', 'Outstanding request found.')
+    cy.get('simple-snack-bar').should('contain', 'Outstanding request found.')
   })
 
   it('should go to login if trying to submit response form', () => {
@@ -53,13 +53,13 @@ describe('Anonymous submission', () => {
     // cy.solveGoogleReCAPTCHA();
 
     cy.get('button').contains('Submit').click();
-    cy.get('span[class="mat-simple-snack-bar-content"]', {timeout: 30000}).should('contain', 'Request can not be accepted at this time.')
+    cy.get('simple-snack-bar', {timeout: 30000}).should('contain', 'Request can not be accepted at this time.')
 
   })
 
   it('should preselect response/project if response in query params', () => {
     cy.visit('/?response=1');
-    cy.get('mat-select[formcontrolname="response"]').should('not.be.empty', )
+    cy.get('mat-select[formcontrolname="response"]').should('not.be.empty',)
   })
 
   it('should not filter responses if response in query params does not exist', () => {
@@ -72,8 +72,13 @@ describe('Anonymous submission', () => {
 
 describe('approver workflow', () => {
   beforeEach(() => {
-    cy.loginWithCredentials(Cypress.env('approver_username'), Cypress.env('approver_password'));
-    cy.visit('/');
+    cy.env(['approver_username', 'approver_password']).then(({
+                                                               approver_username: username,
+                                                               approver_password: password
+                                                             }) => {
+      cy.loginWithCredentials(username, password);
+      cy.visit('/');
+    });
   })
 
   it('should allow logged in user to submit response form', () => {
@@ -90,7 +95,7 @@ describe('approver workflow', () => {
     cy.get('mat-select[formcontrolname="authoritative_group"]').click();
     cy.get('mat-option').first().click();
     cy.get('mat-dialog-content button').contains('Submit').scrollIntoView().click();
-    cy.get('span[class="mat-simple-snack-bar-content"]').should('contain', 'Request has been successfully submitted');
+    cy.get('simple-snack-bar').should('contain', 'Request has been successfully submitted');
   })
 
   it('should allow approver to go to approval list', () => {
@@ -133,11 +138,11 @@ describe('approver workflow', () => {
     cy.wait(1000);
     cy.get('mat-select[formcontrolname="groups"].mat-select-disabled').should('not.exist')
     cy.get('mat-select[formcontrolname="groups"]').click();
-    cy.get('.mat-option-text').contains('Test').click();
+    cy.get('mat-option').contains('Test').click();
     cy.get('body').click()
     cy.wait(1000) // submit button is greyed out for a moment
     cy.get('button').contains('Submit').click();
-    cy.get('span[class="mat-simple-snack-bar-content"]').should('contain', 'Success');
+    cy.get('simple-snack-bar').should('contain', 'Success');
   })
 
   it('should allow approver to approve request', () => {
@@ -146,18 +151,56 @@ describe('approver workflow', () => {
     cy.wait(1000);
     cy.get('mat-cell').first().click();
     cy.get('button#approveBtn').click()
-    cy.get('.mat-dialog-content').should('exist')
+    cy.get('app-choose-creation-method').should('exist')
   })
+
+  it('should allow approver to deny the request', () => {
+    cy.visit('/accounts/list');
+    cy.get('input#searchInput').type('Test User{enter}')
+    cy.wait(1000);
+    cy.get('mat-cell').first().click();
+    cy.get('button#denyBtn').click()
+    cy.get('button').contains('Confirm').click();
+    cy.get('simple-snack-bar').should('contain', 'Success');
+  });
+
+  it('should not show denied requests by default', () => {
+    cy.visit('/accounts/list');
+    cy.get('input#searchInput').type('Test User{enter}')
+    cy.wait(1000);
+    cy.contains('mat-cell', 'Test').should('not.exist')
+  });
+
+  it('should show denied requests when filter is toggled', () => {
+    cy.visit('/accounts/list');
+    cy.get('button#filterBtn').click();
+    // select True from Denied dropdown
+    cy.get('filter-input[label="Denied"]').click();
+    cy.get('mat-option').contains('True').click();
+    cy.get('button#applyFilterBtn').click();
+    cy.wait(1000);
+    cy.get('mat-cell').should('contain', 'Test')
+    cy.get('input#searchInput').type('Test User{enter}')
+    cy.wait(1000);
+    cy.get('mat-cell').should('contain', 'Test')
+  });
 
   it('should allow apporver to delete the request', () => {
     cy.visit('/accounts/list');
+    // select True from Denied dropdown
+    cy.get('button#filterBtn').click();
+    cy.get('filter-input[label="Denied"]').click();
+    cy.get('mat-option').contains('True').click();
+    cy.get('button#applyFilterBtn').click();
+    cy.wait(1000);
     cy.get('input#searchInput').type('Test User{enter}')
     cy.wait(1000);
     cy.get('mat-cell').first().click();
     cy.get('mat-cell.cdk-column-delete > button').click()
     cy.get('button').contains('Confirm').click();
-    cy.get('span[class="mat-simple-snack-bar-content"]').should('contain', 'Deleted User.Test_EPA')
+    cy.get('simple-snack-bar').should('contain', 'Deleted User.Test_EPA')
 
   })
+
 
 })

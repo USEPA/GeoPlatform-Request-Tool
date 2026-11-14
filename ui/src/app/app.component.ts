@@ -1,22 +1,23 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, ChangeDetectionStrategy} from '@angular/core';
 import {LoginService} from './auth/login.service';
 import {BehaviorSubject, Observable, ReplaySubject, Subject} from 'rxjs';
 import {NavigationEnd, Router, ActivatedRoute} from '@angular/router';
 import {UserConfig, UserConfigService} from './auth/user-config.service';
 import {environment} from '../environments/environment';
 import {filter, tap} from 'rxjs/operators';
-import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-bar';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
-declare var gtag;
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class AppComponent implements OnInit {
-  admin_url: string;
-  config: Observable<UserConfig>;
+  admin_url!: string;
+  config!: Observable<UserConfig | null>;
 
   constructor(
     public loginService: LoginService,
@@ -29,6 +30,7 @@ export class AppComponent implements OnInit {
       filter(e => e instanceof NavigationEnd)
     );
     navEndEvent$.subscribe((e: NavigationEnd) => {
+      // @ts-ignore
       window['dataLayer'].push({
         event: 'navigation',
         pageName: e.url
@@ -37,6 +39,7 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadRecaptchaScript();
     this.admin_url = `${environment.local_service_endpoint}/admin/`;
     this.config = this.userConfig.config;
     this.route.queryParams.pipe(
@@ -50,8 +53,9 @@ export class AppComponent implements OnInit {
   }
 
   switch_portal() {
-    this.loginService.logout().subscribe(()=>this.router.navigate(['login'], {queryParams: {next: this.router.url}}))
+    this.loginService.logout().subscribe(() => this.router.navigate(['login'], {queryParams: {next: this.router.url}}))
   }
+
   close_warning() {
     this.router.navigate([]);
   }
@@ -62,5 +66,11 @@ export class AppComponent implements OnInit {
       'The Account Request Tool has a new home. Please update your bookmarks to https://gpdashboard.epa.gov/request/',
       'Dismiss',
       {verticalPosition: 'top', panelClass: ['snackbar-error']})
+  }
+
+  loadRecaptchaScript() {
+    const script = document.createElement("script");
+    script.src = `https://www.google.com/recaptcha/api.js?render=${environment.recaptcha_siteKey}`;
+    document.head.appendChild(script);
   }
 }

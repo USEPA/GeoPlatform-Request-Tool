@@ -9,7 +9,9 @@ class Command(BaseCommand):
     help = 'Notify sponsors of pending account requests on daily basis'
 
     def handle(self, *args, **options):
-        pending_accounts = AGOLUserFields.objects.filter(sponsor=True, user__response__requests__approved__isnull=True)\
+        pending_accounts = AGOLUserFields.objects\
+            .filter(sponsor=True, user__response__requests__approved__isnull=True,
+                    user__response__requests__denied__isnull=True)\
             .annotate(total_pending=Count('user__response__requests'))\
             .filter(total_pending__gt=0)
 

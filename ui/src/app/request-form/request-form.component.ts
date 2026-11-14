@@ -1,26 +1,49 @@
-import {Component, OnInit} from '@angular/core';
-import {FormControl, FormGroup, Validators} from '@angular/forms';
-import {HttpClient, HttpErrorResponse, HttpParams} from '@angular/common/http';
-import {BehaviorSubject, iif, Observable, of, switchMap, take} from 'rxjs';
+import {Component, OnInit, ChangeDetectionStrategy} from '@angular/core';
+import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import {BehaviorSubject, from, iif, Observable, of, switchMap, take} from 'rxjs';
 import {catchError, finalize, map, share, tap} from 'rxjs/operators';
-import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-bar';
+import {MatSnackBar} from '@angular/material/snack-bar';
 import {environment} from '../../environments/environment';
 import {ActivatedRoute} from '@angular/router';
-import {ReCaptchaV3Service} from 'ng-recaptcha';
+import {fromPromise} from "rxjs/internal/observable/innerFrom";
+import {MatCard, MatCardSubtitle, MatCardTitle} from "@angular/material/card";
+import {MatError, MatFormField, MatHint, MatInput, MatLabel} from "@angular/material/input";
+import {MatOption, MatSelect} from "@angular/material/select";
+import {AsyncPipe} from "@angular/common";
+import {MatButton} from "@angular/material/button";
 
 interface Response {
   id: number;
   name: string;
 }
 
+declare const grecaptcha: any;
+
 @Component({
-  selector: 'app-request-form',
-  templateUrl: './request-form.component.html',
-  styleUrls: ['./request-form.component.css']
+    selector: 'app-request-form',
+    templateUrl: './request-form.component.html',
+    styleUrls: ['./request-form.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    MatCard,
+    MatCardTitle,
+    MatCardSubtitle,
+    ReactiveFormsModule,
+    MatFormField,
+    MatLabel,
+    MatError,
+    MatHint,
+    MatSelect,
+    MatOption,
+    AsyncPipe,
+    MatButton,
+    MatInput
+  ]
 })
 export class RequestFormComponent implements OnInit {
   submitting: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-  responses: Observable<Response[]>;
+  responses!: Observable<Response[]>;
   requestForm: FormGroup = new FormGroup({
     first_name: new FormControl(null, Validators.required),
     last_name: new FormControl(null, Validators.required),
@@ -30,8 +53,7 @@ export class RequestFormComponent implements OnInit {
     recaptcha: new FormControl(null)
   });
 
-  constructor(public http: HttpClient, public matSnackBar: MatSnackBar, private activatedRoute: ActivatedRoute,
-              private recaptchaV3Service: ReCaptchaV3Service) {
+  constructor(public http: HttpClient, public matSnackBar: MatSnackBar, private activatedRoute: ActivatedRoute) {
   }
 
   ngOnInit() {
@@ -81,11 +103,17 @@ export class RequestFormComponent implements OnInit {
     ).subscribe();
   }
 
-  getRecaptureToken(): Observable<string> {
+  getRecaptureToken(): Observable<void> {
     // new way of getting recaptcha token into form
-    return this.recaptchaV3Service.execute('submit').pipe(
-      tap(recaptcha => this.requestForm.patchValue({recaptcha}))
-    )
+    return new Observable((obs) => {
+      grecaptcha.ready(() => {
+        grecaptcha.execute(environment.recaptcha_siteKey, {action: 'submit'}).then((token: string) => {
+          this.requestForm.patchValue({recaptcha: token});
+          obs.next();
+          obs.complete();
+        }, () => obs.error({error: {details: ['Unable to verify reCAPTCHA. Please try again.']}}));
+      });
+    });
   }
 
   submitForm() {

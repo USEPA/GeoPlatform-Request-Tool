@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {HttpClient, HttpParams} from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import {Observable, BehaviorSubject, ReplaySubject} from "rxjs";
 import {LoadingService} from "./loading.service";
 import {DataSource} from "@angular/cdk/collections";
@@ -7,8 +7,8 @@ import {map, tap} from 'rxjs/operators';
 import {environment} from "@environments/environment";
 
 export interface SearchObject {
-  search?: string;
-  page?: number;
+  search: string;
+  page: number;
   page_size?: number;
   ordering?: string;
   object_id?: string | number;
@@ -32,8 +32,8 @@ export interface Choice {
 }
 
 export class BaseService {
-  currentPage: number;
-  count: number;
+  currentPage?: number;
+  count?: number;
   dataChange: BehaviorSubject<any[]> = new BehaviorSubject<any[]>([]);
   filter: SearchObject;
   datasource: BaseDataSource;
@@ -42,14 +42,14 @@ export class BaseService {
   constructor(public base_url: string, public http: HttpClient, public loadingService: LoadingService) {
     this.base_url = `${environment.local_service_endpoint}/${base_url}`
     this.datasource = new BaseDataSource(this);
-    this.filter = {};
+    this.filter = { page: 1, search: '' };
   }
 
   get data(): any[] {
     return this.dataChange.value;
   }
 
-  getList<Any>(search_object: SearchObject = {}): Observable<Response> {
+  getList<Any>(search_object: SearchObject = { page: 1, search: '' }): Observable<Response> {
     let url = `${this.base_url}/`;
     return this.http.get<Response>(url,
       {
@@ -102,7 +102,7 @@ export class BaseService {
     );
   }
 
-  getPage(event) {
+  getPage(event: any) {
     this.loadingService.setLoading(true);
     this.filter.page = event.pageIndex + 1;
     this.filter.page_size = event.pageSize;
@@ -123,7 +123,7 @@ export class BaseService {
     this.getItems().subscribe(() => this.loadingService.setLoading(false));
   }
 
-  clearFilter(field) {
+  clearFilter(field: string) {
     delete this.filter[field];
   }
 
@@ -136,7 +136,7 @@ export class BaseService {
     this.getItems().subscribe();
   }
 
-  sortTable(event) {
+  sortTable(event: any) {
     // this.loadingService.setLoading(true);
     this.filter.page = 1;
     let direction = event.direction === 'desc' ? '-' : '';

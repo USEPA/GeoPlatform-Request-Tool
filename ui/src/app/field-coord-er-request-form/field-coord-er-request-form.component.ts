@@ -1,8 +1,8 @@
-import {Component, EventEmitter, OnInit, Output} from '@angular/core';
-import {FormControl, FormGroup, Validators} from '@angular/forms';
+import {Component, EventEmitter, OnInit, Output, ChangeDetectionStrategy} from '@angular/core';
+import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {BehaviorSubject, combineLatest, forkJoin, Observable, of, Subject} from 'rxjs';
-import {HttpClient, HttpParams} from '@angular/common/http';
-import {MatLegacySnackBar as MatSnackBar} from '@angular/material/legacy-snack-bar';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import {MatSnackBar} from '@angular/material/snack-bar';
 import {catchError, filter, finalize, map, switchMap, tap} from 'rxjs/operators';
 
 import {BaseService, Choice, Response} from '@services/base.service';
@@ -12,18 +12,36 @@ import {AgolGroup} from '../dialogs/edit-account-props-dialog/edit-account-props
 import {UserConfigService} from '../auth/user-config.service';
 import {LoadingService} from '@services/loading.service';
 import {AGOLRole} from '../types';
-import {TagItem} from '@components/tag-input/tag-input.component';
+import {TagInputComponent, TagItem} from '@components/tag-input/tag-input.component';
+import {AsyncPipe} from "@angular/common";
+import {MatFormField, MatInput, MatLabel} from "@angular/material/input";
+import {MatOption, MatSelect} from "@angular/material/select";
+import {MatButton} from "@angular/material/button";
+import {MatProgressSpinner} from "@angular/material/progress-spinner";
 
 
 @Component({
   selector: 'app-field-coord-er-request-form',
   templateUrl: './field-coord-er-request-form.component.html',
-  styleUrls: ['./field-coord-er-request-form.component.css']
+  styleUrls: ['./field-coord-er-request-form.component.css'],
+  imports: [
+    AsyncPipe,
+    ReactiveFormsModule,
+    MatFormField,
+    MatLabel,
+    MatSelect,
+    MatOption,
+    MatButton,
+    MatProgressSpinner,
+    MatInput,
+    TagInputComponent
+  ],
+  changeDetection: ChangeDetectionStrategy.Eager
 })
 export class FieldCoordErRequestFormComponent implements OnInit {
   @Output() saved: EventEmitter<any> = new EventEmitter<any>();
   isLoading: Boolean;
-  field_coordinators: Observable<TagItem[]>;
+  field_coordinators!: Observable<TagItem[]>;
   auth_groups: BehaviorSubject<AgolGroup[]> = new BehaviorSubject<AgolGroup[]>([]);
   tags = [];
   submitting: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
@@ -56,6 +74,10 @@ export class FieldCoordErRequestFormComponent implements OnInit {
   ngOnInit() {
     this.userConfig.config.pipe(
       tap(c => {
+        if (c === null) {
+          this.fieldTeamCoordErForm.patchValue({requester: null, portal: null});
+          return;
+        }
         this.fieldTeamCoordErForm.patchValue({
           requester: c.id,
           requester_phone_number: c.phone_number,
@@ -136,7 +158,7 @@ export class FieldCoordErRequestFormComponent implements OnInit {
   }
 
   initRoles(getAuthGroups: boolean) {
-    this.roleService.getList<AGOLRole>({is_available: true}).pipe(
+    this.roleService.getList<AGOLRole>({is_available: true, page: 1, search: ''}).pipe(
       map(r => r.results),
       tap(r => {
         this.roles.next(r);

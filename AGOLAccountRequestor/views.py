@@ -18,8 +18,13 @@ logger = logging.getLogger('django')
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([permissions.AllowAny])
 @ensure_csrf_cookie
+def start(request):
+    return Response()
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def current_user(request):
     permissions = []
     for permission in request.user.user_permissions.all():

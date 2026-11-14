@@ -1,5 +1,5 @@
 @use '@angular/material' as mat;
-@import '../node_modules/@angular/material/theming';
+//@import '../node_modules/@angular/material';
 
 // TODO(v15): As of v15 mat.legacy-core no longer includes default typography styles.
 //  The following line adds:
@@ -8,21 +8,39 @@
 //  If you specify typography styles for the components you use elsewhere, you should delete this line.
 //  If you don't need the default component typographies but still want the hierarchy styles,
 //  you can delete this line and instead use:
-//    `@include mat.legacy-typography-hierarchy(mat.define-legacy-typography-config());`
-@include mat.all-legacy-component-typographies();
-@include mat.legacy-core();
+//    `@include mat.legacy-typography-hierarchy(mat.define-typography-config());`
+@include mat.all-component-typographies();
+@include mat.elevation-classes();
+@include mat.app-background();
 
-$light-theme-primary: mat.define-palette(mat.$blue-palette);
-$light-theme-accent: mat.define-palette(mat.$blue-grey-palette, A200, A100, A400);
-$light-theme-warn: mat.define-palette(mat.$orange-palette);
+$light-theme-primary: mat.m2-define-palette(mat.$m2-blue-palette);
+$light-theme-accent: mat.m2-define-palette(mat.$m2-blue-grey-palette, A200, A100, A400);
+$light-theme-warn: mat.m2-define-palette(mat.$m2-orange-palette);
 
-$light-theme: mat.define-light-theme($light-theme-primary, $light-theme-accent, $light-theme-warn);
+$light-theme: mat.m2-define-light-theme($light-theme-primary, $light-theme-accent, $light-theme-warn);
 
-@include mat.all-legacy-component-themes($light-theme);
+@include mat.all-component-themes($light-theme);
+
+.mat-mdc-snack-bar-container.snackbar-success {
+  @include mat.snack-bar-overrides((
+    container-color: green,
+    supporting-text-color: white,
+    button-color: white,
+  ));
+}
+
+.mat-mdc-snack-bar-container.snackbar-error,
+.mat-mdc-snack-bar-container.snackbar-warning {
+  @include mat.snack-bar-overrides((
+    container-color: darkorange,
+    supporting-text-color: black,
+    button-color: black,
+  ));
+}
 
 // Custom colors
 $custom-colors: (
-  light-grey: mat.get-color-from-palette(mat.$gray-palette, 800),
+  light-grey: mat.m2-get-color-from-palette(mat.$m2-gray-palette, 800),
 );
 
 
@@ -60,4 +78,3 @@ $custom-colors: (
   color: #2196F3;
   margin-left: 10px;
 }
-

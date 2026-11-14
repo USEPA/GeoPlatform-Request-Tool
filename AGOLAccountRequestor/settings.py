@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'drf_recaptcha',
     'django_filters',
     'social_django',
-    # 'drf_social_oauth2',
     'rangefilter',
     'django_admin_listfilter_dropdown',
     'django_ckeditor_5',
@@ -54,7 +53,7 @@ INSTALLED_APPS += os.environ.get('INSTALLED_APPS', '').split(',') if os.environ.
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-] + (os.environ.get('CORS_MIDDLEWARE', '').split(',') if 'CORS_MIDDLEWARE' in os.environ else []) + [
+# ] + (os.environ.get('CORS_MIDDLEWARE', '').split(',') if 'CORS_MIDDLEWARE' in os.environ else []) + [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',

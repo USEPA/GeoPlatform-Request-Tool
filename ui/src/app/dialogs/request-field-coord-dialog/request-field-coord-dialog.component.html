@@ -1,6 +1,6 @@
 <h1 mat-dialog-title>Team Coordinator Request Form</h1>
 <div id="request-dialog"> Use the form below to request access to approve user account requests
-  and assign users to groups for a specific emergency response or project.</div> <br>
+and assign users to groups for a specific emergency response or project.</div> <br>
 <div mat-dialog-content>
   <form novalidate [formGroup]="requestFieldCoordForm">
     <!--first name-->
@@ -14,29 +14,33 @@
     <!-- phone number -->
     <mat-form-field>
       <input matInput required [(ngModel)]="data.phone_number" placeholder="Phone Number" formControlName="phone_number"
-             maxlength="10">
-      <mat-error *ngIf="requestFieldCoordForm.controls['phone_number'].errors">Not a valid phone number</mat-error>
-      <mat-hint>Enter a 10-digit phone number without dashes or spaces.</mat-hint>
-    </mat-form-field>
-    <!--email-->
-    <mat-form-field>
-      <input matInput required [(ngModel)]="data.email" type="email" formControlName="email" placeholder="Email">
-      <mat-error *ngIf="requestFieldCoordForm.controls.email.invalid">Not a valid email</mat-error>
-    </mat-form-field>
-    <mat-form-field>
-      <input matInput required type="text" formControlName="agol_user" placeholder="GeoPlatform User Account">
-    </mat-form-field>
-    <mat-form-field>
-      <input matInput required type="text" formControlName="emergency_response"
-             placeholder="Which response or project are you working on?">
-    </mat-form-field>
-  </form>
-</div>
-<div mat-dialog-actions>
-  <button mat-raised-button color="accent" (click)="dismiss()">Cancel</button>
-  <button mat-raised-button color="primary"
-          [disabled]="!requestFieldCoordForm.valid"
-          (click)="submit()">
-    Submit
-  </button>
-</div>
+        maxlength="10">
+        @if (requestFieldCoordForm.controls['phone_number'].errors) {
+          <mat-error>Not a valid phone number</mat-error>
+        }
+        <mat-hint>Enter a 10-digit phone number without dashes or spaces.</mat-hint>
+      </mat-form-field>
+      <!--email-->
+      <mat-form-field>
+        <input matInput required [(ngModel)]="data.email" type="email" formControlName="email" placeholder="Email">
+        @if (requestFieldCoordForm.controls.email.invalid) {
+          <mat-error>Not a valid email</mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput required type="text" formControlName="agol_user" placeholder="GeoPlatform User Account">
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput required type="text" formControlName="emergency_response"
+          placeholder="Which response or project are you working on?">
+        </mat-form-field>
+      </form>
+    </div>
+    <div mat-dialog-actions>
+      <button mat-raised-button color="accent" (click)="dismiss()">Cancel</button>
+      <button mat-raised-button color="primary"
+        [disabled]="!requestFieldCoordForm.valid"
+        (click)="submit()">
+        Submit
+      </button>
+    </div>

@@ -1,26 +1,32 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./",
-    "downlevelIteration": true,
+    "rootDir": ".",
     "importHelpers": true,
     "outDir": "./dist/out-tsc",
     "sourceMap": true,
     "declaration": false,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "target": "ES2022",
     "typeRoots": [
       "node_modules/@types"
     ],
-    "lib": [
-      "es2018",
-      "dom"
-    ],
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "useDefineForClassFields": false
+    "useDefineForClassFields": false,
+    "paths": {
+      "@services/*": [
+        "./src/app/services/*"
+      ],
+      "@components/*": [
+        "./src/app/components/*"
+      ],
+      "@environments/*": [
+        "./src/environments/*"
+      ]
+    }
   }
 }

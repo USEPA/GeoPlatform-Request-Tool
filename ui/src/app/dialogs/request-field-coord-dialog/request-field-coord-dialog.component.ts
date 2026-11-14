@@ -1,7 +1,13 @@
-import {Component, Inject, OnInit} from '@angular/core';
-import {UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
-import {MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogRef as MatDialogRef} from '@angular/material/legacy-dialog';
-import {HttpClient, HttpParams} from '@angular/common/http';
+import {Component, Inject, OnInit, ChangeDetectionStrategy} from '@angular/core';
+import {ReactiveFormsModule, UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
+import {
+  MAT_DIALOG_DATA,
+  MatDialogActions,
+  MatDialogContent,
+  MatDialogRef,
+  MatDialogTitle
+} from '@angular/material/dialog';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import {ReplaySubject} from 'rxjs';
 import {map, tap} from 'rxjs/operators';
 
@@ -9,13 +15,27 @@ import {BaseService} from '@services/base.service';
 import {FieldCoordinator} from '../../field-coord-list/field-coord-list.component';
 import {LoadingService} from '@services/loading.service';
 import {AgolGroup} from '../edit-account-props-dialog/edit-account-props-dialog.component';
+import {MatError, MatFormField, MatHint, MatInput} from "@angular/material/input";
+import {MatButton} from "@angular/material/button";
 
 
 
 @Component({
   selector: 'app-request-field-coord-dialog',
   templateUrl: './request-field-coord-dialog.component.html',
-  styleUrls: ['./request-field-coord-dialog.component.css']
+  styleUrls: ['./request-field-coord-dialog.component.css'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    MatDialogTitle,
+    MatDialogContent,
+    ReactiveFormsModule,
+    MatFormField,
+    MatInput,
+    MatError,
+    MatHint,
+    MatDialogActions,
+    MatButton
+  ]
 })
 export class RequestFieldCoordDialogComponent implements OnInit {
   requestFieldCoordForm: UntypedFormGroup = new UntypedFormGroup({
